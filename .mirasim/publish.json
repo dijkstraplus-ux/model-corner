@@ -1,0 +1,20 @@
+{
+  "$schema": "https://mirasim.ai/schemas/publish-v1.json",
+  "version": 1,
+  "items": [
+    {
+      "id": "town",
+      "kind": "service",
+      "title": "鲸巷",
+      "summary": "DeepSeek、Claude、GPT 三个拟人角色住在海边小街，每一步都由同名模型自己决定：开店、捏饭团、堆沙堡、写日记，每小时画成四格。非官方同人，与各 AI 公司无关。",
+      "cover": "model-corner-design/promo/cover.jpg",
+      "port": 5174,
+      "health": "/api/health",
+      "run": "node model-corner-design/sim/server.mjs（由 npm run dev 的 Vite 插件常驻拉起，挂了自动重启）",
+      "source": "model-corner-design/sim",
+      "access": {
+        "mode": "open"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "note": "动作对应的动画行。verbs：物件动作；projects：项目；places：在这些地方做这些活动时的姿势（坐下、荡秋千、蹲着）；acts：其余按活动。值可以是字符串，也可以按角色分（* 是其他人）。页面上没有这一行时退回老的动作。",
+  "verbs": {
+    "pot.cook": "stir", "pot.shape": "shape", "counter.tend": "serve", "counter.busy": "slack", "counter.taste": "eat", "counter.buy": "eat", "counter.pack": "serve",
+    "blackboard.write": "chalk", "blackboard.read": "idle", "board.post": "chalk", "ema.hang": "pray", "ema.read": "idle",
+    "shelf.tidy": { "claude": "work", "*": "carry" }, "shelf.recommend": "write", "shelf.browse": "read",
+    "sandcastle.build": "crouch", "swing.play": "swing", "swing.repair": { "gpt": "fix", "*": "crouch" },
+    "crystal.foresee": "astro", "rod.fish": "fish", "lighthouse.fix": "fix", "lighthouse.watch": "idle", "boat.mend": { "gpt": "fix", "*": "crouch" },
+    "pond.feed": "crouch", "pond.name": "crouch", "cat.name": "crouch", "cat.feed": "crouch", "cat.pet": "crouch", "cat.chase": { "gpt": "hover", "*": "happy" },
+    "fountain.wish": "pray", "oldtree.sit": "sit", "oldtree.hang": "pray", "parasol.shelter": "sit", "parasol.nap": "sit", "post.fetch": "carry"
+  },
+  "projects": { "story": "write", "recipe": "stir", "starmap": { "gpt": "point" } },
+  "places": {
+    "benchE": { "*": "sit" }, "benchW": { "*": "sit" }, "benchP": { "*": "sit" }, "picnic": { "*": "sit" }, "umbrella": { "*": "sit" },
+    "tree": { "read": "sit", "rest": "sit", "write": "sit", "slack": "sit", "chat": "sit" },
+    "swing": { "play": "swing" }, "sandcastle": { "play": "crouch" }, "beach": { "play": "crouch" },
+    "shrine": { "pray": "pray" }, "ema": { "write": "chalk", "pray": "pray" }, "blackboard": { "write": "chalk" }, "board": { "write": "chalk" },
+    "pierEnd": { "rest": "fish", "slack": "fish" }
+  },
+  "acts": { "sleep": "sleep", "pray": "pray", "errand": { "ds": "carry", "gpt": "carry", "*": "idle" }, "eat": "eat", "write": { "claude": "write", "*": "idle" } }
+}

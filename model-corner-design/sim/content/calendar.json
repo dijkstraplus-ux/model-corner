@@ -1,0 +1,5 @@
+[
+  { "id": "market", "name": "集市日", "weekly": 3, "at": "06:00", "area": "market", "do": { "set": { "fishmonger.special": "鲷鱼", "fishmonger.left": 12 } }, "log": "今天是集市日，鱼摊进了新鲜的鲷鱼" },
+  { "id": "meteor", "name": "流星雨", "weekly": 6, "at": "21:00", "until": "23:30", "area": "square", "force": { "weather": "clear" }, "forecast": "流星雨", "log": "流星雨开始了！一颗接一颗划过海面", "star": true },
+  { "id": "lantern", "name": "灯笼节", "weekly": 7, "at": "18:00", "until": "23:00", "area": "park", "do": { "set": { "oldtree.lanterns": true } }, "end": { "set": { "oldtree.lanterns": false } }, "log": "后山的古树挂满了灯笼，灯笼节开始了", "star": true }
+]

@@ -1,0 +1,9 @@
+[
+  { "id": "cat_onigiri", "w": 2, "area": "square", "when": "counter.stock > 0 && cat.has == - && hour >= 10 && hour < 17", "do": { "add": { "counter.stock": -1 }, "set": { "cat.has": "饭团", "cat.at": "benchW" } }, "log": "一只白猫从深海食堂叼走了一个饭团，躲到了西边的长椅底下", "episode": { "w": 2, "title": "白猫叼走了一个饭团" } },
+  { "id": "swing_rope", "w": 1, "area": "park", "when": "swing.rope == ok", "do": { "set": { "swing.rope": "broken" } }, "log": "古树上的秋千绳断了一根", "episode": { "w": 1, "title": "秋千绳断了" } },
+  { "id": "wind_board", "w": 3, "area": "square", "when": "weather == windy && blackboard.ver > 0", "do": { "set": { "blackboard.lines": [] } }, "log": "一阵大风把书屋门口小黑板上的字吹花了", "episode": { "w": 2, "title": "大风吹花了小黑板" } },
+  { "id": "sail_torn", "w": 2, "area": "market", "when": "boat.sail == ok && weather == windy || boat.sail == ok && weather == rain", "do": { "set": { "boat.sail": "torn" } }, "log": "渔夫老海的船帆被风撕了个口子", "episode": { "w": 1, "title": "船帆破了" } },
+  { "id": "lamp_out", "w": 1, "area": "market", "when": "lighthouse.lamp == ok && hour >= 14 && hour < 19", "do": { "set": { "lighthouse.lamp": "broken" } }, "log": "灯塔的灯泡烧坏了，今晚可能不亮", "episode": { "w": 1, "title": "灯塔的灯坏了" } },
+  { "id": "gull_orange", "w": 1, "area": "market", "when": "hour >= 9 && hour < 17", "log": "一只海鸥从水果摊叼走了一个橘子，摊主追了半条街" },
+  { "id": "stray_parcel", "w": 1, "area": "market", "when": "post.forWho == - && hour >= 9 && hour < 17", "do": { "pick": { "post.forWho": ["ds", "claude", "gpt"] } }, "log": "邮差小鸥在驿站门口喊：有个包裹没人来取！" }
+]

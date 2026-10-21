@@ -1,0 +1,38 @@
+# 鲸巷 (model-corner): what stays out of git. The repo is public.
+
+# secrets and the agent homes used by the Claude / GPT channels: never commit
+mira_token
+.env
+.env.*
+*.pem
+*.key
+.claude-haiku/
+.codex-luna/
+.claude/settings.local.json
+
+# installs, logs, caches
+node_modules/
+.mirasim/dev-server.log
+.mirasim/starter.json
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+
+# retired work and local copies (kept on disk only)
+archive/
+model-corner-design/backups/
+model-corner-design/dist/
+
+# the running world: state, model call log, comics, papers, visitors' letters
+model-corner-design/sim/data/
+
+# art sources: raw gpt-image-2 outputs stay local, the prompts are kept
+model-corner-design/gen/*
+!model-corner-design/gen/p-*.txt
+model-corner-design/ref/
+model-corner-design/promo/x-launch/
+
+# walk-grid work files (segmentation caches, review crops)
+model-corner-design/nav/preview/
+model-corner-design/nav/work-*/

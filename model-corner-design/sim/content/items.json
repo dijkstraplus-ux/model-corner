@@ -1,0 +1,12 @@
+{
+  "onigiri": {"name": "海苔饭团", "food": 25},
+  "orange": {"name": "橘子", "food": 10},
+  "bouquet": {"name": "一束向日葵"},
+  "ledger": {"name": "DeepSeek 的账本", "unique": true, "lend": true},
+  "book": {"name": "《雨天的书签》", "unique": true, "lend": true},
+  "starmap": {"name": "GPT 的星图", "unique": true, "lend": true},
+  "fish": {"name": "鲜鱼"},
+  "snack": {"name": "一份点心", "food": 15},
+  "parcel": {"name": "包裹"},
+  "newbook": {"name": "新书", "unique": true, "lend": true}
+}

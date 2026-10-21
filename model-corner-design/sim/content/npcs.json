@@ -1,0 +1,10 @@
+{
+  "npcs": {"laohai": "渔夫老海", "huapo": "花摊婆婆", "youchai": "邮差小鸥", "xiaoge": "点心推车小哥"},
+  "requests": [
+    {"id": "nets", "npc": "laohai", "text": "帮忙把渔网晾到码头上", "place": "jetty", "act": "errand", "minutes": 40, "w": 2, "done": "{who}帮渔夫老海晾好了渔网", "end": {"give": {"k": "fish", "n": 1}, "log": "老海送了{who}一条鲜鱼"}},
+    {"id": "parcel", "npc": "youchai", "text": "驿站有一批包裹要分拣", "place": "post", "act": "errand", "minutes": 50, "w": 3, "done": "{who}在驿站帮邮差小鸥分拣完了包裹", "end": {"set": {"post.parcels": 0}}},
+    {"id": "flowers", "npc": "huapo", "text": "新到的向日葵要搬到摊上", "place": "flower", "act": "errand", "minutes": 30, "w": 2, "done": "{who}帮花摊婆婆把向日葵搬上了摊", "end": {"give": {"k": "bouquet", "n": 1}}},
+    {"id": "boxes", "npc": "xiaoge", "text": "点心推车要补货，帮忙搬几箱", "place": "snack", "act": "errand", "minutes": 40, "w": 2, "done": "{who}帮点心推车小哥搬完了货", "end": {"give": {"k": "snack", "n": 2}}},
+    {"id": "lantern", "npc": "huapo", "text": "后山古树上的灯笼要换新的", "place": "tree", "act": "errand", "minutes": 45, "w": 1, "done": "{who}给后山古树换上了新灯笼"}
+  ]
+}

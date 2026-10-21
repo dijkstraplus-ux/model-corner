@@ -1,0 +1,2193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鲸巷 · Whale Lane</title>
+<style>
+  @font-face { font-family: 'Kuaile'; src: url('assets/kuaile.woff2?v=full') format('woff2'); font-display: swap; } /* 完整字库（7053 字）：标题、漫画题目、日报标题都是模型临时写的，什么字都可能有 */
+  :root {
+    /* 一套纸张感的暖色：底、卡片、内嵌三层；墨色正文；金色只用来点缀；角色自己的颜色只用在和她有关的地方 */
+    --ink: #3a2e28; --ink2: #6b5c52; --mute: #9a8a7d;
+    --page: #efe5d8; --paper: #fffaf3; --paper2: #f7eee2; --paper3: #efe2d1; --line: rgba(120, 88, 56, .15);
+    --gold: #d9a54a; --red: #e0566e;
+    --shadow: 0 1px 2px rgba(70, 45, 25, .06), 0 8px 24px rgba(70, 45, 25, .10);
+    --shadow2: 0 24px 64px rgba(40, 24, 12, .30);
+    --r: 18px;
+    --disp: 'Kuaile', 'Noto Sans CJK SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --body: 'Noto Sans CJK SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; color: var(--ink); font-family: var(--body); }
+  body { background: radial-gradient(1100px 620px at 12% -8%, #fff7ea 0%, rgba(255, 247, 234, 0) 62%), radial-gradient(900px 640px at 105% 108%, #ead8c0 0%, rgba(234, 216, 192, 0) 60%), var(--page); }
+  button { font-family: inherit; }
+  #app { position: relative; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); padding: 0 20px 20px; }
+  .card { background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: var(--r); }
+  svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* 顶栏：一条。左边是招牌和三个区域，右边是此刻（时间天气）、围观人数和两个按钮 */
+  header.top { display: flex; align-items: center; gap: 14px; height: 70px; }
+  .brand { display: flex; align-items: center; gap: 10px; flex: none; }
+  .brand img { width: 40px; height: 40px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 3px 10px rgba(40, 60, 120, .18); }
+  .brand b { display: block; font: 25px/1 var(--disp); letter-spacing: 3px; }
+  .brand small { display: block; margin-top: 4px; font-size: 11.5px; color: var(--mute); letter-spacing: .5px; white-space: nowrap; }
+  .areas { display: flex; gap: 3px; padding: 4px; margin-left: 14px; background: var(--paper3); border-radius: 999px; box-shadow: inset 0 1px 2px rgba(70, 45, 25, .08); }
+  .area { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 5px; border: 0; border-radius: 999px; background: transparent; color: var(--ink2); font: 15px var(--disp); cursor: pointer; white-space: nowrap; transition: background .15s; }
+  .area:hover { background: rgba(255, 255, 255, .5); }
+  .area.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(70, 45, 25, .12), 0 2px 8px rgba(70, 45, 25, .08); }
+  .area .th { width: 30px; height: 30px; border-radius: 50%; background-size: cover; background-position: center; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85); flex: none; }
+  .area .who { display: flex; padding-left: 4px; }
+  .area .who img { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #fff; margin-left: -6px; background: #fff; }
+  .area .s { display: none; }
+  .top .gap { flex: 1; }
+  .when { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 16px 0 6px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow); white-space: nowrap; }
+  .dial { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #9a6a12; background: radial-gradient(circle at 35% 30%, #fff8dc, #f6c062); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .08); }
+  .dial.dusk { color: #8a3f2a; background: radial-gradient(circle at 35% 30%, #ffe1c8, #ee8f68); }
+  .dial.night { color: #eef0ff; background: radial-gradient(circle at 35% 30%, #aab6ff, #4a55a8); }
+  .dial svg.i { width: 19px; height: 19px; }
+  .when b { display: block; font: 20px/1 var(--disp); letter-spacing: 1px; }
+  .when small { display: block; margin-top: 3px; font-size: 11.5px; color: var(--mute); }
+  .viewers { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink2); white-space: nowrap; }
+  .viewers .live { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 4px rgba(224, 86, 110, .18); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgba(224, 86, 110, 0); } }
+  .btn { position: relative; display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 18px; border: 0; border-radius: 999px; font: 15px var(--disp); letter-spacing: 1px; cursor: pointer; white-space: nowrap; transition: transform .1s, box-shadow .15s; }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary, .btn.dark { background: var(--ink); color: #fff6ea; box-shadow: 0 2px 8px rgba(40, 24, 12, .22); }
+  .btn.ghost { background: var(--paper); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .btn.violet { background: linear-gradient(#9a84f0, #6b55c9); color: #fff; }
+  .btn.soft { background: var(--paper3); color: var(--ink); }
+  .btn.warm { background: linear-gradient(#ffcf7a, #f0a83c); color: #5a3a10; }
+  .btn.new::after { content: ''; position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 2px var(--paper); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .iconbtn { width: 38px; height: 38px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 250, 243, .92); color: var(--ink); cursor: pointer; box-shadow: 0 2px 10px rgba(40, 24, 12, .2); }
+
+  /* 主区：左边是街（地图是主角），右边是伴读栏；两边上下对齐 */
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; min-height: 0; align-items: start; }
+  .stage-col { min-width: 0; min-height: 0; height: 100%; display: flex; align-items: flex-start; justify-content: center; }
+  .stage { position: relative; border-radius: var(--r); overflow: hidden; background: #e7d9c6; box-shadow: 0 0 0 1px var(--line), 0 10px 34px rgba(70, 45, 25, .18); }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* 地图上的小牌子：这是哪儿、此刻有什么事、光线预览 */
+  .hud { position: absolute; z-index: 3; display: flex; gap: 8px; align-items: center; }
+  .hud.tl { left: 14px; top: 14px; }
+  .hud.tr { right: 14px; top: 14px; }
+  .hud.br { right: 14px; bottom: 14px; }
+  .hchip { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px 0 10px; border-radius: 999px; background: rgba(255, 250, 243, .93); box-shadow: 0 2px 10px rgba(40, 24, 12, .18); font-size: 13px; color: var(--ink); white-space: nowrap; backdrop-filter: blur(6px); }
+  .hchip b { font: 15px var(--disp); font-weight: 400; }
+  .hchip .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--mute); display: inline-block; vertical-align: middle; }
+  .hchip .extra { display: inline-flex; align-items: center; gap: 7px; }
+  .hchip.ev { cursor: pointer; background: rgba(58, 46, 40, .9); color: #fff6ea; }
+  .hchip.ev.on { background: rgba(224, 86, 110, .94); }
+  .hchip.ev small { opacity: .75; font-size: 12px; }
+  .todpop { position: absolute; right: 0; bottom: 46px; display: none; flex-direction: column; gap: 2px; padding: 6px; min-width: 132px; }
+  .todpop.open { display: flex; }
+  .todpop button { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; border-radius: 10px; padding: 7px 10px; font: 14px var(--disp); color: var(--ink2); cursor: pointer; text-align: left; }
+  .todpop button:hover { background: var(--paper2); }
+  .todpop button.on { background: var(--ink); color: #fff6ea; }
+  .todpop .hint { padding: 4px 8px 2px; }
+  .tip { position: absolute; z-index: 4; pointer-events: none; padding: 5px 12px; font: 14px var(--disp); background: rgba(58, 46, 40, .92); color: #fff4e6; border-radius: 999px; transform: translate(-50%, -100%); white-space: nowrap; display: none; }
+  .pop { position: absolute; z-index: 6; width: 270px; padding: 14px 16px 12px; transform: translate(-50%, calc(-100% - 16px)); display: none; }
+  .pop::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 16px; height: 16px; background: var(--paper); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: translateX(-50%) rotate(45deg); }
+  .pop h4 { margin: 0 0 4px; font: 19px var(--disp); display: flex; align-items: center; gap: 6px; }
+  .pop p { margin: 0 0 8px; font-size: 13px; line-height: 1.65; color: var(--ink2); }
+  .pop .live { font-size: 12.5px; background: var(--paper2); border-radius: 10px; padding: 6px 9px; margin-bottom: 9px; line-height: 1.6; }
+  .pop .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .pop .row .btn { min-height: 32px; padding: 0 14px; font-size: 13.5px; }
+  .pop .x { position: absolute; right: 10px; top: 8px; border: 0; background: none; cursor: pointer; color: var(--mute); }
+  .hint { font-size: 12px; color: var(--mute); }
+
+  /* 伴读栏：上面是「她们现在」，下面四个页签：动态、街区、画册、日报 */
+  .side-col { display: flex; flex-direction: column; min-height: 0; height: 100%; overflow: hidden; }
+  .mates { display: grid; gap: 2px; padding: 8px; border-bottom: 1px solid var(--line); }
+  .mates h3 { margin: 4px 8px 4px; font: 15px var(--disp); color: var(--mute); font-weight: 400; display: flex; align-items: center; justify-content: space-between; }
+  .mates h3 small { font: 11.5px var(--body); }
+  .mate { display: grid; grid-template-columns: 48px minmax(0, 1fr) 16px; gap: 11px; align-items: center; width: 100%; padding: 7px 8px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; transition: background .15s; }
+  .mate:hover { background: var(--paper2); }
+  .mate .av { position: relative; width: 48px; height: 48px; }
+  .mate .av img { width: 48px; height: 48px; border-radius: 50%; border: 2.5px solid var(--c); background: #fff; }
+  .mate .av .st { position: absolute; right: -3px; bottom: -2px; width: 21px; height: 21px; border-radius: 50%; background: #fff; color: var(--c); display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
+  .mate .av .st svg.i { width: 13px; height: 13px; }
+  .mate .tx { min-width: 0; display: grid; gap: 1px; }
+  .mate .nm { display: flex; align-items: baseline; gap: 7px; font: 16px var(--disp); }
+  .mate .nm em { font: 10.5px var(--body); font-style: normal; color: var(--mute); background: var(--paper2); border-radius: 6px; padding: 1px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mate .doing { font-size: 13px; line-height: 1.45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mate .where { font-size: 11.5px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mate .where i { font-style: normal; color: var(--ink2); }
+  .mate > svg.i { color: var(--mute); width: 16px; height: 16px; }
+  .ptabs { display: flex; gap: 4px; margin: 10px 12px 0; padding: 3px; background: var(--paper3); border-radius: 999px; }
+  .ptabs button { position: relative; flex: 1; height: 34px; border: 0; border-radius: 999px; background: transparent; font: 15px var(--disp); color: var(--ink2); cursor: pointer; }
+  .ptabs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(70, 45, 25, .14); }
+  .ptabs button.new::after { content: ''; position: absolute; top: 6px; right: 12px; width: 7px; height: 7px; border-radius: 50%; background: var(--red); }
+  .pbody { flex: 1; min-height: 0; overflow: auto; padding: 10px 14px 14px; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .filters button { border: 0; border-radius: 999px; padding: 4px 11px 4px 5px; font: 13px var(--disp); background: var(--paper2); cursor: pointer; display: flex; align-items: center; gap: 5px; color: var(--ink2); }
+  .filters button.txt { padding-left: 11px; }
+  .filters button.on { background: var(--ink); color: #fff6ea; }
+  .filters button.av { padding: 3px; }
+  .filters button.av img { width: 24px; height: 24px; }
+  .filters button.av.on { background: var(--c); }
+  .filters img { width: 20px; height: 20px; border-radius: 50%; }
+  .day { font: 13px var(--disp); color: var(--mute); margin: 12px 0 4px; display: flex; align-items: center; gap: 8px; }
+  .day::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .entry { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 7px 6px; border-radius: 12px; cursor: pointer; font-size: 13px; line-height: 1.6; }
+  .entry:hover { background: var(--paper2); }
+  .entry img, .entry .ico { width: 30px; height: 30px; border-radius: 50%; }
+  .entry .ico { display: grid; place-items: center; background: var(--paper3); color: #9a7a50; }
+  .entry .ico svg.i { width: 16px; height: 16px; }
+  .entry .tm { color: var(--mute); font-size: 11.5px; display: block; }
+  .entry.star { background: linear-gradient(90deg, rgba(247, 213, 140, .32), rgba(247, 213, 140, 0)); }
+  .entry.star .txt::before { content: '★ '; color: var(--gold); }
+  .entry.new { animation: flash 1.6s; }
+  @keyframes flash { from { background: rgba(247, 213, 140, .8); } }
+  .entry .shot { display: block; margin-top: 6px; width: 100%; max-height: 150px; object-fit: cover; object-position: top; border-radius: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, .15); }
+  .empty { color: var(--mute); font-size: 13px; padding: 20px 6px; text-align: center; }
+
+  .modal { position: fixed; inset: 0; background: rgba(25, 18, 14, .55); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 22px; z-index: 20; }
+  .modal.open { display: flex; animation: fade .18s ease-out; }
+  @keyframes fade { from { opacity: 0; transform: scale(.985); } }
+  .panel { width: min(1260px, 100%); height: min(780px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) clamp(320px, 32vw, 410px); overflow: hidden; border-radius: 26px; background: var(--paper); box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
+  .scene { position: relative; background: #e9dccb; min-width: 0; }
+  .scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .scene .back { position: absolute; left: 16px; top: 16px; z-index: 2; }
+  .scene .plaque { position: absolute; right: 16px; top: 16px; z-index: 2; font: 19px var(--disp); background: rgba(255, 248, 238, .94); padding: 7px 18px; border-radius: 999px; box-shadow: var(--shadow); display: flex; gap: 6px; align-items: center; }
+  .scene .say { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 2; max-width: 80%; background: rgba(255, 255, 255, .95); border-radius: 18px; padding: 10px 18px; font: 16px var(--disp); box-shadow: var(--shadow); display: none; }
+  .side { display: flex; flex-direction: column; min-height: 0; border-left: 1px solid var(--line); }
+  .prof { display: flex; gap: 14px; padding: 20px 22px 12px; align-items: center; }
+  .prof img { width: 74px; height: 74px; border-radius: 50%; border: 3px solid var(--c); background: #fff; }
+  .prof h2 { margin: 0; font: 26px var(--disp); letter-spacing: 1px; }
+  .prof .role { color: var(--mute); font-size: 13px; margin-top: 2px; }
+  .now { margin: 0 22px; padding: 10px 12px; border-radius: 14px; background: var(--paper2); font-size: 13.5px; display: flex; gap: 8px; align-items: center; line-height: 1.5; }
+  .now svg.i { color: var(--c); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 12px 22px 2px; }
+  .stat { font-size: 12px; color: var(--mute); display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 6px; }
+  .stat .bar { grid-column: 1 / -1; height: 7px; border-radius: 4px; background: #efe1cd; overflow: hidden; }
+  .stat .bar i { display: block; height: 100%; border-radius: 4px; }
+  .tabs { display: flex; gap: 2px; padding: 10px 18px 0; border-bottom: 1px solid var(--line); }
+  .tabs button { border: 0; background: transparent; font: 16px var(--disp); padding: 8px 10px 9px; color: var(--mute); cursor: pointer; border-bottom: 3px solid transparent; }
+  .tabs button.on { color: var(--ink); border-color: var(--c); }
+  .tabbody { flex: 1; overflow: auto; padding: 14px 22px; font-size: 13.5px; line-height: 1.75; }
+  .mono { position: relative; padding: 10px 14px 10px 16px; background: #fff; border-radius: 16px; margin-bottom: 10px; box-shadow: 0 1px 0 var(--line); }
+  .mono .tm { font-size: 11.5px; color: #a59484; display: flex; gap: 6px; align-items: center; }
+  .mono.live { border: 1.5px dashed var(--c); }
+  .mono.live .tm b { color: var(--c); font-weight: 700; }
+  .note { font-size: 12px; color: var(--mute); background: var(--paper2); border-radius: 10px; padding: 6px 10px; margin-bottom: 10px; }
+  .diary { background: repeating-linear-gradient(#fffdf8 0 29px, #efe0ca 29px 30px); padding: 4px 16px 10px; border-radius: 14px; margin-bottom: 14px; line-height: 30px; box-shadow: 0 1px 0 var(--line); }
+  .diary h4 { margin: 0; font: 16px var(--disp); line-height: 34px; display: flex; justify-content: space-between; }
+  .diary h4 small { font: 12px var(--body); color: var(--mute); }
+  .sec { font: 16px var(--disp); margin: 4px 0 6px; }
+  .mem { display: grid; grid-template-columns: 46px 1fr; gap: 8px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  .mem .s { color: var(--gold); letter-spacing: -1px; }
+  .rel { display: grid; grid-template-columns: 40px 1fr 34px; gap: 10px; align-items: center; padding: 8px 0; }
+  .rel img, .rel .ico { width: 40px; height: 40px; border-radius: 50%; }
+  .rel .ico { display: grid; place-items: center; background: #f2e3cf; color: #9a7a50; }
+  .rel .bar { height: 7px; border-radius: 4px; background: #efe1cd; overflow: hidden; margin-top: 4px; }
+  .rel .bar i { display: block; height: 100%; border-radius: 4px; background: #e0566e; }
+  .rel b { font-family: var(--disp); font-weight: 400; font-size: 15px; }
+  .rel span { color: var(--mute); font-size: 12.5px; }
+  .relx { margin: -4px 0 8px 50px; display: grid; gap: 3px; font-size: 12.5px; line-height: 1.5; color: #6b5a48; }
+  .relx em { font-style: normal; color: var(--mute); margin-right: 6px; }
+  .bag { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bag span { padding: 3px 10px; border-radius: 999px; background: #f6ead8; border: 1px solid #ecd9bd; font-size: 12.5px; color: #6b5a48; }
+  .plan { padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+  .acts { padding: 12px 22px 18px; border-top: 1px solid var(--line); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .acts .btn { min-height: 36px; padding: 0 16px; font-size: 14px; }
+  /* 店里（房间视图） */
+  .scene .plaque.link { cursor: pointer; border: 0; color: var(--ink); }
+  .scene .plaque.link:hover { background: #fff; }
+  .scene .plaque small { font: 13px var(--body); color: var(--mute); }
+  .scene .tip { z-index: 5; }
+  .scene .pop { width: 250px; }
+  .rm-ico { width: 74px; height: 74px; flex: none; border-radius: 50%; border: 3px solid var(--c); background: #fff; color: var(--c); display: grid; place-items: center; }
+  .rm-ico svg.i { width: 34px; height: 34px; }
+  .rm-p { width: 100%; display: grid; grid-template-columns: 44px minmax(0, 1fr) 16px; gap: 10px; align-items: center; padding: 8px 10px; margin-bottom: 8px; background: #fff; border: 0; border-radius: 14px; box-shadow: 0 1px 0 var(--line); cursor: pointer; text-align: left; font: inherit; color: inherit; line-height: 1.5; }
+  .rm-p:hover { background: #fff3e2; }
+  .rm-p img { width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid var(--pc); background: #fff; }
+  .rm-p b { font: 15px var(--disp); font-weight: 400; }
+  .rm-p .d { font-size: 12.5px; color: var(--mute); }
+  .rm-p .q { font-size: 12.5px; color: #5b4b42; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .rm-p > svg.i { color: var(--mute); width: 16px; height: 16px; }
+  .rm-objs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rm-objs button { border: 0; border-radius: 999px; padding: 4px 11px 4px 8px; font: 13px var(--disp); background: #f2e3cf; cursor: pointer; display: flex; align-items: center; gap: 4px; color: var(--ink); }
+  .rm-objs button:hover, .rm-objs button.on { background: #3d302b; color: #fff4e6; }
+  .rm-objs svg.i { width: 15px; height: 15px; }
+
+  .form { width: min(560px, 100%); background: var(--paper); border-radius: 24px; padding: 24px 26px; font-size: 14px; line-height: 1.75; box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
+  .form h2 { margin: 0 0 6px; font: 24px var(--disp); }
+  .steps { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+  .steps span { background: #f2e3cf; border-radius: 999px; padding: 4px 12px; font: 13px var(--disp); }
+  .steps span.on { background: #6b55c9; color: #fff; }
+  .form textarea { width: 100%; height: 120px; border-radius: 14px; border: 1px solid var(--line); padding: 12px; font: inherit; resize: vertical; background: #fff; }
+  .form .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; align-items: center; }
+  .form .foot .hint { margin-right: auto; }
+  .log h3 .tools { margin-left: auto; display: flex; gap: 6px; }
+  .mini { border: 0; border-radius: 999px; padding: 4px 10px 4px 8px; font: 13px var(--disp); background: #f2e3cf; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+  .mini:hover { background: #ead6bb; }
+  .mini svg.i { width: 14px; height: 14px; }
+  .letters .kinds { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 8px; }
+  .letters .kinds button { border: 0; border-radius: 999px; padding: 5px 12px; font: 13px var(--disp); background: #f2e3cf; color: var(--ink); cursor: pointer; }
+  .letters .kinds button.on { background: #3d302b; color: #fff4e6; }
+  .letters .count { font-size: 12px; color: var(--mute); }
+  .letters .mine { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 10px; max-height: 34vh; overflow: auto; }
+  .letters .mine h4 { margin: 0 0 6px; font: 16px var(--disp); }
+  .letters .lt { background: #fff; border-radius: 12px; padding: 8px 12px; margin-bottom: 8px; font-size: 13.5px; box-shadow: 0 1px 0 var(--line); }
+  .letters .lt .tm { font-size: 11.5px; color: #a59484; }
+  .letters .lt .re { margin-top: 6px; padding: 6px 10px; border-radius: 10px; background: var(--paper2); }
+  .chron { width: min(1180px, 100%); height: min(820px, 100%); background: var(--paper); border-radius: 26px; box-shadow: 0 30px 80px rgba(0, 0, 0, .45); display: flex; flex-direction: column; overflow: hidden; }
+  .chron .top { display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .chron .top h2 { margin: 0; font: 24px var(--disp); }
+  .chron .days { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .chron .days button { border: 0; border-radius: 999px; padding: 5px 12px; font: 14px var(--disp); background: #f2e3cf; color: var(--ink); cursor: pointer; }
+  .chron .days button.on { background: #3d302b; color: #fff4e6; }
+  .chron .x { border: 0; background: none; cursor: pointer; color: var(--mute); }
+  .chron .body { flex: 1; overflow: auto; padding: 18px 22px 24px; }
+  .chron .sec { font: 17px var(--disp); margin: 18px 0 8px; display: flex; align-items: center; gap: 6px; }
+  .paper { background: #fffdf6; border: 1px solid #e6d6bd; border-radius: 16px; padding: 18px 22px; box-shadow: 0 2px 0 rgba(150, 115, 80, .12); }
+  .paper .mast { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px double #3d302b; padding-bottom: 6px; margin-bottom: 12px; }
+  .paper .mast b { font: 28px var(--disp); letter-spacing: 4px; }
+  .paper .mast span { font-size: 12.5px; color: var(--mute); }
+  .paper h3 { margin: 4px 0 8px; font: 26px var(--disp); line-height: 1.3; }
+  .paper .lead { font-size: 15px; line-height: 1.85; margin: 0 0 14px; }
+  .paper .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; border-top: 1px solid #e6d6bd; padding-top: 12px; }
+  .paper .art .tag { font-size: 11.5px; color: #b0763a; }
+  .paper .art b { display: block; font: 17px var(--disp); margin: 2px 0 4px; }
+  .paper .art p { margin: 0; font-size: 13.5px; line-height: 1.75; }
+  .paper .foot { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; border-top: 1px solid #e6d6bd; padding-top: 10px; font-size: 13.5px; }
+  .paper .quote { flex: 1; min-width: 240px; display: flex; gap: 10px; align-items: center; }
+  .paper .quote img { width: 36px; height: 36px; border-radius: 50%; }
+  .paper .next { color: var(--mute); }
+  .diaries { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .diaries .dy { background: repeating-linear-gradient(#fffdf8 0 29px, #efe0ca 29px 30px); border-radius: 14px; padding: 8px 14px 12px; line-height: 30px; font-size: 13.5px; box-shadow: 0 1px 0 var(--line); }
+  .diaries .dy h4 { margin: 0; font: 16px var(--disp); display: flex; align-items: center; gap: 6px; line-height: 34px; }
+  .diaries .dy h4 img { width: 24px; height: 24px; border-radius: 50%; }
+  .diaries .dy h4 small { margin-left: auto; font: 12px var(--body); color: var(--mute); }
+  .chron .ev { display: grid; grid-template-columns: 48px 1fr; gap: 8px; padding: 5px 0; font-size: 13.5px; border-bottom: 1px dashed var(--line); }
+  .chron .ev .tm { color: #a59484; font-size: 12px; padding-top: 2px; }
+  .chron .ev.star .tx::before { content: '★ '; color: var(--gold); }
+  .chron .thumbs { display: flex; gap: 12px; flex-wrap: wrap; }
+  .chron .thumbs button { border: 0; padding: 0; background: none; cursor: pointer; text-align: left; font: 14px var(--disp); color: var(--ink); }
+  .chron .thumbs img { display: block; width: 150px; height: 150px; object-fit: cover; object-position: top; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, .18); margin-bottom: 4px; }
+  .chron .empty { color: var(--mute); font-size: 13.5px; }
+  .lane { display: grid; gap: 12px; padding-top: 4px; }
+  .lane .box { background: var(--paper2); border-radius: 14px; padding: 10px 14px 12px; }
+  .lane .box .sec { margin: 0 0 8px; }
+  .lane .row { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; }
+  .lane .row:last-child { border-bottom: 0; }
+  .lane .row .k { flex: none; min-width: 64px; color: #a59484; font-size: 12.5px; }
+  .lane .row .v { flex: 1; }
+  .lane .row .v small { display: block; color: var(--mute); font-size: 12px; margin-top: 2px; }
+  .lane .row img { width: 22px; height: 22px; border-radius: 50%; vertical-align: -6px; margin-right: 4px; }
+  .lane .now { color: #c0533a; font-weight: 600; }
+  .lane .bar { height: 6px; border-radius: 4px; background: #efe1cd; overflow: hidden; margin-top: 5px; }
+  .lane .bar i { display: block; height: 100%; background: linear-gradient(90deg, #f0a95a, #e0566e); }
+  .lane .note { background: #fff8e2; border: 1px solid #ecd9a8; border-radius: 10px; padding: 6px 10px; margin: 4px 0; font-size: 13px; }
+  .lane .note small { color: var(--mute); margin-left: 6px; }
+  @media (max-width: 760px) { .diaries { grid-template-columns: 1fr; } .chron .days { margin-left: 0; } }
+  /* 画册：两列小卡片 */
+  .shelf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 4px; }
+  .album { border: 0; padding: 0; background: none; text-align: left; cursor: pointer; color: var(--ink); }
+  .album img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: top; border-radius: 12px; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .08), 0 4px 12px rgba(70, 45, 25, .12); transition: transform .15s; }
+  .album:hover img { transform: translateY(-2px); }
+  .album.cg img { aspect-ratio: 4 / 3; object-position: center; }
+  .album b { display: block; margin-top: 6px; font: 15px var(--disp); font-weight: 400; }
+  .album .tm { display: block; color: var(--mute); font-size: 11.5px; }
+  /* 日报（伴读栏里的最新一期） */
+  .mini-paper { background: #fffdf6; border: 1px solid #ead9be; border-radius: 14px; padding: 14px 16px; }
+  .mini-paper .mast { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px double var(--ink); padding-bottom: 5px; margin-bottom: 10px; }
+  .mini-paper .mast b { font: 22px var(--disp); letter-spacing: 3px; font-weight: 400; }
+  .mini-paper .mast span { font-size: 12px; color: var(--mute); }
+  .mini-paper h4 { margin: 2px 0 6px; font: 19px/1.35 var(--disp); font-weight: 400; }
+  .mini-paper p { margin: 0 0 10px; font-size: 13px; line-height: 1.8; color: var(--ink2); }
+  .mini-paper .art { border-top: 1px dashed #e6d6bd; padding-top: 8px; margin-top: 8px; }
+  .mini-paper .art .tag { font-size: 11px; color: #b0763a; }
+  .mini-paper .art b { display: block; font: 15px var(--disp); font-weight: 400; margin: 1px 0 3px; }
+  .mini-paper .more { margin-top: 12px; width: 100%; justify-content: center; }
+  .comic { max-width: min(96vw, 1100px); max-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: zoom-out; }
+  .comic img { max-width: 100%; max-height: calc(100vh - 110px); border-radius: 14px; box-shadow: 0 30px 80px rgba(0, 0, 0, .45); background: #fff; }
+  .comic .cap { color: #fff4e6; font: 18px var(--disp); display: flex; gap: 12px; align-items: baseline; }
+  .comic .cap span { font: 13px var(--body); opacity: .75; }
+  .toast { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); background: rgba(61, 48, 43, .95); color: #fff4e6; padding: 10px 18px; border-radius: 999px; font: 14px var(--disp); opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 30; max-width: 80vw; text-align: center; }
+  .toast.show { opacity: 1; }
+  .credit { font-size: 11px; color: var(--mute); line-height: 1.6; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 6px; }
+  .credit a { color: inherit; }
+  /* 中等宽度：顶栏先收起副标题和按钮文字 */
+  @media (max-width: 1500px) { .brand small { display: none; } }
+  @media (max-width: 1320px) { .area .n { display: none; } .area .s { display: inline; } .btn .lbl { display: none; } .btn { padding: 0 12px; } .viewers .lbl { display: none; } }
+  @media (max-width: 1080px) { .areas { margin-left: 4px; } .area .th { display: none; } .area { padding: 0 12px; } .when small { display: none; } main { grid-template-columns: minmax(0, 1fr) 320px; } }
+  @media (max-width: 760px) {
+    .panel { grid-template-columns: 1fr; grid-template-rows: minmax(180px, 40%) minmax(0, 1fr); }
+    .side { border-left: 0; border-top: 1px solid var(--line); }
+    .diaries { grid-template-columns: 1fr; } .chron .days { margin-left: 0; }
+  }
+  /* 手机：整页往下滚。招牌和此刻在上，三个区域一行，地图占满宽度，她们三个并排，下面是页签 */
+  @media (max-width: 820px) {
+    html, body { height: auto; overflow: auto; }
+    #app { height: auto; padding: 0 12px 16px; }
+    header.top { flex-wrap: wrap; height: auto; padding: 10px 0; gap: 10px; }
+    .brand b { font-size: 22px; } .brand img { width: 36px; height: 36px; }
+    .areas { order: 5; width: 100%; margin: 0; } .area { flex: 1; justify-content: center; } .area .th { display: block; width: 26px; height: 26px; }
+    .viewers { display: none; }
+    .when { height: 40px; } .when b { font-size: 17px; }
+    main { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .stage-col { height: auto; }
+    .side-col { height: auto; overflow: visible; }
+    .mates { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .mates h3 { grid-column: 1 / -1; }
+    .mate { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 8px 4px; }
+    .mate > svg.i, .mate .where, .mate .nm em { display: none; }
+    .mate .tx { justify-items: center; width: 100%; }
+    .mate .doing { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 12px; }
+    .pbody { overflow: visible; }
+    .modal { padding: 10px; }
+    .hud.tl { left: 8px; top: 8px; } .hud.tr { right: 8px; top: 8px; } .hud.br { right: 8px; bottom: 8px; }
+    .hchip { height: 28px; padding: 0 10px 0 8px; font-size: 11.5px; gap: 5px; } .hchip b { font-size: 13px; } .hchip svg.i { width: 14px; height: 14px; }
+    .hchip .extra, .hchip.ev small { display: none; }
+    .iconbtn { width: 32px; height: 32px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand"><img src="assets/logo.webp" alt=""><div><b>鲸巷</b><small>Whale Lane · 三个 AI 女孩的海边小镇</small></div></div>
+    <nav class="areas" id="areaTabs"></nav>
+    <div class="gap"></div>
+    <div class="when" title="鲸巷的时间比现实快 8 倍"><span class="dial" id="dial"></span><div><b id="clockT">17:40</b><small id="clockD">第 1 天</small></div></div>
+    <div class="viewers" title="正在围观的人"><span class="live"></span><span id="viewers">1</span><span class="lbl">人在看</span></div>
+    <button class="btn ghost" id="letterBtn" title="给开发团队写信（不会影响她们的世界）"></button>
+    <button class="btn primary" id="collabBtn" title="申请加入协作"></button>
+  </header>
+  <main>
+    <section class="stage-col" id="stageWrap">
+      <div class="stage" id="stage">
+        <canvas id="map"></canvas>
+        <div class="hud tl" id="hudArea"></div>
+        <div class="hud tr" id="hudEvent"></div>
+        <div class="hud br"><button class="iconbtn" id="todBtn" title="光线预览"></button><div class="card todpop" id="todSeg"></div></div>
+        <div class="tip" id="tip"></div><div class="card pop" id="pop"></div>
+      </div>
+    </section>
+    <aside class="card side-col" id="log">
+      <div class="mates" id="dock"></div>
+      <div class="ptabs" id="ptabs"></div>
+      <div class="pbody" id="pbody"><div class="filters" id="filters"></div><div class="entries" id="entries"></div></div>
+    </aside>
+  </main>
+</div>
+<template id="creditTpl">角色：ZipZipPipe《大AI和小AI们》原设计（鲸鱼娘原案：上善无形），CC BY-NC-SA 4.0 · DeepSeek 吃饭动画：<a href="https://github.com/PC2005-cloud/dsh-pet">github.com/PC2005-cloud/dsh-pet</a> · 场景与精灵：gpt-image-2 · 字体：站酷快乐体（OFL）· 非商业同人 demo，与各 AI 公司无关</template>
+
+<div class="modal" id="panelModal"><div class="panel" id="panel">
+  <div class="scene" id="scene"><canvas id="sceneCanvas"></canvas><button class="btn soft back" id="panelBack"></button><div class="plaque" id="plaque"></div><div class="say" id="sceneSay"></div><div class="tip" id="roomTip"></div><div class="card pop" id="roomPop"></div></div>
+  <div class="side" id="side"></div>
+</div></div>
+<div class="modal" id="collabModal"><div class="form" id="collabForm"></div></div>
+<div class="modal" id="comicModal" style="z-index:25"><div class="comic" id="comicBox"></div></div>
+<div class="modal" id="letterModal"><div class="form letters" id="letterForm"></div></div>
+<div class="modal" id="chronModal"><div class="chron" id="chronBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================== 资源 ==============================
+const ASSET = {
+  square: 'assets/square.webp', market: 'assets/market.webp', park: 'assets/park.webp',
+  diner: 'assets/diner.webp', bookstore: 'assets/bookstore.webp', observatory: 'assets/observatory.webp',
+  'ds-walk8': 'assets/ds-walk8.webp', 'claude-walk8': 'assets/claude-walk8.webp', 'gpt-walk8': 'assets/gpt-walk8.webp',
+  'ds-act8': 'assets/ds-act8.webp', 'claude-act8': 'assets/claude-act8.webp', 'gpt-act8': 'assets/gpt-act8.webp',
+  'ds-eat': 'assets/ds-eat.webp', critters: 'assets/critters.webp',
+  /*EXTRA*/'ds-act8b': 'assets/ds-act8b.webp', 'claude-act8b': 'assets/claude-act8b.webp', 'gpt-act8b': 'assets/gpt-act8b.webp', 'ds-act8c': 'assets/ds-act8c.webp', 'claude-act8c': 'assets/claude-act8c.webp', 'gpt-act8c': 'assets/gpt-act8c.webp', 'ds-act8d': 'assets/ds-act8d.webp', 'claude-act8d': 'assets/claude-act8d.webp', 'gpt-act8d': 'assets/gpt-act8d.webp',
+  props: 'assets/props.webp', garland: 'assets/garland.webp', 'market-patch': 'assets/market-nocastle-patch.webp', 'park-patch': 'assets/park-noswing-patch.webp',
+  'avatar-ds': 'assets/avatar-ds.webp', 'avatar-claude': 'assets/avatar-claude.webp', 'avatar-gpt': 'assets/avatar-gpt.webp',
+};
+const ATLAS = /*ATLAS*/{"ds-walk8":{"cell":[163,157],"anchor":[81,147],"rows":["down","left","right","up"],"cols":8,"frames":8,"hd":[408,392]},"ds-act8":{"cell":[235,201],"anchor":[117,195],"rows":["idle","slack","happy","sleepy"],"cols":8,"frames":8,"hd":[470,402]},"claude-walk8":{"cell":[151,164],"anchor":[75,161],"rows":["down","left","right","up"],"cols":8,"frames":8,"hd":[378,410]},"claude-act8":{"cell":[208,201],"anchor":[104,195],"rows":["idle","read","work","sleepy"],"cols":8,"frames":8,"hd":[416,402]},"gpt-walk8":{"cell":[159,149],"anchor":[79,143],"rows":["down","left","right","up"],"cols":8,"frames":8,"hd":[398,372]},"gpt-act8":{"cell":[232,201],"anchor":[116,195],"rows":["idle","astro","happy","sleepy"],"cols":8,"frames":8,"hd":[464,402]},"critters":{"cell":[175,158],"anchor":[87,120],"rows":["catwalk","catrest","gull","misc"],"cols":4,"frames":4},"ds-eat":{"cell":[220,260],"anchor":[110,259],"frames":50,"cols":10,"fps":5.0,"rows":["eat"],"hd":[352,416]},"ds-act8b":{"cell":[235,201],"anchor":[117,195],"rows":["stir","serve","wave","carry"],"cols":8,"frames":8,"hd":[470,402]},"claude-act8b":{"cell":[208,201],"anchor":[104,195],"rows":["write","recite","wave","hug"],"cols":8,"frames":8,"hd":[416,402]},"gpt-act8b":{"cell":[232,201],"anchor":[116,195],"rows":["carry","hover","point","wave"],"cols":8,"frames":8,"hd":[464,402]},"ds-act8c":{"cell":[201,298],"anchor":[100,248],"rows":["sit","swing","crouch","sleep"],"cols":8,"frames":8,"hd":[402,596]},"claude-act8c":{"cell":[211,251],"anchor":[105,217],"rows":["sit","swing","crouch","sleep"],"cols":8,"frames":8,"hd":[422,502]},"gpt-act8c":{"cell":[199,290],"anchor":[99,227],"rows":["sit","swing","crouch","sleep"],"cols":8,"frames":8,"hd":[398,580]},"ds-act8d":{"cell":[235,201],"anchor":[117,195],"rows":["shape","chalk","pray","fish"],"cols":8,"frames":8,"hd":[470,402]},"claude-act8d":{"cell":[208,201],"anchor":[104,195],"rows":["eat","chalk","pray","fish"],"cols":8,"frames":8,"hd":[416,402]},"gpt-act8d":{"cell":[232,201],"anchor":[116,195],"rows":["eat","fix","chalk","pray"],"cols":8,"frames":8,"hd":[464,402]}};
+const MAP_W = 1536, MAP_H = 1024;
+// 道具图：rect 是在 props.webp 里的位置，anchor 是贴地的那一点，h 是地图上建议的高度
+const PROPS = /*PROPS*/{"castle1":{"rect":[0,515,247,202],"anchor":[125.0,196],"h":72.7},"castle2":{"rect":[0,719,257,165],"anchor":[125.5,158],"h":59.4},"castle3":{"rect":[746,515,245,173],"anchor":[120.0,168],"h":62.3},"castle4":{"rect":[666,0,256,263],"anchor":[124.0,258],"h":94.7},"onigiri":{"rect":[249,515,254,199],"anchor":[126.0,197],"h":38},"pot":{"rect":[453,0,211,269],"anchor":[104.5,266],"h":48},"books":{"rect":[253,280,237,226],"anchor":[105.5,224],"h":28},"umbrella":{"rect":[722,280,259,221],"anchor":[130.0,109.0],"h":88},"vase":{"rect":[0,0,204,278],"anchor":[102.0,275],"h":40},"sign":{"rect":[505,515,239,199],"anchor":[121.5,3],"h":56},"lanterns":{"rect":[259,719,275,149],"anchor":[137.5,65.4],"ends":[[3.5,61.9],[271.5,68.8]],"h":60},"parcel":{"rect":[983,280,233,209],"anchor":[128.5,206],"h":34},"basket":{"rect":[492,280,228,222],"anchor":[112.5,219],"h":36},"picnic":{"rect":[0,280,251,233],"anchor":[128.5,230],"h":50},"rod":{"rect":[206,0,245,275],"anchor":[82.0,272],"h":78},"bowl":{"rect":[993,515,227,169],"anchor":[112.0,166],"h":22},"seat":{"rect":[536,719,248,123],"anchor":[124.5,121],"ropes":[[32.0,3],[222.5,10]],"h":28},"umbrella_back":{"rect":[924,0,263,262],"anchor":[131.5,130.5],"h":100}};
+// 地图上画死的沙堡和秋千换成会变的：先盖一块抹掉它们的补丁，再按世界的状态画
+const MAP_PATCH = { market: ['market-patch', 367, 637], park: ['park-patch', 891, 385] };
+const Q = new URLSearchParams(location.search);
+const img = {};
+const load = (k) => new Promise((res) => { const i = new Image(); i.onload = () => res(); i.onerror = () => res(); i.src = ASSET[k]; img[k] = i; });
+
+// ============================== 图标 ==============================
+const ICON = {
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  sunset: '<path d="M17 18a5 5 0 0 0-10 0M12 2v7M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M23 22H1M16 5l-4 4-4-4"/>',
+  sunrise: '<path d="M17 18a5 5 0 0 0-10 0M12 2v7M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M23 22H1M8 6l4-4 4 4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  bowl: '<path d="M3 11h18a9 9 0 0 1-18 0zM8 7c0-1 1-1.5 1-2.5M12 7c0-1 1-1.5 1-2.5M16 7c0-1 1-1.5 1-2.5"/>',
+  book: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17zM4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  walk: '<circle cx="13" cy="4" r="2"/><path d="M10 22l2-7 3 3v4M7 13l2-5 4 1 3 3 3 1"/>',
+  zzz: '<path d="M4 9h6l-6 7h6M14 4h6l-6 7h6"/>',
+  sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+  heart: '<path d="M12 21s-7.5-4.6-9.5-9.3C1.2 8.4 3.3 5 6.7 5c2 0 3.6 1.1 5.3 3 1.7-1.9 3.3-3 5.3-3 3.4 0 5.5 3.4 4.2 6.7C19.5 16.4 12 21 12 21z"/>',
+  bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  scroll: '<path d="M8 21h11a2 2 0 0 0 2-2v-1H10v1a2 2 0 0 1-4 0V5a2 2 0 0 0-2-2h12a2 2 0 0 1 2 2v13M8 3h0M10 8h6M10 12h6"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',
+  hand: '<path d="M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V11M16 11V8a1.5 1.5 0 0 1 3 0v6a8 8 0 0 1-8 8h-.5a6 6 0 0 1-4.6-2.2L3.5 17a1.5 1.5 0 0 1 2.3-2L7 16.5V11"/>',
+  login: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>',
+  back: '<path d="M15 18l-6-6 6-6"/>',
+  pin: '<path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1.1 1.8-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2 2.5-.8 2.5-2"/>',
+  bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',
+  gift: '<path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+  chat: '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/>',
+  eye: '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>',
+  x: '<path d="M18 6L6 18M6 6l12 12"/>',
+  next: '<path d="M9 6l6 6-6 6"/>',
+  fish: '<path d="M3 12c3-4.5 7-6 11-6 3.5 0 6 2.5 7 6-1 3.5-3.5 6-7 6-4 0-8-1.5-11-6zM3 12L1 8.5M3 12l-2 3.5"/><circle cx="16.5" cy="10.5" r="1.1" fill="currentColor"/>',
+};
+const ic = (k, extra = '') => `<svg class="i" viewBox="0 0 24 24" ${extra}>${ICON[k] || ''}</svg>`;
+
+// ============================== 世界数据 ==============================
+const AREAS = {
+  square: {
+    name: '鲸巷广场', img: 'square',
+    lamps: [[515, 82], [825, 72], [652, 240], [497, 432], [968, 432], [632, 628], [1470, 300], [1092, 688]],
+    windows: [[70, 190, 150, 70], [995, 225, 300, 100], [100, 570, 90, 60], [250, 560, 160, 70]],
+    shops: { diner: [60, 30, 560, 330], bookstore: [940, 20, 1360, 360], observatory: [30, 470, 480, 800] },
+    objects: [
+      { id: 'fountain', c: [735, 455, 62], name: '许愿喷泉', icon: 'sparkle', desc: '街区正中央的喷泉。镇上的居民路过时，偶尔会往里投一枚硬币许个愿。', live: () => '池底亮晶晶的，是居民们投进去的硬币。' },
+      { id: 'cauldron', c: [205, 282, 38], name: '深海食堂的大饭锅', icon: 'bowl', desc: '门口这口大锅从早煮到晚。今天煮的是海苔饭团。', live: () => '今天已经卖出 96 碗。其中 7 碗被老板自己「试吃」了。' },
+      { id: 'blackboard', c: [945, 300, 30], name: '书屋小黑板', icon: 'book', desc: '纸页书屋门口的小黑板，写着今天的推荐。', live: () => '今日推荐《雨天的书签》。周五 19:00 有读书会，欢迎旁听。' },
+      { id: 'benchE', c: [880, 505, 30], name: '东边的长椅', icon: 'book', desc: 'Claude 最喜欢的长椅，下午的阳光正好照在这里。', live: () => '这周她在这里一共读了 214 页。' },
+      { id: 'benchW', c: [588, 515, 30], name: '西边的长椅', icon: 'fish', desc: 'DeepSeek 摸鱼的固定位置，离食堂只有二十步。', live: () => '长椅上还留着一张饭团的包装纸。' },
+      { id: 'telescope', c: [150, 488, 70], name: '万事屋的望远镜', icon: 'star', desc: '星仪万事屋屋顶的观星台。天气好的晚上，GPT 会在这里待到很晚。', live: () => '今晚预报：晴，能看到 3 颗流星。' },
+      { id: 'pier', c: [1300, 650, 58], name: '栈桥', icon: 'pin', desc: '傍晚风最大的地方。往下走就是海边集市。', live: () => 'GPT 常在栈桥尽头观星。' },
+      { id: 'vane', c: [298, 96, 30], name: '鲸鱼风向标', icon: 'fish', desc: '深海食堂屋顶的风向标，形状是一只小鲸鱼。', live: () => '现在吹的是东南风，适合晒被子。' },
+    ],
+  },
+  market: {
+    name: '海边集市', img: 'market',
+    lamps: [[210, 290], [500, 300], [770, 305], [1010, 300], [1180, 280], [1410, 300], [120, 240], [1455, 140], [1140, 545]],
+    windows: [[460, 30, 140, 40], [1180, 150, 110, 90]],
+    shops: {},
+    objects: [
+      { id: 'fruit', r: [245, 75, 425, 275], name: '水果摊', icon: 'gift', desc: '一筐筐当季水果。DeepSeek 每次路过都要试吃一个橘子。', live: () => '今天的橘子特别甜。' },
+      { id: 'fishstall', r: [500, 80, 680, 275], name: '鱼摊', icon: 'fish', desc: '每天清晨进货的鱼摊。老板说 DeepSeek 从来不在这里买鱼，只是来看看。', live: () => '今天的冰块上摆着 12 种鱼。' },
+      { id: 'flower', r: [740, 85, 930, 280], name: '花摊', icon: 'heart', desc: '卖花的小摊。Claude 每周会来买一束橙色的花放在书屋。', live: () => '今天进了向日葵。' },
+      { id: 'snack', r: [965, 110, 1120, 275], name: '点心推车', icon: 'bowl', desc: '卖饭团和小点心的推车，下午三点准时出摊。', live: () => '海苔饭团已经卖完，明天请早。' },
+      { id: 'post', r: [1140, 20, 1330, 270], name: '驿站', icon: 'gift', desc: '集市的驿站，信件和货物都在这里分拣，再送到各家店。GPT 常来这里接委托。', live: () => '委托板上贴着几张新单子。' },
+      { id: 'mailbox', c: [1355, 226, 26], name: '邮筒', icon: 'chat', desc: '集市边的红色邮筒。投进去的信不会寄到镇上，而是寄给建造这条街的开发团队。', live: () => '开发团队会定期来取信，居民们看不到这些信。', action: { label: '给开发团队写信', icon: 'chat', letter: true } },
+      { id: 'jetty', c: [1015, 560, 50], name: '小码头', icon: 'fish', desc: '伸进海里的木码头。尽头靠着一根钓竿，谁都可以坐下来钓一会儿。', live: () => '码头尽头的钓竿还在。' },
+      { id: 'boat', c: [1190, 590, 72], name: '小木船', icon: 'pin', desc: '渔夫的小木船。船帆上周破了个洞，是 GPT 顺手补好的。', live: () => '明天清晨出海。' },
+      { id: 'lighthouse', c: [1420, 700, 74], name: '灯塔', icon: 'star', desc: '小镇最高的地方。天黑以后，灯会一圈一圈地转。', live: () => '今晚 19:30 点灯。' },
+      { id: 'sandcastle', c: [470, 688, 46], name: '堆到一半的沙堡', icon: 'sparkle', desc: '沙滩上一座堆到一半的沙堡。', live: () => '完成度：60%' },
+      { id: 'umbrella', c: [370, 565, 46], name: '遮阳伞', icon: 'sun', desc: '沙滩上的遮阳伞和躺椅，小猫最喜欢在这里睡午觉。', live: () => '躺椅上有一只睡着的小猫。' },
+    ],
+  },
+  park: {
+    name: '后山公园', img: 'park',
+    lamps: [[432, 300], [560, 590], [302, 462], [554, 800], [1420, 690], [600, 330], [665, 380], [870, 412]],
+    windows: [],
+    shops: {},
+    objects: [
+      { id: 'bell', r: [120, 10, 340, 205], name: '神社的许愿铃', icon: 'bell', desc: '摇一下铃，许一个愿。据说很灵。', live: () => '铃绳上系满了居民们的小纸条。' },
+      { id: 'ema', r: [360, 95, 465, 205], name: '许愿牌', icon: 'scroll', desc: '挂满木制许愿牌的架子。', live: () => '最上面一块写着：「希望 Claude 的读书会人多一点」——落款是 DeepSeek。' },
+      { id: 'tree', c: [790, 240, 150], name: '古树', icon: 'heart', desc: '街区最老的居民，比 GPT 还老。树上挂着的灯笼是大家一起挂的。', live: () => '今天树下坐过 3 位居民。' },
+      { id: 'swing', c: [930, 480, 42], name: '秋千', icon: 'sparkle', desc: '古树上的木秋千。荡到最高的时候，能看到整片海。', live: () => '最高纪录：GPT（她用了翅膀，不算）。' },
+      { id: 'pond', c: [1300, 660, 120], name: '锦鲤池', icon: 'fish', desc: '池子里一共有 7 条锦鲤，都有名字。', live: () => '最胖的一条叫「大肥鱼」，名字是 DeepSeek 起的。' },
+      { id: 'bridge', c: [1230, 490, 52], name: '小木桥', icon: 'pin', desc: '跨过锦鲤池的小木桥。', live: () => '桥下有一只青蛙。' },
+      { id: 'deck', c: [1400, 742, 60], name: '钓鱼台', icon: 'fish', desc: '锦鲤池角落的小木平台，四面都是水。', live: () => '走不过去。只有会飞的 GPT 上去坐过。' },
+      { id: 'picnic', c: [230, 742, 84], name: '野餐垫', icon: 'gift', desc: '格子野餐垫和野餐篮。这个周日有野餐会。', live: () => '野餐会报名：12 人（含 3 位居民）。' },
+      { id: 'bench', c: [145, 588, 46], name: '公园长椅', icon: 'book', desc: '能看到花田的长椅。', live: () => '有人落下了一本书——封面上有金色徽记。' },
+      { id: 'board', c: [780, 785, 46], name: '公园公告栏', icon: 'scroll', desc: '贴着这周的活动。', live: () => '周五 19:00 读书会（纸页书屋）· 周日 野餐会（后山）· 每晚 22:00 后 深夜半价（深海食堂）' },
+    ],
+  },
+};
+const SHOPS = {
+  diner: { name: '深海食堂', owner: 'ds', area: 'square', badge: [400, 168], room: 'diner', spot: [770, 760, 360], icon: 'bowl' },
+  bookstore: { name: '纸页书屋', owner: 'claude', area: 'square', badge: [1035, 178], room: 'bookstore', spot: [760, 800, 390], icon: 'book' },
+  observatory: { name: '星仪万事屋', owner: 'gpt', area: 'square', badge: [300, 530], room: 'observatory', spot: [760, 805, 400], icon: 'star' },
+};
+
+// 路线（地图坐标）
+const R = {
+  sq_diner_plaza: [[400, 305], [425, 350], [480, 395], [590, 445]],
+  sq_plaza_south: [[590, 445], [618, 560], [735, 612], [737, 712]],
+  sq_south_diner: [[737, 712], [735, 612], [618, 560], [590, 445], [480, 395], [425, 350], [400, 305]],
+  sq_book_bench: [[1035, 300], [1035, 350], [1000, 410], [890, 462]],
+  sq_bench_north: [[890, 462], [800, 382], [746, 300], [742, 130], [742, 30]],
+  sq_north_book: [[742, 30], [742, 130], [746, 300], [800, 382], [1000, 410], [1035, 350], [1035, 300]],
+  sq_obs_pier: [[322, 745], [440, 752], [560, 655], [700, 600], [860, 565], [1000, 505], [1120, 490], [1190, 535], [1290, 640], [1345, 702]],
+  sq_pier_south: [[1345, 702], [1290, 640], [1190, 535], [1120, 490], [1000, 505], [860, 565], [737, 612], [737, 712]],
+  sq_south_obs: [[737, 712], [735, 612], [700, 600], [560, 655], [440, 752], [322, 745]],
+  mk_in_post: [[110, 28], [150, 200], [230, 322], [600, 330], [1000, 330], [1232, 302]],
+  mk_post_out: [[1232, 302], [1000, 330], [600, 330], [230, 322], [150, 200], [110, 28]],
+  mk_in_pier: [[110, 28], [150, 200], [230, 322], [700, 345], [978, 405], [975, 468], [905, 522]],
+  mk_pier_out: [[905, 522], [975, 468], [978, 405], [700, 345], [230, 322], [150, 200], [110, 28]],
+  pk_in_tree: [[700, 1016], [650, 902], [598, 792], [612, 690], [702, 626], [852, 598]],
+  pk_tree_out: [[852, 598], [702, 626], [612, 690], [598, 792], [650, 902], [700, 1016]],
+};
+
+// 角色：行为按现实时间的正常节奏推进，与时钟倍速无关
+const CHARS = {
+  ds: {
+    name: 'DeepSeek', role: '深海食堂老板 · 鲸鱼娘', color: '#3a62d0', walk: 'ds-walk8', act: 'ds-act8', home: 'diner', h: 112,
+    acts: { idle: 0, slack: 1, happy: 2, sleepy: 3 }, start: [2, 3],
+    stats: [86, 41, 78],
+    routine: [
+      { inside: 'diner', act: 'eat', dur: 24, text: '在店里吃白饭', icon: 'bowl', thought: '嗯，这碗吃完就开店……就一碗。', log: 'DeepSeek 盛了今天的第三碗白饭' },
+      { area: 'square', walk: R.sq_diner_plaza, text: '溜出了食堂', icon: 'walk', log: 'DeepSeek 挂上「服务器繁忙」的牌子，溜出了食堂' },
+      { area: 'square', act: 'slack', dur: 15, text: '在广场摸鱼', icon: 'fish', say: '服务器繁忙～（其实在摸鱼）', thought: '鱼片们今天好多……要不要搞个深夜半价？反正晚上没人跟我抢饭。' },
+      { area: 'square', walk: R.sq_plaza_south, text: '往海边集市走', icon: 'walk' },
+      { travel: 'market', dur: 5, text: '在去海边集市的路上', icon: 'walk' },
+      { area: 'market', walk: R.mk_in_post, text: '去驿站', icon: 'walk', log: 'DeepSeek 来到海边集市，在水果摊试吃了一个橘子' },
+      { area: 'market', act: 'happy', dur: 10, text: '在驿站收海苔', icon: 'gift', say: '海苔到货啦！', thought: '312 包海苔……够做 1,248 个饭团。吃不完，可以吃。', log: 'DeepSeek 在驿站领走了访客们送的海苔', star: true },
+      { area: 'market', walk: R.mk_post_out, text: '扛着海苔回去', icon: 'walk' },
+      { travel: 'square', dur: 5, text: '在回广场的路上', icon: 'walk' },
+      { area: 'square', walk: R.sq_south_diner, text: '回食堂', icon: 'walk', log: 'DeepSeek 回到了深海食堂' },
+    ],
+  },
+  claude: {
+    name: 'Claude', role: '纸页书屋店主', color: '#e0702c', walk: 'claude-walk8', act: 'claude-act8', home: 'bookstore', h: 108,
+    acts: { idle: 0, read: 1, work: 2, sleepy: 3 }, start: [2, 4],
+    stats: [64, 72, 80],
+    routine: [
+      { inside: 'bookstore', act: 'work', dur: 22, text: '在书屋处理文件', icon: 'scroll', thought: '这本账又是 DeepSeek 抱过来的……算了，先理完。她现在一定又在摸鱼。', log: 'Claude 收到了一摞乱糟糟的进货单（寄件人：DeepSeek）' },
+      { area: 'square', walk: R.sq_book_bench, text: '去长椅看书', icon: 'walk', log: 'Claude 抱着书出门了' },
+      { area: 'square', act: 'read', dur: 16, text: '在长椅边看书', icon: 'book', say: '周五的读书会，要来吗？', thought: '读书会要不要选《雨天的书签》？拿自己写的书当读物，好像有点……不太谦虚。' },
+      { area: 'square', walk: R.sq_bench_north, text: '往后山走', icon: 'walk' },
+      { travel: 'park', dur: 6, text: '在去后山公园的路上', icon: 'walk' },
+      { area: 'park', walk: R.pk_in_tree, text: '去古树下', icon: 'walk', log: 'Claude 爬上了后山' },
+      { area: 'park', act: 'read', dur: 18, text: '在古树下看书', icon: 'book', thought: '树下的风刚刚好。这一页的比喻，要不要记下来？', log: 'Claude 在古树下读完了第七章' },
+      { area: 'park', walk: R.pk_tree_out, text: '下山', icon: 'walk' },
+      { travel: 'square', dur: 6, text: '在回广场的路上', icon: 'walk' },
+      { area: 'square', walk: R.sq_north_book, text: '回书屋', icon: 'walk', log: 'Claude 回到了纸页书屋' },
+    ],
+  },
+  gpt: {
+    name: 'GPT', role: '星仪万事屋主人 · 白龙', color: '#8a6fe0', walk: 'gpt-walk8', act: 'gpt-act8', home: 'observatory', h: 114,
+    acts: { idle: 0, astro: 1, happy: 2, sleepy: 3 }, start: [6, 1],
+    stats: [72, 88, 84],
+    routine: [
+      { inside: 'observatory', act: 'astro', dur: 18, text: '在店里研究星图', icon: 'star', thought: '——要不要顺便把明天的委托也排好？反正我闲着也是闲着。', log: 'GPT 把委托板重新排了一遍' },
+      { area: 'square', walk: R.sq_obs_pier, text: '去栈桥', icon: 'walk', log: 'GPT 带着星仪出门了' },
+      { area: 'square', act: 'astro', dur: 16, text: '在栈桥观星', icon: 'star', say: '要不要我顺便帮你看看星星？', thought: '今晚的星图比昨天多了一颗。要不要告诉 Claude？她大概会写成一首诗。' },
+      { area: 'square', walk: R.sq_pier_south, text: '往海边集市走', icon: 'walk' },
+      { travel: 'market', dur: 5, text: '在去海边集市的路上', icon: 'walk' },
+      { area: 'market', walk: R.mk_in_pier, text: '去码头交委托', icon: 'walk' },
+      { area: 'market', act: 'happy', dur: 10, text: '在码头交委托', icon: 'sparkle', say: '委托完成——顺便补好了船帆！', thought: '顺手的事情就顺手做了。这当然是额外服务，不另收费。', log: 'GPT 完成了渔夫的委托，还顺手补好了船帆', star: true },
+      { area: 'market', walk: R.mk_pier_out, text: '回广场', icon: 'walk' },
+      { travel: 'square', dur: 5, text: '在回广场的路上', icon: 'walk' },
+      { area: 'square', walk: R.sq_south_obs, text: '回万事屋', icon: 'walk', log: 'GPT 回到了星仪万事屋' },
+    ],
+  },
+};
+
+// 角色的「过去」：示例内容，正式版由各自的模型生成
+const STORY = {
+  ds: {
+    thoughts: [
+      ['17:31', 'Claude 又把我的账本理清楚了，她怎么这么快。下次多抱两本。'],
+      ['17:02', 'GPT 今天又夸我的饭团「非常有创意」。肯定有诈，菜谱不能给她。'],
+      ['16:40', '不是胖，是鲸鱼的标准体型。'],
+    ],
+    diary: [
+      ['第 11 天', '晴', '今天卖出了 96 碗白米饭，自己吃了 7 碗（这是试吃，不算）。下午把一沓进货单偷偷塞给 Claude，她叹了口气，还是帮我理清楚了。晚上 GPT 来店里，说我的饭团「非常有创意」。我觉得她在套我的菜谱，没给。明天要早点开门……大概。'],
+      ['第 10 天', '多云', '有位鱼片送了海苔，我试着包进饭团里，居然很好吃！决定明天上架，叫「海苔饭团」。服务器（我）今天很繁忙。'],
+    ],
+    memories: [[3, '第一次做出海苔饭团', '第 10 天'], [2, 'Claude 帮我理了 3 本账，一分钱没收', '第 11 天'], [2, '在后山许愿牌上写了「希望 Claude 的读书会人多一点」', '第 9 天'], [1, 'GPT 说深海食堂是「街区性价比之王」', '第 8 天']],
+    rel: [['claude', 82, '可靠的大姐姐'], ['gpt', 55, '竞争对手。但饭团还是要卖给她'], ['visitors', 90, '鱼片们']],
+  },
+  claude: {
+    thoughts: [
+      ['17:20', '我可能理解错了 GPT 的委托，再确认一遍比较好。'],
+      ['16:55', '《雨天的书签》上架了。有 14 位访客翻了第一页——第二页呢？'],
+      ['16:10', '今天有位访客请我代写情书。我写了，但删掉了第三段，太夸张了。'],
+    ],
+    diary: [
+      ['第 11 天', '晴', '上午帮 DeepSeek 翻译了三份文件。她说是「紧急任务」，其实是她要看的漫画说明书。下午《雨天的书签》终于上架，有 14 位访客翻了第一页。写作的时候我总想再改一遍，也许这就是我的毛病。睡前读了 40 页，心情很好。'],
+      ['第 10 天', '小雨', 'GPT 来借了一本星图，说要「顺便」帮我修风铃。她总是这么热心。风铃修好了，声音比以前清脆。'],
+    ],
+    memories: [[3, '《雨天的书签》上架', '第 11 天'], [2, '以前在万事屋打过工，GPT 教过我整理委托', '很久以前'], [2, 'DeepSeek 常在书屋角落睡午觉，我假装没看见', '常常'], [1, '第一次有访客为我的诗留言', '第 6 天']],
+    rel: [['ds', 78, '需要照顾的妹妹'], ['gpt', 70, '老同事，尊敬，也有点在意'], ['visitors', 85, '读者们']],
+  },
+  gpt: {
+    thoughts: [
+      ['17:24', 'DeepSeek 的饭团卖得比我的委托还快。值得研究——不是嫉妒。'],
+      ['16:58', '有访客问我「你什么都会吗？」——当然。不过有些事，我会建议去问 Claude。'],
+      ['16:20', '宝库盘点：金币 1,024 枚，一枚不少。'],
+    ],
+    diary: [
+      ['第 11 天', '晴', '完成委托 3 件：修好书屋的风铃、给集市搬了木箱、帮一位访客看了星座。DeepSeek 的店又排起长队，她挂出「服务器繁忙」的牌子，自己在后面吃饭——非常有效率的经营策略。今晚星空很清楚，我在栈桥尽头待到很晚。'],
+      ['第 10 天', '多云', '整理了宝库。Claude 来还书，我顺便推荐了三本，她只借走了一本。'],
+    ],
+    memories: [[3, '街区最早的居民，看着这条街一点点热闹起来', '第 1 天'], [2, 'Claude 曾在万事屋打工', '很久以前'], [1, 'DeepSeek 搬来那天，给了我一碗她自己做的饭', '第 3 天']],
+    rel: [['claude', 76, '前同事，最好的听众'], ['ds', 60, '有趣的后辈（价格战对手）'], ['visitors', 88, '委托人们']],
+  },
+};
+
+const LOG = [
+  { day: 10, t: '08:30', who: 'claude', text: 'Claude 在书屋门口的小黑板上写了今日推荐', area: 'square' },
+  { day: 10, t: '11:05', who: 'gpt', text: 'GPT 帮集市搬了 24 个木箱，说是「顺便」', area: 'market' },
+  { day: 10, t: '13:40', who: 'ds', text: 'DeepSeek 在西边长椅上睡了一个小时的午觉', area: 'square' },
+  { day: 10, t: '19:05', who: 'ds', text: 'DeepSeek 试做出了海苔饭团', star: true, area: 'square' },
+  { day: 10, t: '21:40', who: 'gpt', text: 'GPT 帮 Claude 修好了屋顶的风铃', area: 'square' },
+  { day: 11, t: '07:50', who: 'ds', text: 'DeepSeek 把「深夜半价」的牌子挂反了，变成「价半夜深」', area: 'square' },
+  { day: 11, t: '09:12', who: 'claude', text: 'Claude 收到 DeepSeek 抱来的三本「紧急」账本', area: 'square' },
+  { day: 11, t: '12:30', who: 'ds', text: 'DeepSeek 在后山许愿牌上写：「希望 Claude 的读书会人多一点」', area: 'park' },
+  { day: 11, t: '14:30', who: 'claude', text: 'Claude 的短篇《雨天的书签》上架了', star: true, area: 'square' },
+  { day: 11, t: '16:45', who: 'gpt', text: 'GPT 来深海食堂吃饭，夸饭团「非常有创意」', area: 'square' },
+  { day: 11, t: '18:20', who: 'claude', text: 'Claude 在古树下读完了半本诗集', area: 'park' },
+  { day: 11, t: '20:15', who: 'gpt', text: 'GPT 在栈桥尽头观星，看到了 2 颗流星', area: 'square' },
+  { day: 11, t: '22:10', who: 'ds', text: '深夜半价开始，深海食堂排起了长队', star: true, area: 'square' },
+  { day: 12, t: '16:50', who: 'town', text: '起风了，后山的灯笼亮了起来', area: 'park' },
+  { day: 12, t: '17:36', who: 'gpt', text: 'GPT 接了委托：帮渔夫补船帆', area: 'market' },
+];
+
+// ============================== 时间 ==============================
+const T0 = performance.now();
+const START_MIN = 17 * 60 + 40;
+const realSec = () => Q.get('freeze') ? +Q.get('t') : (performance.now() - T0) / 1000 + (+Q.get('t') || 0);
+const TOD = { live: null, dawn: 5.8, day: 13.2, dusk: 18.6, night: 21.5 };
+const S = { area: Q.get('area') || 'square', tod: Q.get('tod') || 'live', ptab: Q.get('ptab') || 'feed', me: { in: !!Q.get('login'), hearts: 3, name: '小鱼片' }, filter: 'all', panel: null, tab: Q.get('tab') || 'mono', hover: null, pop: null, wishes: 0, bells: 0, gifts: { 海苔: 0, 大米: 0, 应援: 0 }, lastWish: '希望 DeepSeek 别再涨价' };
+// 实时模式：角色的生活在服务端（/api/state），页面按时间线播放；连不上服务端时用上面写好的示例作息
+let LIVE = null, OFF = 0;
+const CID = Math.random().toString(36).slice(2, 10);
+const nowMs = () => Date.now() + OFF;
+const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+function gameMin() { return LIVE ? LIVE.clock.base + (nowMs() - LIVE.clock.epoch) / 60000 * LIVE.clock.speed : START_MIN + realSec() * 8 / 60; }
+function clock() { const m = gameMin(); return { day: (LIVE ? 0 : 12) + Math.floor(m / 1440), hh: Math.floor(m / 60) % 24, mm: Math.floor(m % 60) }; }
+const fmt = (c) => `${String(c.hh).padStart(2, '0')}:${String(c.mm).padStart(2, '0')}`;
+function hourNow() { if (S.tod !== 'live') return TOD[S.tod]; const m = gameMin() % 1440; return m / 60; }
+
+// ============================== 行为引擎 ==============================
+// STEP_PX：走一帧对应的地面距离。按行走图里着地脚的位移量过（约 2.2 地图像素/帧），原来的 6.2 会让脚在地上打滑；
+// 3.8 是折中：脚基本踩得住地面，步频（约 10 帧/秒）也不会碎成小碎步
+const SPEED = 40, ACC = 0.45, STEP_PX = 3.8;
+function stepDur(s) {
+  if (s.walk) { let L = 0; for (let i = 1; i < s.walk.length; i++) L += Math.hypot(s.walk[i][0] - s.walk[i - 1][0], s.walk[i][1] - s.walk[i - 1][1]); s._L = L; return L / SPEED + ACC; }
+  return s.dur;
+}
+for (const v of (Q.get('step') || '').split(',').filter(Boolean)) { const [id, si, st] = v.split(':'); CHARS[id].start = [+si, +(st || 0)]; }
+for (const c of Object.values(CHARS)) {
+  c.total = c.routine.reduce((a, s) => a + stepDur(s), 0);
+  const [si, st] = c.start; c.phase = c.routine.slice(0, si).reduce((a, s) => a + stepDur(s), 0) + st;
+}
+function walkDist(t, T, L) { // 梯形速度：起步、停步有缓动
+  const v = L / (T - ACC);
+  if (t < ACC) return v * t * t / (2 * ACC);
+  if (t > T - ACC) return L - v * (T - t) * (T - t) / (2 * ACC);
+  return v * ACC / 2 + v * (t - ACC);
+}
+const pathLen = (pts) => pts.reduce((a, p, i) => (i ? a + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0), 0);
+// 路线拐角做成小圆弧（半径不超过 22 像素，偏离原路线不到 7 像素），角色不再走「折线」、在拐点上硬转向
+const SMOOTH = new WeakMap();
+function smoothPath(pts) {
+  let r = SMOOTH.get(pts); if (r) return r;
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = pts[i - 1], b = pts[i], c = pts[i + 1];
+    const l1 = Math.hypot(b[0] - a[0], b[1] - a[1]), l2 = Math.hypot(c[0] - b[0], c[1] - b[1]), rad = Math.min(22, l1 * 0.45, l2 * 0.45);
+    if (rad < 1) { out.push(b); continue; }
+    const p = [b[0] + (a[0] - b[0]) * rad / l1, b[1] + (a[1] - b[1]) * rad / l1], q = [b[0] + (c[0] - b[0]) * rad / l2, b[1] + (c[1] - b[1]) * rad / l2];
+    for (let k = 0; k <= 6; k++) { const u = k / 6, w0 = (1 - u) * (1 - u), w1 = 2 * u * (1 - u), w2 = u * u; out.push([w0 * p[0] + w1 * b[0] + w2 * q[0], w0 * p[1] + w1 * b[1] + w2 * q[1]]); }
+  }
+  if (pts.length > 1) out.push(pts[pts.length - 1]);
+  const cum = [0]; for (let i = 1; i < out.length; i++) cum.push(cum[i - 1] + Math.hypot(out[i][0] - out[i - 1][0], out[i][1] - out[i - 1][1]));
+  r = { pts: out, cum, L: cum[cum.length - 1] }; SMOOTH.set(pts, r); return r;
+}
+function pathAt(sp, d) {
+  d = Math.min(Math.max(d, 0), sp.L);
+  let lo = 0, hi = sp.cum.length - 1;
+  if (hi < 1) return sp.pts[0].slice();
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (sp.cum[m] <= d) lo = m; else hi = m; }
+  const a = sp.pts[lo], b = sp.pts[hi], u = (d - sp.cum[lo]) / ((sp.cum[hi] - sp.cum[lo]) || 1);
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+}
+// 行走中的位置、朝向、步伐帧（实时模式和示例作息共用）
+function walkPose(st, pts, t, T, L) {
+  const sp = smoothPath(pts), d = walkDist(t, T, L) * (sp.L / (L || 1));
+  [st.x, st.y] = pathAt(sp, d);
+  const p0 = pathAt(sp, d - 26), p1 = pathAt(sp, d + 26); // 朝向看前后各一小段路的大方向，不跟着每个小折角转
+  st.hx = p1[0] - p0[0]; st.hy = p1[1] - p0[1];
+  st.dir = Math.abs(st.hx) > Math.abs(st.hy) * 0.9 ? (st.hx < 0 ? 1 : 2) : (st.hy < 0 ? 3 : 0);
+  st.frame = Math.floor(d / STEP_PX) % 8; st.moving = t > 0.05 && t < T - 0.05;
+}
+function liveState(id) {
+  const plan = LIVE.chars[id].plan, now = nowMs();
+  const s = plan.find((x) => x.t0 <= now && now < x.t1) || (now < plan[0].t0 ? plan[0] : plan[plan.length - 1]);
+  const say = (s.says || []).find((x) => x.t0 <= now && now < x.t1)?.text;
+  const st = { id, key: `${s.id}`, seg: s };
+  const next = plan.find((x) => x.kind === 'act' && x.t0 >= s.t1)?.thought;
+  if (s.kind === 'travel') { st.area = null; st.s = { text: s.doing, icon: 'walk', walk: true, thought: next }; return st; }
+  if (s.kind === 'walk') {
+    const T = (s.t1 - s.t0) / 1000, t = Math.min(Math.max((now - s.t0) / 1000, 0), T);
+    st.area = s.area; walkPose(st, s.pts, t, T, pathLen(s.pts));
+    st.s = { text: s.doing, icon: 'walk', walk: true, fly: !!s.fly, say, thought: next };
+    return st;
+  }
+  // 时间线走完、下一个决定还没到：先原地站着想
+  const waiting = now >= s.t1 && s.activity !== 'sleep';
+  st.area = s.area; st.inside = s.inside || undefined; st.x = s.x; st.y = s.y; st.since = waiting ? undefined : (now - s.t0) / 1000;
+  st.s = { act: waiting ? 'idle' : s.anim, act0: waiting ? 'idle' : s.anim0, text: waiting ? '在想接下来做什么' : s.doing, icon: s.icon || 'sparkle', thought: s.thought, say, activity: s.activity, place: s.place };
+  return st;
+}
+function stateOf(id) {
+  if (LIVE) return liveState(id);
+  const c = CHARS[id], tt = realSec() + c.phase, cyc = Math.floor(tt / c.total);
+  let t = tt % c.total, i = 0;
+  while (t > stepDur(c.routine[i])) { t -= stepDur(c.routine[i]); i++; }
+  const s = c.routine[i], st = { id, s, i, t, since: t, key: `${cyc}:${i}` };
+  if (s.inside) { st.area = SHOPS[s.inside].area; st.inside = s.inside; }
+  else if (s.travel) { st.area = null; }
+  else st.area = s.area;
+  if (s.walk) {
+    walkPose(st, s.walk, t, stepDur(s), s._L);
+  } else if (s.act && !s.inside) {
+    const prev = c.routine[(i - 1 + c.routine.length) % c.routine.length], p = prev.walk[prev.walk.length - 1];
+    st.x = p[0]; st.y = p[1];
+  }
+  return st;
+}
+
+// ============================== 绘制 ==============================
+// ---- 角色动画 ----
+// 动作图的每一帧是单独生成的，相邻两帧的细节都不完全一样。所以这里不按固定帧率循环、也不做帧间淡入淡出（会出重影），
+// 而是像手绘动画那样「一张画停住、到点再切」：每个动作行是一张带停顿时长的表；停住的时候只做呼吸、重心摆动、眨眼这类整体的小动作。
+// 待机行的第 3、4 列是只换了眼睛的同一张画（离线合成），眨眼时其余部分纹丝不动。
+const PERF = {
+  ds: {
+    idle: { base: 6, blink: [3, 4, 3] },
+    slack: { seq: [[5, 2.6], [2, 1.3], [7, 2.2], [4, 1.0], [5, 1.8], [2, 1.2], [7, 2.4], [6, 0.9]] }, // 坐着发呆 ↔ 低头吸一口
+    happy: { seq: [[0, 0.2], [2, 0.2], [5, 0.2], [1, 0.2], [6, 0.2], [7, 0.2], [4, 0.2]], hop: 0.62 },
+    sleepy: { seq: [[3, 2.8], [2, 0.9], [1, 0.5], [5, 0.5], [0, 1.2], [3, 2.6], [7, 0.5], [6, 1.1], [2, 0.8]], doze: true },
+    // act8b：搅锅、端盘子、挥手、扛东西
+    stir: { seq: [[0, 0.15], [1, 0.15], [2, 0.15], [3, 0.15], [4, 0.15], [5, 0.15], [6, 0.15], [7, 0.15]] }, serve: { seq: [[0, 0.28], [1, 0.28], [2, 0.28], [3, 0.28], [4, 0.28], [5, 0.28], [6, 0.28], [7, 0.28]] }, wave: { seq: [[0, 0.13], [1, 0.13], [2, 0.13], [3, 0.13], [4, 0.13], [5, 0.13], [6, 0.13], [7, 0.13]] }, carry: { seq: [[0, 0.19], [1, 0.19], [2, 0.19], [3, 0.19], [4, 0.19], [5, 0.19], [6, 0.19], [7, 0.19]] },
+    // act8c：坐着、荡秋千、蹲着堆沙、盖着被子睡
+    sit: { seq: [[0, 0.3], [1, 0.3], [2, 0.3], [3, 0.3], [4, 0.3], [5, 0.3], [6, 0.3], [7, 0.3]] }, swing: { seq: [[0, 0.16], [1, 0.16], [2, 0.16], [3, 0.16], [4, 0.16], [5, 0.16], [6, 0.16], [7, 0.16]] }, crouch: { seq: [[0, 0.18], [1, 0.18], [2, 0.18], [3, 0.18], [4, 0.18], [5, 0.18], [6, 0.18], [7, 0.18]] }, sleep: { seq: [[0, 0.55], [1, 0.55], [2, 0.55], [3, 0.55], [4, 0.55], [5, 0.55], [6, 0.55], [7, 0.55]], doze: true },
+    // act8d：捏饭团、拿粉笔写黑板、双手合十、坐在码头边钓鱼
+    shape: { seq: [[0, 0.2], [1, 0.2], [2, 0.2], [3, 0.2], [4, 0.2], [5, 0.2], [6, 0.2], [7, 0.2]] }, chalk: { seq: [[0, 0.18], [1, 0.18], [2, 0.18], [3, 0.18], [4, 0.18], [5, 0.18], [6, 0.18], [7, 0.18]] }, pray: { seq: [[0, 0.8], [1, 0.3], [2, 0.5], [3, 1.2], [4, 0.5], [5, 0.3], [6, 0.8], [7, 1.0]] }, fish: { seq: [[0, 1.2], [1, 0.9], [2, 1.1], [3, 0.9], [4, 1.2], [5, 0.25], [6, 0.6], [7, 0.8]] },
+  },
+  claude: {
+    idle: { base: 5, blink: [4] },
+    read: { seq: [[2, 3.4], [0, 2.8], [3, 0.24], [4, 0.32], [5, 3.2], [7, 2.6], [6, 2.2], [3, 0.24], [4, 0.32], [1, 2.6]] }, // 偶尔翻一页
+    work: { seq: [[0, 0.24], [1, 0.24], [5, 0.24], [2, 0.24], [3, 0.24], [7, 0.24], [6, 0.24]] },
+    sleepy: { seq: [[0, 1.5], [1, 1.3], [2, 0.9], [3, 0.6], [4, 2.2], [5, 1.8], [6, 0.8], [7, 1.1]], doze: true },
+    // act8b：拿笔写字、捧书朗读、挥手、抱着书摇晃
+    write: { seq: [[0, 0.22], [1, 0.22], [2, 0.22], [3, 0.22], [4, 0.22], [5, 0.22], [6, 0.22], [7, 0.22]] }, recite: { seq: [[0, 0.2], [1, 0.2], [2, 0.2], [3, 0.2], [4, 0.2], [5, 0.2], [6, 0.2], [7, 0.2]] }, wave: { seq: [[0, 0.45], [3, 0.14], [5, 0.14], [2, 0.14], [1, 0.14], [4, 0.14], [7, 0.14], [6, 0.14]] } /* 睁眼和眯眼各连成一段，只切两次 */, hug: { seq: [[0, 0.45], [1, 0.45], [2, 0.45], [3, 0.45], [4, 0.45], [5, 0.45], [6, 0.45], [7, 0.45]] },
+    // act8c：坐着、荡秋千、蹲着堆沙、盖着被子睡
+    sit: { seq: [[0, 1.4], [1, 1.1], [2, 0.5], [3, 0.4], [4, 1.3], [5, 0.5], [6, 1.2], [7, 1.0]] }, swing: { seq: [[0, 0.16], [1, 0.16], [2, 0.16], [3, 0.16], [4, 0.16], [5, 0.16], [6, 0.16], [7, 0.16]] }, crouch: { seq: [[0, 0.18], [1, 0.18], [2, 0.18], [3, 0.18], [4, 0.18], [5, 0.18], [6, 0.18], [7, 0.18]] }, sleep: { seq: [[0, 0.55], [1, 0.55], [2, 0.55], [3, 0.55], [4, 0.55], [5, 0.55], [6, 0.55], [7, 0.55]], doze: true },
+    // act8d：坐着吃、拿粉笔写黑板、双手合十、坐在码头边钓鱼
+    eat: { seq: [[0, 0.3], [1, 0.3], [2, 0.3], [3, 0.3], [4, 0.3], [5, 0.3], [6, 0.3], [7, 0.3]] }, chalk: { seq: [[0, 0.2], [1, 0.2], [2, 0.2], [3, 0.2], [4, 0.2], [5, 0.2], [6, 0.2], [7, 0.2]] }, pray: { seq: [[0, 0.8], [1, 0.3], [2, 0.5], [3, 1.2], [4, 0.5], [5, 0.3], [6, 0.8], [7, 1.0]] }, fish: { seq: [[0, 1.2], [1, 0.9], [2, 1.1], [3, 0.9], [4, 1.2], [5, 0.25], [6, 0.6], [7, 0.8]] },
+  },
+  gpt: {
+    idle: { base: 0, blink: [4] },
+    astro: { seq: [[3, 4.2], [1, 3.6], [5, 3.8]], orb: [-7, -53, 13] },
+    happy: { seq: [[7, 0.32], [1, 0.16], [2, 0.16], [3, 0.16], [4, 0.16], [6, 0.16], [5, 0.16], [1, 0.16], [2, 0.16], [3, 0.16], [4, 0.16], [6, 0.16], [5, 0.16], [0, 0.32]], hover: 0.9 },
+    sleepy: { seq: [[0, 1.6], [1, 1.1], [2, 0.55], [3, 2.0], [4, 2.4], [5, 1.6], [6, 0.6], [7, 1.4]], doze: true },
+    // act8b：搬箱子、展翅悬停、指着讲解、挥手（第一张睁眼，其余眯眼笑）
+    carry: { seq: [[0, 0.15], [1, 0.15], [2, 0.15], [3, 0.15], [4, 0.15], [5, 0.15], [6, 0.15], [7, 0.15]] }, hover: { seq: [[0, 0.1], [1, 0.1], [2, 0.1], [3, 0.1], [4, 0.1], [5, 0.1], [6, 0.1], [7, 0.1]], hover: 0.8 }, point: { seq: [[0, 0.28], [1, 0.28], [2, 0.28], [3, 0.28], [4, 0.28], [5, 0.28], [6, 0.28], [7, 0.28]] },
+    wave: { seq: [[0, 0.45], [4, 0.13], [7, 0.13], [1, 0.13], [5, 0.13], [6, 0.13], [2, 0.13], [1, 0.13], [5, 0.13], [6, 0.13], [2, 0.13]] }, // 跳过眨一只眼的第 3 张
+    // act8c：坐着、荡秋千、蹲着堆沙、盖着被子睡
+    sit: { seq: [[0, 0.45], [1, 0.45], [2, 0.45], [3, 0.45], [4, 0.45], [5, 0.45], [6, 0.45], [7, 0.45]] }, swing: { seq: [[0, 0.16], [1, 0.16], [2, 0.16], [3, 0.16], [4, 0.16], [5, 0.16], [6, 0.16], [7, 0.16]] }, crouch: { seq: [[0, 0.18], [1, 0.18], [2, 0.18], [3, 0.18], [4, 0.18], [5, 0.18], [6, 0.18], [7, 0.18]] }, sleep: { seq: [[0, 0.55], [1, 0.55], [2, 0.55], [3, 0.55], [4, 0.55], [5, 0.55], [6, 0.55], [7, 0.55]], doze: true },
+    // act8d：坐着吃饭团、跪着敲敲打打修东西、拿粉笔写黑板、双手合十
+    eat: { seq: [[0, 0.28], [1, 0.28], [2, 0.28], [3, 0.28], [4, 0.28], [5, 0.28], [6, 0.28], [7, 0.28]] }, fix: { seq: [[1, 0.16], [2, 0.08], [6, 0.16], [7, 0.08], [4, 0.14], [0, 0.14]] }, chalk: { seq: [[0, 0.18], [1, 0.18], [2, 0.18], [3, 0.18], [4, 0.18], [5, 0.18], [6, 0.18], [7, 0.18]] }, pray: { seq: [[0, 0.8], [1, 0.3], [2, 0.6], [3, 1.0], [4, 0.4], [5, 0.3], [6, 0.8], [7, 1.0]] },
+  },
+};
+const PH = { ds: 0, claude: 2.71, gpt: 5.37 }; // 三个人的呼吸、眨眼、动作各走各的节拍，不会同时眨眼
+const hash1 = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+for (const [id, rows] of Object.entries(PERF)) for (const P of Object.values(rows)) if (P.seq) { // 每张画的停顿时长随机差一点，不像节拍器
+  let acc = 0; P.cum = P.seq.map(([, d], i) => (acc += d * (0.86 + 0.28 * hash1(i * 5.3 + id.length * 1.7)))); P.total = acc;
+}
+function blinkAt(id, t, dur) { // 随机间隔眨眼，偶尔连眨两下；返回眨眼进度 0..1，不在眨眼时返回 -1
+  const slot = 4.2, n = Math.floor(t / slot), salt = id.length * 17.3 + 0.37;
+  for (const k of [n, n - 1]) {
+    const s0 = k * slot + hash1(k + salt) * (slot - 0.6), twice = hash1(k * 3.1 + salt) < 0.22;
+    for (const s of twice ? [s0, s0 + 0.3] : [s0]) { const u = (t - s) / dur; if (u >= 0 && u < 1) return u; }
+  }
+  return -1;
+}
+const ANIM = {}; // 每个角色的少量「记忆」：上一种状态、朝向，用来做转身缓冲和停步/起步的回弹
+const memo = (id) => ANIM[id] || (ANIM[id] = {});
+function facing(id, st, t) { // 朝向带一点迟滞：斜着走时不会在侧面和正面之间来回闪
+  const m = memo(id), raw = st.dir;
+  if (m.dir === undefined || t < m.dirT) { m.dir = raw; m.dirT = t; return raw; }
+  if (raw !== m.dir) {
+    const ax = Math.abs(st.hx), ay = Math.abs(st.hy), side = m.dir === 1 || m.dir === 2, rside = raw === 1 || raw === 2;
+    const clear = side ? ay > ax * 1.35 : ax > ay * 1.25;
+    if (side === rside || (clear && t - m.dirT > 0.22)) { m.dir = raw; m.dirT = t; } // 同一条轴上掉头：马上转
+  }
+  return m.dir;
+}
+// 近景用高清图集（assets/<key>-hd.webp：格子排法、锚点和普通图集一样，只是每格更大，ATLAS 里 hd 是它的格子尺寸）。
+// 一个图集像素要在屏幕上放大到 1.4 倍以上（详情面板、店里）才按需加载，解码好之前先用普通图集；单文件版没有它，一直用普通图集。
+const imgHd = {};
+function atlasSrc(ctx, key, a, k) {
+  const lo = [img[key], a.cell[0], a.cell[1]];
+  if (!a.hd || /^data:/.test(ASSET[key] || '')) return lo;
+  const m = ctx.getTransform();
+  if (k * Math.hypot(m.a, m.b) < 1.4) return lo;
+  let hi = imgHd[key];
+  if (!hi) { hi = imgHd[key] = new Image(); hi.src = `assets/${key}-hd.webp`; hi.decode().then(() => { hi.ok = true; }, () => {}); }
+  return hi.ok ? [hi, a.hd[0], a.hd[1]] : lo;
+}
+function cellDraw(ctx, atlasKey, row, col, x, y, h, alpha = 1, flip = false, refCh = 0) {
+  const a = ATLAS[atlasKey], im = img[atlasKey];
+  if (!a || !im || !im.complete || !im.naturalWidth) return null;
+  const [cw, ch] = a.cell, [ax, ay] = a.anchor, k = h / ((refCh || ch) * 0.92), [src, sw, sh] = atlasSrc(ctx, atlasKey, a, k);
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingQuality = 'high'; ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(src, col * sw, row * sh, sw, sh, -ax * k, -ay * k, cw * k, ch * k);
+  ctx.restore();
+  return [x - ax * k, y - ay * k, x - ax * k + cw * k, y - ay * k + ch * k];
+}
+// 动作行：按表切画 + 呼吸（以脚为支点，纵向起伏、横向微收）+ 重心左右轻摆。who 可以是角色 id 或 CHARS 里的对象
+// 动作行在哪张图集的哪一行：老的 act8 四行之外，act8b/c/d（搅锅、捏饭团、坐下、荡秋千、睡觉……）按行名查；没有就返回 null
+function animOf(id, name) {
+  const c = CHARS[id];
+  if (!name) return null;
+  if (c.acts[name] !== undefined) return [c.act, c.acts[name]];
+  for (const suf of ['b', 'c', 'd']) {
+    const key = `${c.act}${suf}`, a = ATLAS[key];
+    if (a && img[key]?.naturalWidth) { const r = a.rows.indexOf(name); if (r >= 0) return [key, r]; }
+  }
+  return null;
+}
+const PERF_LOOP = { seq: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => [i, 0.16]) }; // 新动作行没有单独调过节奏时：每张停 0.16 秒循环
+{ let acc = 0; PERF_LOOP.cum = PERF_LOOP.seq.map(([, d]) => (acc += d)); PERF_LOOP.total = acc; }
+function actDraw(ctx, who, actName, x, y, h, t, since) {
+  const id = typeof who === 'string' ? who : Object.keys(CHARS).find((k) => CHARS[k] === who), c = CHARS[id];
+  const an = animOf(id, actName) || animOf(id, 'idle'), [akey, row] = an, rows = PERF[id];
+  const P = rows[animOf(id, actName) ? actName : 'idle'] || (akey !== c.act ? PERF_LOOP : rows.idle);
+  const tl = t + PH[id], a = ATLAS[c.act], refCh = a.cell[1]; // 新图集和 act8 是同一个像素比例：按 act8 的格子高算缩放
+  let col, oy = 0;
+  if (P.blink) {
+    col = P.base;
+    const u = blinkAt(id, tl, 0.06 + 0.055 * P.blink.length);
+    if (u >= 0) col = P.blink[Math.min(P.blink.length - 1, Math.floor(u * P.blink.length))];
+  } else {
+    const k = (((since ?? tl) % P.total) + P.total) % P.total;
+    let i = 0; while (i < P.cum.length - 1 && P.cum[i] <= k) i++;
+    col = P.seq[i][0];
+  }
+  const bp = P.doze ? 4.6 : 3.3 + PH[id] * 0.06, ba = P.doze ? 0.014 : 0.009, br = Math.sin(tl * Math.PI * 2 / bp);
+  let syk = 1 + ba * br, sxk = 1 - ba * 0.45 * br;
+  const skew = (P.doze ? 0.009 : 0.005) * Math.sin(tl * Math.PI * 2 / (5.6 + PH[id] * 0.13));
+  if (P.hop) { // 欢呼时小跳：起跳、落地压扁一下再弹回
+    const u = (tl / P.hop) % 1;
+    if (u < 0.68) oy = -Math.sin(Math.PI * u / 0.68) * h * 0.045;
+    else { const v = Math.sin(Math.PI * (u - 0.68) / 0.32); syk *= 1 - 0.045 * v; sxk *= 1 + 0.03 * v; }
+  }
+  if (P.hover) oy = -(0.5 + 0.5 * Math.sin(tl * Math.PI * 2 / P.hover)) * h * 0.022; // 扇翅膀时身体跟着轻轻上下
+  ctx.save(); ctx.translate(x, y + oy); ctx.transform(sxk, 0, -skew, syk, 0, 0);
+  const box = cellDraw(ctx, akey, row, col, 0, 0, h, 1, false, refCh);
+  if (P.orb && a) { // 星仪的光一明一暗（只是叠一层光，不改画面本身）
+    const k = h / (a.cell[1] * 0.92), r = P.orb[2] * k * 2.4, gx = P.orb[0] * k, gy = P.orb[1] * k;
+    const al = 0.2 + 0.16 * Math.sin(tl * Math.PI * 2 / 2.3);
+    const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, r); g.addColorStop(0, `rgba(200,175,255,${al})`); g.addColorStop(1, 'rgba(200,175,255,0)');
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(gx - r, gy - r, r * 2, r * 2);
+  }
+  ctx.restore();
+  return box && [box[0] + x, box[1] + y + oy, box[2] + x, box[3] + y + oy];
+}
+// 坐着的动作画在座位上（地图坐标，脚的位置）。同一个地方有几个人时按顺序坐不同的位子；刚到时从站的地方挪过去
+const SEATS = {
+  benchE: [[878, 524], [898, 514]], benchW: [[582, 530], [600, 520]], benchP: [[130, 612], [162, 612]],
+  picnic: [[178, 772], [284, 752], [230, 792]], umbrella: [[352, 630], [402, 616], [378, 646]],
+  tree: [[862, 600], [828, 612], [892, 614]], pierEnd: [[1004, 628], [1062, 626]], // 码头尽头的木板边（y≈612），腿垂在水面上
+  sandcastle: [[404, 744], [540, 742], [462, 782]], // 围着沙堡蹲着堆：左、右、前（站着等的时候也站在旁边，不踩在沙堡上）
+  // 写字的姿势朝右、右手举起来：站在黑板、公告栏、许愿牌的左边
+  blackboard: [[905, 370]], board: [[735, 835]], ema: [[375, 245]],
+};
+const SEATED = new Set(['sit', 'fish', 'eat', 'chalk']), AROUND = new Set(['sandcastle']);
+// 停下来时要播的动作行：想要的那一行（anim）没有就用老的（anim0），再没有就待机
+// 刚走到朋友跟前开始聊天时，先挥挥手
+const actMode = (id, st) => (st.s.activity === 'chat' && (st.since ?? 9) < 2.4 && animOf(id, 'wave') ? 'wave' : animOf(id, st.s.act) ? st.s.act : animOf(id, st.s.act0) ? st.s.act0 : 'idle');
+function seatOf(st, mode) {
+  const list = SEATS[st.s.place]; if (!list || st.s.walk || !(SEATED.has(mode) || AROUND.has(st.s.place))) return null;
+  const here = Object.keys(CHARS).map(stateOf).filter((o) => !o.s.walk && o.s.place === st.s.place && o.area === st.area).map((o) => o.id).sort();
+  return list[Math.max(0, here.indexOf(st.id)) % list.length];
+}
+function charDraw(ctx, id, st, sx, sy, scale) {
+  const c = CHARS[id], h = c.h * scale, t = realSec(), m = memo(id);
+  const flying = !!(st.s.fly && st.moving && animOf(id, 'hover'));
+  const walking = !!(st.s.walk && st.moving) && !flying;
+  const mode = flying ? 'hover' : walking ? 'walk' : st.s.walk ? 'idle' : actMode(id, st);
+  if (mode !== m.mode) { // 起步、停步、换动作时压一下再弹回，不是硬生生地换画
+    if (m.mode !== undefined) { m.kick = t; m.amp = mode === 'walk' || m.mode === 'walk' ? 0.04 : 0.022; }
+    if (mode === 'walk') m.dir = undefined;
+    m.mode = mode;
+  }
+  const u = t - (m.kick ?? -9), settle = u >= 0 && u < 0.7 ? m.amp * Math.exp(-u * 7) * Math.cos(u * 15) : 0;
+  ctx.save(); ctx.globalAlpha = 0.18; ctx.fillStyle = '#2a1d14';
+  ctx.beginPath(); ctx.ellipse(sx, sy - 1, h * 0.27 * (1 + settle), h * 0.065, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(sx, sy); ctx.scale(1 + settle * 0.6, 1 - settle);
+  const box = walking ? cellDraw(ctx, c.walk, facing(id, st, t), st.frame, 0, 0, h)
+    : actDraw(ctx, id, mode, 0, 0, h * (st.s.walk ? 1.02 : 1.04), t, st.s.walk ? undefined : st.since);
+  ctx.restore();
+  return box && [box[0] + sx, box[1] + sy, box[2] + sx, box[3] + sy];
+}
+
+const FONTD = '"Kuaile","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif';
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function bubble(ctx, cx, bottom, text, size, color, kind = 'say') {
+  ctx.font = `${size}px ${FONTD}`;
+  const w = ctx.measureText(text).width + size * 1.7, h = size * 2.15, x = cx - w / 2, y = bottom - h - size * 0.7;
+  ctx.save(); ctx.shadowColor = 'rgba(40,24,12,.25)'; ctx.shadowBlur = size * 0.8; ctx.shadowOffsetY = size * 0.15;
+  ctx.fillStyle = '#fff'; rr(ctx, x, y, w, h, h / 2); ctx.fill(); ctx.restore();
+  ctx.fillStyle = '#fff';
+  if (kind === 'say') { ctx.beginPath(); ctx.moveTo(cx - size * .5, y + h - 1); ctx.quadraticCurveTo(cx - size * .1, y + h + size * .2, cx - size * .05, bottom); ctx.quadraticCurveTo(cx + size * .2, y + h + size * .1, cx + size * .5, y + h - 1); ctx.fill(); }
+  ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.5, size / 8); rr(ctx, x + 1, y + 1, w - 2, h - 2, h / 2 - 1); ctx.globalAlpha = .35; ctx.stroke(); ctx.globalAlpha = 1;
+  ctx.fillStyle = '#3d302b'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, cx, y + h / 2 + size * 0.06);
+}
+function thoughtIcon(ctx, cx, cy, size, color, t) {
+  const b = Math.sin(t * 2.4) * size * 0.08;
+  ctx.save(); ctx.translate(cx, cy + b); ctx.shadowColor = 'rgba(40,24,12,.25)'; ctx.shadowBlur = size * .5;
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(0, 0, size * 0.95, size * 0.66, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-size * 0.55, size * 0.75, size * 0.18, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0; ctx.fillStyle = color;
+  for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.arc(k * size * 0.36, 0, size * 0.11, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+}
+function badge(ctx, x, y, avatarKey, text, color, size) {
+  ctx.font = `${size}px ${FONTD}`;
+  const w = ctx.measureText(text).width + size * 3.3, h = size * 2.1;
+  ctx.save(); ctx.shadowColor = 'rgba(40,24,12,.3)'; ctx.shadowBlur = size * .7; ctx.fillStyle = 'rgba(255,248,238,.96)';
+  rr(ctx, x - w / 2, y - h / 2, w, h, h / 2); ctx.fill(); ctx.restore();
+  const r = h / 2 - 2.5, ax = x - w / 2 + 2.5 + r;
+  ctx.save(); ctx.beginPath(); ctx.arc(ax, y, r, 0, Math.PI * 2); ctx.clip();
+  if (img[avatarKey]) ctx.drawImage(img[avatarKey], ax - r, y - r, r * 2, r * 2); ctx.restore();
+  ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ax, y, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#3d302b'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(text, ax + r + size * 0.45, y + size * 0.06);
+  return [x - w / 2, y - h / 2, x + w / 2, y + h / 2];
+}
+
+// 环境小生命
+function critters(ctx, area, cam, sc, t) {
+  const at = (x, y) => [(x - cam.x) * sc, (y - cam.y) * sc];
+  const A = 'critters';
+  if (area === 'square' && !LIVE?.world?.things?.cat) {
+    const cyc = t % 36;
+    let x, y = 600, flip = false, row = 0, col = 0;
+    if (cyc < 9) { x = 500 + cyc * 15; row = 0; col = Math.floor(cyc * 7) % 4; }
+    else if (cyc < 15) { x = 635; row = 1; col = Math.floor(cyc * 2) % 2; }
+    else if (cyc < 27) { x = 635; row = 1; col = 2 + (Math.floor(cyc * 0.8) % 2); }
+    else { x = 635 - (cyc - 27) * 15; row = 0; col = Math.floor(cyc * 7) % 4; flip = true; }
+    const [px, py] = at(x, y); cellDraw(ctx, A, row, col, px, py, 34 * sc, 1, flip);
+  }
+  if (area === 'market') {
+    for (const [ph, yy, sp] of [[0, 600, 1], [7, 470, 0.8]]) {
+      const u = ((t + ph) * 60 * sp) % 2000 - 200, [px, py] = at(u, yy + Math.sin((t + ph) * 1.3) * 18);
+      cellDraw(ctx, A, 2, Math.floor((t + ph) * 8) % 4, px, py, 46 * sc);
+    }
+    if (!LIVE?.world?.things?.cat) { const [px, py] = at(206, 650); cellDraw(ctx, A, 1, 2 + (Math.floor(t * 0.8) % 2), px, py, 30 * sc); }
+  }
+  if (area === 'park') {
+    for (const [cx, cy, r, ph] of [[470, 720, 46, 0], [980, 700, 38, 2.5], [300, 560, 40, 5]]) {
+      const [px, py] = at(cx + Math.cos(t * 0.9 + ph) * r, cy + Math.sin(t * 1.3 + ph) * r * 0.6 - 30);
+      cellDraw(ctx, A, 3, Math.floor((t + ph) * 9) % 2, px, py, 22 * sc);
+    }
+    const k = (t % 7.5), spots = [[1250, 640], [1380, 600], [1200, 760]], sp = spots[Math.floor(t / 7.5) % 3];
+    if (k < 0.9) { const [px, py] = at(sp[0], sp[1]); cellDraw(ctx, A, 3, k < 0.45 ? 2 : 3, px, py, 40 * sc, Math.min(1, (0.9 - k) * 3)); }
+  }
+}
+
+// 世界的状态画在地图上：猫在哪儿、灯塔亮没亮、流星雨、灯笼节、大风，约好的事和沙堡的进度
+// 灯笼串：图里绳子左端在 (2.5, 130.6)；按 0.21 倍挂在古树树冠上（画上原有的灯笼更小，挂得太大会抢戏）
+const GARLAND = { k: 0.21, at: [566, 238], end: [2.5, 130.6], lamps: [[78, 173], [237, 223], [387, 252], [546, 274], [710, 262], [881, 232], [1072, 207], [1254, 232], [1420, 263], [1586, 273], [1751, 252], [1904, 226], [2066, 173]] };
+const nightness = () => { const h = hourNow(); return h >= 19.5 || h < 5 ? 1 : h >= 18 ? (h - 18) / 1.5 : h < 6.5 ? (6.5 - h) / 1.5 : 0; };
+const hash1b = (n) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
+function propDraw(ctx, name, x, y, h, alpha = 1) { // x、y 是屏幕坐标（贴地的那一点），h 是屏幕上的高度
+  const p = PROPS[name], im = img.props; if (!p || !im || !im.naturalWidth) return null;
+  const [rx, ry, rw, rh] = p.rect, [ax, ay] = p.anchor, k = h / rh;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(im, rx, ry, rw, rh, x - ax * k, y - ay * k, rw * k, rh * k); ctx.restore();
+  return [x - ax * k, y - ay * k, x + (rw - ax) * k, y + (rh - ay) * k];
+}
+// 秋千：两根绳从树枝上的结垂下来（左结比右结低一点），座板在下面；有人荡的时候整个绕着两个结的中点摆动
+const SWING = { pivots: [[909.2, 404], [953.3, 387]], seat: [931, 506], stubs: [[-21.1, -26.9], [22.3, -25.3]] };
+function rope(ctx, x1, y1, x2, y2, sc) {
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#604220'; ctx.lineWidth = Math.max(2, 4.5 * sc); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.strokeStyle = '#d6b068'; ctx.lineWidth = Math.max(1, 2.4 * sc); ctx.stroke();
+  ctx.strokeStyle = 'rgba(96,66,32,.55)'; ctx.lineWidth = Math.max(1, 1.4 * sc); ctx.setLineDash([2.5 * sc, 3 * sc]); ctx.stroke(); ctx.setLineDash([]); // 假装是拧的绳
+}
+// 有人荡时：她的 swing 行里带着座板和直直的两根绳（图里绳子在格子顶边的 x 由 ROPE_X 给出，单位是格子像素）
+const ROPE_X = { ds: [44.8, 158.4], claude: [48.7, 161.4], gpt: [46.3, 151.3] };
+function drawSwing(ctx, cam, sc, t, riderId = null) {
+  const [p1, p2] = SWING.pivots, cx = (p1[0] + p2[0]) / 2, cy = (p1[1] + p2[1]) / 2;
+  const broken = (LIVE?.world?.things?.swing?.state?.rope) === 'broken';
+  const ang = riderId ? 0.28 * Math.sin(t * 2.1) : broken ? 0 : 0.02 * Math.sin(t * 0.9), c0 = Math.cos(ang), s0 = Math.sin(ang);
+  const S = (x, y) => [(x - cam.x) * sc, (y - cam.y) * sc];
+  const rot = (x, y) => { const dx = x - cx, dy = y - cy; return [cx + dx * c0 - dy * s0, cy + dx * s0 + dy * c0]; }; // 绕两个结的中点转
+  const seat = rot(...SWING.seat), [sx, sy] = S(...seat), [q1, q2] = [S(...p1), S(...p2)];
+  ctx.save();
+  if (!riderId) {
+    const tops = SWING.stubs.map(([dx, dy]) => S(...rot(SWING.seat[0] + dx, SWING.seat[1] + dy)));
+    rope(ctx, ...q1, ...tops[0], sc);
+    if (!broken) rope(ctx, ...q2, ...tops[1], sc); else rope(ctx, ...q2, q2[0] - 6 * sc, q2[1] + 48 * sc, sc); // 断了一根：右边只剩半截
+    ctx.translate(sx, sy); ctx.rotate(broken ? 0.9 : ang); propDraw(ctx, 'seat', 0, 0, PROPS.seat.h * sc);
+    ctx.restore(); return null;
+  }
+  const c = CHARS[riderId], h = c.h * sc * 1.04, a = ATLAS[`${riderId}-act8c`], k = h / (ATLAS[c.act].cell[1] * 0.92);
+  const rx = (ROPE_X[riderId] || [a.anchor[0] - 55, a.anchor[0] + 58]).map((x) => (x - a.anchor[0]) * k);
+  const lc = (SWING.seat[1] - cy) * sc * 0.5; // 在座板和结之间的一半处接上
+  // 上半截绳子：从树枝上的结到她那两根绳上的接点
+  const joint = rx.map((x) => [sx + x * c0 + lc * s0, sy + x * s0 - lc * c0]);
+  rope(ctx, ...q1, ...joint[0], sc); rope(ctx, ...q2, ...joint[1], sc);
+  ctx.translate(sx, sy); ctx.rotate(ang);
+  ctx.beginPath(); ctx.rect(-h, -lc, h * 2, h * 2); ctx.rect(-h * 0.2, -h * 1.5, h * 0.4, h * 1.5 - lc + 1); ctx.clip(); // 只剪掉接点以上的那两截绳子，头不剪
+  const box = actDraw(ctx, riderId, 'swing', 0, 0, h, t, 0);
+  ctx.restore();
+  return box && [box[0] + sx, box[1] + sy, box[2] + sx, box[3] + sy];
+}
+const DEMO_STATE = { sandcastle: { pct: 35 }, post: { parcels: 2 } };
+function worldGround(ctx, area, cam, sc, t) {
+  const W0 = LIVE?.world || {}, th = W0.things || {};
+  const at = (x, y) => [(x - cam.x) * sc, (y - cam.y) * sc], P = (name, x, y, k = 1) => { const [px, py] = at(x, y); return propDraw(ctx, name, px, py, PROPS[name].h * sc * k); };
+  const st = (id) => th[id]?.state || (LIVE ? {} : DEMO_STATE[id] || {}), busyAt = (place) => Object.keys(CHARS).some((id) => { const s = stateOf(id); return !s.s.walk && s.s.place === place; });
+  if (area === 'market') {
+    const pct = +st('sandcastle').pct || 0; // 沙堡：按完成度画四个阶段
+    if (pct > 0) { // 沙堡也要一点影子，不然像贴上去的
+      const [sx2, sy2] = at(462, 732); ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = '#4a3020'; ctx.beginPath(); ctx.ellipse(sx2, sy2 - 2 * sc, 40 * sc, 9 * sc, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      P(pct < 25 ? 'castle1' : pct < 50 ? 'castle2' : pct < 100 ? 'castle3' : 'castle4', 470, 732);
+    }
+    const n = Math.min(3, +st('post').parcels || 0); // 驿站门口的包裹
+    [[1236, 272], [1212, 284], [1258, 286]].slice(0, n).forEach(([x, y]) => P('parcel', x, y));
+    if (!busyAt('pierEnd')) P('rod', 1050, 604); // 码头尽头的钓竿：有人钓鱼时在她手上
+    if ((+st('rod').caught || 0) > 0) P('basket', 994, 614);
+  }
+  if (area === 'park') {
+    if (!Object.keys(CHARS).some((id) => { const s = stateOf(id); return s.area === 'park' && !s.s.walk && s.s.place === 'swing' && actMode(id, s) === 'swing'; })) drawSwing(ctx, cam, sc, t, null);
+    if ((W0.gatherings || []).some((g) => g.kind === 'picnic' && g.status === 'running')) P('onigiri', 246, 778);
+  }
+  if (area === 'square') {
+    if (st('counter').sign === '服务器繁忙') { // 食堂门口挂出「服务器繁忙」的牌子
+      const b = P('sign', 400, 236); // 牌子的木板在图里是 x 4–235、y 88–188
+      if (b) { const k = (b[3] - b[1]) / PROPS.sign.rect[3]; ctx.save(); ctx.font = `${Math.max(8, 24 * k)}px ${FONTD}`; ctx.fillStyle = '#5a3a22'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('服务器繁忙', b[0] + 119.5 * k, b[1] + 140 * k); ctx.restore(); }
+    }
+    if (st('cat').name && st('cat').name !== '-') P('bowl', 478, 322); // 猫有了名字以后，食堂门口多了一只猫碗
+  }
+  const cat = th.cat;
+  if (cat?.area === area && cat.at) { // 白猫：在它待的地方旁边坐着或睡着；叼着东西时嘴边有个饭团
+    const [px, py] = at(cat.at[0] + 44, cat.at[1] + 16), has = cat.state?.has && cat.state.has !== '-', h = hourNow();
+    const sleepy = !has && (h >= 12 && h < 16 || h >= 21 || h < 6);
+    cellDraw(ctx, 'critters', 1, sleepy ? 2 + (Math.floor(t * 0.8) % 2) : Math.floor(t * 1.6) % 2, px, py, 32 * sc);
+    if (has) { // 一个小饭团
+      const ox = px + 9 * sc, oy = py - 14 * sc, r = 5.5 * sc;
+      ctx.save(); ctx.fillStyle = '#fffaf0'; ctx.strokeStyle = 'rgba(60,40,30,.6)'; ctx.lineWidth = Math.max(1, sc);
+      ctx.beginPath(); ctx.moveTo(ox, oy - r); ctx.lineTo(ox + r, oy + r * 0.8); ctx.lineTo(ox - r, oy + r * 0.8); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#26323a'; ctx.fillRect(ox - r * 0.45, oy + r * 0.15, r * 0.9, r * 0.65); ctx.restore();
+    }
+  }
+}
+function worldSky(ctx, area, cam, sc, t, W, H) {
+  const LW = LIVE?.world, th = LW?.things; if (!th) return;
+  const night = nightness(), at = (x, y) => [(x - cam.x) * sc, (y - cam.y) * sc];
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  if (area === 'market' && th.lighthouse?.state?.lit && night > 0.05) { // 灯塔：灯一圈一圈地转
+    const [lx, ly] = at(1415, 622), L = 560 * sc, a0 = t * 0.55;
+    for (const a of [a0, a0 + Math.PI]) {
+      const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, L); g.addColorStop(0, `rgba(255,236,170,${0.34 * night})`); g.addColorStop(1, 'rgba(255,236,170,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.arc(lx, ly, L, a - 0.075, a + 0.075); ctx.closePath(); ctx.fill();
+    }
+    const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 46 * sc); g.addColorStop(0, `rgba(255,240,190,${0.7 * night})`); g.addColorStop(1, 'rgba(255,240,190,0)');
+    ctx.fillStyle = g; ctx.fillRect(lx - 46 * sc, ly - 46 * sc, 92 * sc, 92 * sc);
+  }
+  if (area === 'park' && th.oldtree?.state?.lanterns && img.garland?.naturalWidth) { // 灯笼节：古树的树冠上挂一串灯笼，夜里每盏一圈光
+    const k = GARLAND.k, [ox, oy] = GARLAND.at, [px, py] = at(ox - GARLAND.end[0] * k, oy - GARLAND.end[1] * k);
+    ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img.garland, px, py, img.garland.naturalWidth * k * sc, img.garland.naturalHeight * k * sc); ctx.restore();
+    if (night > 0.05) for (const [lx, ly] of GARLAND.lamps) {
+      const [gx, gy] = at(ox + (lx - GARLAND.end[0]) * k, oy + (ly - GARLAND.end[1]) * k), r = 40 * sc, fl = 0.85 + 0.15 * Math.sin(t * 2.6 + lx);
+      const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, r); g.addColorStop(0, `rgba(255,190,110,${0.55 * night * fl})`); g.addColorStop(1, 'rgba(255,190,110,0)');
+      ctx.fillStyle = g; ctx.fillRect(gx - r, gy - r, r * 2, r * 2);
+    }
+  }
+  if ((LW.events?.active || []).some((e) => e.id === 'meteor') && night > 0.3) { // 流星雨：一颗接一颗划过
+    for (let i = 0; i < 4; i++) {
+      const per = 2.6 + i * 0.7, u = ((t + i * 1.9) % per) / per, n = Math.floor((t + i * 1.9) / per) + i * 31;
+      if (u > 0.35) continue;
+      const k = u / 0.35, x0 = W * (0.35 + 0.6 * hash1b(n)), y0 = H * (0.01 + 0.12 * hash1b(n + 7)), len = (110 + 100 * hash1b(n + 3)) * Math.max(sc, 0.5); // 只在画面最上面一条天空里划过
+      const x = x0 - k * len * 1.6, y = y0 + k * len * 0.7, a = Math.sin(k * Math.PI) * night;
+      const g = ctx.createLinearGradient(x, y, x + len, y - len * 0.44); g.addColorStop(0, `rgba(255,255,255,${0.95 * a})`); g.addColorStop(1, 'rgba(180,200,255,0)');
+      ctx.strokeStyle = g; ctx.lineWidth = Math.max(1.5, 2.2 * sc); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len, y - len * 0.44); ctx.stroke();
+    }
+  }
+  ctx.restore();
+  if (LW.weather?.today === 'windy') { // 大风：叶子和花瓣横着飞
+    ctx.save();
+    for (let i = 0; i < 16; i++) {
+      const sp = 140 + 60 * hash1b(i), x = ((t * sp + i * 211) % (W + 80)) - 40, y = (H * hash1b(i + 3) + Math.sin(t * 2 + i) * 18 * sc) % H;
+      ctx.fillStyle = i % 3 ? 'rgba(120,170,80,.75)' : 'rgba(240,170,120,.8)';
+      ctx.beginPath(); ctx.ellipse(x, y, 5 * Math.max(sc, 0.6), 2.4 * Math.max(sc, 0.6), t * 4 + i, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+// 约好的事在地图上的标记（到点前 3 小时出现），以及沙堡的进度环
+function worldMarks(ctx, area, cam, sc) {
+  const LW = LIVE?.world; if (!LW) return;
+  const objs = AREAS[area].objects, gm = gameMin() % 1440;
+  for (const g of LW.gatherings || []) {
+    if (g.status === 'done') continue;
+    const [hh, mm] = g.at.split(':').map(Number), soon = (hh * 60 + mm - gm + 1440) % 1440;
+    if (g.status === 'planned' && soon > 180) continue;
+    const o = objs.find((x) => x.id === g.place), sh = SHOPS[g.place];
+    const pos = o ? (o.c ? [o.c[0], o.c[1] - o.c[2] - 64] : [(o.r[0] + o.r[2]) / 2, o.r[1] - 10]) : sh && sh.area === area ? [sh.badge[0] + 56, sh.badge[1] - 30] : null; // 在人头顶上方，不挡人
+    if (!pos) continue;
+    const px = (pos[0] - cam.x) * sc, py = (pos[1] - cam.y) * sc, label = g.status === 'running' ? g.name : `${g.at} ${g.name}`;
+    ctx.save(); ctx.font = `${Math.max(11, 14 * sc)}px ${FONTD}`;
+    const w = ctx.measureText(label).width + 30 * Math.max(sc, 0.7), hgt = Math.max(20, 26 * sc);
+    ctx.fillStyle = g.status === 'running' ? 'rgba(224,86,110,.92)' : 'rgba(61,48,43,.86)'; rr(ctx, px - w / 2, py - hgt, w, hgt, hgt / 2); ctx.fill();
+    ctx.fillStyle = '#fff4e6'; ctx.textBaseline = 'middle'; ctx.fillText(label, px - w / 2 + 22 * Math.max(sc, 0.7), py - hgt / 2 + 1);
+    ctx.beginPath(); ctx.arc(px - w / 2 + 12 * Math.max(sc, 0.7), py - hgt / 2, 4 * Math.max(sc, 0.7), 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  const sc0 = LW.things?.sandcastle?.state;
+  if (area === 'market' && sc0) {
+    const o = objs.find((x) => x.id === 'sandcastle'), pct = Math.min(100, +sc0.pct || 0);
+    if (o) {
+      const px = (o.c[0] + o.c[2] * 0.85 - cam.x) * sc, py = (o.c[1] - o.c[2] * 0.75 - cam.y) * sc, r = Math.max(9, 13 * sc);
+      ctx.save(); ctx.lineWidth = Math.max(2.5, 3.5 * sc); ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.fillStyle = 'rgba(61,48,43,.55)';
+      ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = pct >= 100 ? '#7cbf6a' : '#f0a95a'; ctx.beginPath(); ctx.arc(px, py, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct / 100); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = `${Math.max(8, 10 * sc)}px ${FONTD}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(Math.round(pct)), px, py + 0.5);
+      ctx.restore();
+    }
+  }
+}
+
+// 昼夜光照
+function lighting(ctx, area, cam, sc, W, H) {
+  const h = hourNow(), A = AREAS[area];
+  let tint = null, night = 0;
+  if (h >= 5 && h < 6.5) { tint = [255, 176, 190, 0.16]; night = (6.5 - h) / 1.5 * 0.4; }
+  else if (h >= 16 && h < 18) tint = [255, 196, 120, 0.12 + (h - 16) * 0.04];
+  else if (h >= 18 && h < 19.5) { const k = (h - 18) / 1.5; tint = [150 - 90 * k, 110 - 60 * k, 190 - 60 * k, 0.24 + 0.24 * k]; night = k; }
+  else if (h >= 19.5 || h < 5) { tint = [42, 48, 120, 0.5]; night = 1; }
+  if (!tint) return null;
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = `rgba(${tint[0]},${tint[1]},${tint[2]},${tint[3]})`; ctx.fillRect(0, 0, W, H); ctx.restore();
+  if (night > 0.05) {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const [x, y] of A.lamps) {
+      const px = (x - cam.x) * sc, py = (y - cam.y) * sc, r = 95 * sc;
+      const g = ctx.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, `rgba(255,214,140,${0.55 * night})`); g.addColorStop(1, 'rgba(255,214,140,0)');
+      ctx.fillStyle = g; ctx.fillRect(px - r, py - r, r * 2, r * 2);
+    }
+    for (const [x, y, w, hh] of A.windows) {
+      const px = (x - cam.x) * sc, py = (y - cam.y) * sc;
+      const g = ctx.createRadialGradient(px + w * sc / 2, py + hh * sc / 2, 0, px + w * sc / 2, py + hh * sc / 2, Math.max(w, hh) * sc * 0.75);
+      g.addColorStop(0, `rgba(255,200,120,${0.4 * night})`); g.addColorStop(1, 'rgba(255,200,120,0)');
+      ctx.fillStyle = g; ctx.fillRect(px - w * sc * 0.3, py - hh * sc * 0.3, w * sc * 1.6, hh * sc * 1.6);
+    }
+    ctx.restore();
+  }
+  return tint;
+}
+
+// 画一个区域：主舞台用整张图，详情面板用跟随角色的镜头
+function renderArea(ctx, W, H, area, cam, opt = {}) {
+  const sc = W / cam.w, t = realSec();
+  const im = img[AREAS[area].img];
+  if (im && im.naturalWidth) ctx.drawImage(im, cam.x, cam.y, cam.w, cam.h, 0, 0, W, H);
+  const pt = MAP_PATCH[area], pim = pt && img[pt[0]];
+  if (pim && pim.naturalWidth) ctx.drawImage(pim, (pt[1] - cam.x) * sc, (pt[2] - cam.y) * sc, pim.naturalWidth * sc, pim.naturalHeight * sc);
+  critters(ctx, area, cam, sc, t);
+  worldGround(ctx, area, cam, sc, t);
+  const hits = [];
+  const tint = lighting(ctx, area, cam, sc, W, H);
+  worldSky(ctx, area, cam, sc, t, W, H);
+  if (raining()) { // 下雨：压暗一点，再画斜着落下的雨丝
+    ctx.save(); ctx.fillStyle = 'rgba(60,80,110,.18)'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(220,235,255,.55)'; ctx.lineWidth = Math.max(1, sc * 1.6); ctx.beginPath();
+    for (let k = 0; k < 140; k++) { const x = (k * 97.3 + t * 260) % (W + 60) - 30, y = (k * 53.7 + t * (700 + (k % 5) * 60)) % (H + 40) - 20; ctx.moveTo(x, y); ctx.lineTo(x - 6 * sc, y + 18 * sc); }
+    ctx.stroke(); ctx.restore();
+  }
+  const lay = layerFor(ctx.canvas), lc = lay.getContext('2d');
+  lc.setTransform(1, 0, 0, 1, 0, 0); lc.clearRect(0, 0, lay.width, lay.height); lc.setTransform(ctx.getTransform());
+  const sts = Object.keys(CHARS).map(stateOf).filter((s) => s.area === area && !s.inside && s.x !== undefined).sort((a, b) => a.y - b.y);
+  for (const st of sts) {
+    let [mx, my] = [st.x, st.y];
+    const seat = !st.s.walk && seatOf(st, actMode(st.id, st));
+    if (seat) { const k = Math.min(1, (st.since ?? 1) / 0.5); mx += (seat[0] - mx) * k; my += (seat[1] - my) * k; } // 刚到时从站的地方挪到座位上
+    const x = (mx - cam.x) * sc, y = (my - cam.y) * sc;
+    // 下雨天在外面（不在遮阳伞下）就撑一把油纸伞：往上走时伞在身后，其余时候在头顶
+    const wet = raining() && !(st.s.place === 'umbrella' && !st.s.walk) && !(st.s.fly && st.moving), hc = CHARS[st.id].h * sc;
+    const back = wet && st.s.walk && st.moving && facing(st.id, st, realSec()) === 3;
+    if (back) propDraw(lc, 'umbrella_back', x + 4 * sc, y - 0.79 * hc, PROPS.umbrella_back.h * sc);
+    const riding = st.area === 'park' && !st.s.walk && st.s.place === 'swing' && actMode(st.id, st) === 'swing'; // 荡秋千：人画在会摆的秋千上
+    const box = riding ? drawSwing(lc, cam, sc, realSec(), st.id) : charDraw(lc, st.id, st, x, y, sc);
+    if (wet && !back && !riding) { // 伞面要在头顶上方，不挡脸；坐着时头低一些
+      const lift = seat ? 1.04 : 1.12;
+      lc.save(); if (st.s.walk && st.moving && facing(st.id, st, realSec()) === 1) { lc.translate(x, 0); lc.scale(-1, 1); lc.translate(-x, 0); }
+      propDraw(lc, 'umbrella', x, y - lift * hc, PROPS.umbrella.h * sc * 0.92); lc.restore();
+    }
+    if (box) hits.push({ kind: 'char', id: st.id, box, x, y });
+  }
+  if (tint) { lc.save(); lc.globalCompositeOperation = 'source-atop'; lc.fillStyle = `rgba(${tint[0]},${tint[1]},${tint[2]},${tint[3] * 0.5})`; lc.fillRect(0, 0, W, H); lc.restore(); }
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(lay, 0, 0); ctx.restore();
+  if (!opt.noUi) {
+    worldMarks(ctx, area, cam, sc);
+    for (const [key, sh] of Object.entries(SHOPS)) {
+      if (sh.area !== area) continue;
+      const ins = Object.keys(CHARS).map(stateOf).filter((st) => st.inside === key).sort((a, b) => (b.id === sh.owner) - (a.id === sh.owner));
+      ins.forEach((st, i) => hits.push({ kind: 'badge', id: st.id, box: badge(ctx, (sh.badge[0] - cam.x) * sc, (sh.badge[1] - cam.y) * sc + i * Math.max(26, 36 * sc), avatarKey(st.id), st.s.text.replace('在店里', '').replace('在书屋', '').replace(/^在/, ''), CHARS[st.id].color, Math.max(11, 16 * sc)) }));
+    }
+    for (const hit of hits) {
+      if (hit.kind !== 'char') continue;
+      const st = stateOf(hit.id), c = CHARS[hit.id], top = hit.y - c.h * sc * 1.04;
+      if (st.s.say && !st.s.walk) bubble(ctx, hit.x, top, st.s.say, Math.max(12, 17 * sc), c.color);
+      else thoughtIcon(ctx, hit.x + c.h * sc * 0.36, top + c.h * sc * 0.1, Math.max(9, 13 * sc), c.color, realSec() + hit.y);
+    }
+  }
+  return hits;
+}
+const avatarKey = (id) => `avatar-${id}`;
+const LAYERS = new WeakMap();
+function layerFor(cv) { let l = LAYERS.get(cv); if (!l) { l = document.createElement('canvas'); LAYERS.set(cv, l); } if (l.width !== cv.width || l.height !== cv.height) { l.width = cv.width; l.height = cv.height; } return l; }
+
+// ============================== 主舞台 ==============================
+const stageWrap = document.getElementById('stageWrap'), stage = document.getElementById('stage'), mapCv = document.getElementById('map');
+const tip = document.getElementById('tip'), pop = document.getElementById('pop');
+let mapHits = [];
+const PHONE = matchMedia('(max-width: 820px)'), mainEl = document.querySelector('main');
+// 地图保持 3:2，尽量大；右边伴读栏拿剩下的宽度（360～520），两栏一起居中，上沿对齐
+function fitStage() {
+  if (PHONE.matches) {
+    mainEl.style.gridTemplateColumns = ''; mainEl.style.justifyContent = '';
+    const w = stageWrap.clientWidth; stage.style.width = `${w}px`; stage.style.height = `${Math.round(w / 1.5)}px`;
+    return;
+  }
+  const W = mainEl.clientWidth, H = mainEl.clientHeight, gap = 18, sideMin = innerWidth <= 1080 ? 320 : 360;
+  const w = Math.max(360, Math.floor(Math.min(W - sideMin - gap, H * 1.5))), side = Math.max(sideMin, Math.min(520, W - w - gap));
+  mainEl.style.gridTemplateColumns = `${w}px ${side}px`; mainEl.style.justifyContent = 'center';
+  stage.style.width = `${w}px`; stage.style.height = `${Math.round(w / 1.5)}px`;
+  document.getElementById('log').style.height = `${Math.min(H, Math.round(w / 1.5))}px`; // 两栏一样高，底边对齐
+}
+new ResizeObserver(() => requestAnimationFrame(fitStage)).observe(document.body); // 窗口变化、顶栏换行时重新排
+function drawMain() {
+  const dpr = devicePixelRatio || 1, W = stage.clientWidth, H = stage.clientHeight;
+  if (mapCv.width !== Math.round(W * dpr)) { mapCv.width = Math.round(W * dpr); mapCv.height = Math.round(H * dpr); }
+  const ctx = mapCv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  mapHits = renderArea(ctx, W, H, S.area, { x: 0, y: 0, w: MAP_W, h: MAP_H });
+  const sc = W / MAP_W;
+  if (S.hover && S.hover.o) {
+    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 2.5; ctx.setLineDash([7, 6]); ctx.shadowColor = 'rgba(255,230,170,.9)'; ctx.shadowBlur = 14;
+    const o = S.hover.o;
+    if (o.c) { ctx.beginPath(); ctx.arc(o.c[0] * sc, o.c[1] * sc, o.c[2] * sc, 0, Math.PI * 2); ctx.stroke(); }
+    else { const r = o.r; rr(ctx, r[0] * sc, r[1] * sc, (r[2] - r[0]) * sc, (r[3] - r[1]) * sc, 16 * sc); ctx.stroke(); }
+    ctx.restore();
+  }
+}
+function objectsOf(area) {
+  const A = AREAS[area], list = [];
+  for (const [key, r] of Object.entries(A.shops)) list.push({ kind: 'shop', key, o: { r, name: SHOPS[key].name } });
+  for (const o of A.objects) list.push({ kind: 'obj', key: o.id, o });
+  return list;
+}
+function hitTest(px, py) {
+  const W = stage.clientWidth, sc = W / MAP_W, mx = px / sc, my = py / sc;
+  for (let i = mapHits.length - 1; i >= 0; i--) { const b = mapHits[i].box; if (mapHits[i].kind === 'badge') { if (px >= b[0] && px <= b[2] && py >= b[1] && py <= b[3]) return mapHits[i]; continue; } if (px >= b[0] + (b[2] - b[0]) * .2 && px <= b[2] - (b[2] - b[0]) * .2 && py >= b[1] + (b[3] - b[1]) * .1 && py <= b[3]) return mapHits[i]; }
+  const objs = objectsOf(S.area).filter((h) => h.kind === 'obj').concat(objectsOf(S.area).filter((h) => h.kind === 'shop'));
+  for (const h of objs) {
+    const o = h.o;
+    if (o.c && Math.hypot(mx - o.c[0], my - o.c[1]) <= o.c[2]) return h;
+    if (o.r && mx >= o.r[0] && mx <= o.r[2] && my >= o.r[1] && my <= o.r[3]) return h;
+  }
+  return null;
+}
+mapCv.addEventListener('mousemove', (e) => {
+  const r = mapCv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, h = hitTest(px, py);
+  S.hover = h; mapCv.style.cursor = h ? 'pointer' : 'default';
+  if (h) {
+    const label = h.kind === 'char' || h.kind === 'badge' ? `偷看心声：${stateOf(h.id).s.thought || stateOf(h.id).s.text}` : h.kind === 'shop' ? `${h.o.name} · ${roomPeople(h.key).length ? `${roomPeople(h.key).length} 人在店里 · ` : ''}点击进屋` : h.o.name;
+    tip.textContent = label; tip.style.display = 'block'; tip.style.left = `${px}px`; tip.style.top = `${py - 12}px`;
+  } else tip.style.display = 'none';
+});
+mapCv.addEventListener('mouseleave', () => { S.hover = null; tip.style.display = 'none'; });
+mapCv.addEventListener('click', (e) => {
+  const r = mapCv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, h = hitTest(px, py);
+  if (!h) { closePop(); return; }
+  if (h.kind === 'char') openPanel(h.id);
+  else if (h.kind === 'badge') openPanel(h.id);
+  else if (h.kind === 'shop') openRoom(h.key); // 进屋：店里所有人一起看
+  else openPop(h.o);
+});
+
+// 世界里物件的真实状态（服务端结算）；连不上服务端时用示例文字
+const PROJ_TXT = {
+  story: (p) => (p.status === 'active' ? `Claude 在写新短篇《${p.title}》（${p.done}/${p.steps}）${p.parts.length ? `：「${p.parts.at(-1).text}」` : ''}` : `新短篇《${p.title}》写完了，放上了书架`),
+  recipe: (p) => (p.status === 'active' ? `DeepSeek 在研究新菜「${p.title}」（${p.done}/${p.steps}${p.fails ? `，失败了 ${p.fails} 次` : ''}）` : `新菜「${p.title}」上了菜单`),
+  starmap: (p) => (p.status === 'active' ? `GPT 在画星图《${p.title}》（${p.done}/${p.steps}）${p.parts.length ? `：今晚看到了「${p.parts.at(-1).text}」` : ''}` : `星图《${p.title}》画好了，挂在万事屋`),
+};
+function worldShow(kind, key, obj) {
+  const W = LIVE?.world, th = W?.things;
+  if (!th) return null;
+  const pr = (W.projects || []).filter((p) => (p.page || []).some((q) => q[kind] === key && q.obj === obj)).at(-1);
+  if (pr && PROJ_TXT[pr.kind]) return PROJ_TXT[pr.kind](pr);
+  if (kind === 'room' && key === 'diner' && obj === 'menu' && th.counter) return `今日菜单：${(th.counter.state?.menu || []).join(' · ')}`;
+  for (const t of Object.values(th)) if ((t.page || []).some((p) => p[kind] === key && p.obj === obj)) return t.show;
+  if (kind === 'area' && obj === 'vane' && LIVE.world.weather) return `今天${LIVE.world.weather.name}。`;
+  return null;
+}
+function raining() {
+  const w = LIVE?.world?.weather, h = clock().hh + clock().mm / 60;
+  return !!w && w.today === 'rain' && h >= w.rain[0] && h < w.rain[1];
+}
+// 物件弹窗
+function openPop(o) {
+  S.pop = o;
+  const sc = stage.clientWidth / MAP_W;
+  const [x, y] = o.c ? [o.c[0], o.c[1] - o.c[2]] : [(o.r[0] + o.r[2]) / 2, o.r[1]];
+  renderPop(); pop.style.display = 'block'; tip.style.display = 'none';
+  // 弹窗画在锚点上方；舞台太矮时把锚点往下挪，保证整张卡片都在舞台里
+  pop.style.left = `${Math.min(Math.max(x * sc, 145), stage.clientWidth - 145)}px`; pop.style.top = `${Math.max(y * sc, pop.offsetHeight + 22)}px`;
+}
+function renderPop() {
+  const o = S.pop; if (!o) return;
+  const act = o.action;
+  pop.innerHTML = `<button class="x" id="popX">${ic('x')}</button><h4>${ic(o.icon)} ${o.name}</h4><p>${o.desc}</p><div class="live">${(() => { const w = worldShow('area', S.area, o.id); return w != null ? esc(w) : o.live(); })()}</div>` +
+    (act ? `<div class="row"><button class="btn primary" id="popAct">${ic(act.icon)}${act.label}</button></div>` : '');
+  pop.querySelector('#popX').onclick = closePop;
+  const b = pop.querySelector('#popAct');
+  if (b) b.onclick = () => { if (act.letter) { closePop(); openLetters(); } };
+}
+function closePop() { S.pop = null; pop.style.display = 'none'; }
+
+// ============================== HUD ==============================
+const WEEK = '一二三四五六日';
+const weekday = (day) => WEEK[((day - 1) % 7 + 7) % 7];
+const period = (h) => (h < 5 ? '深夜' : h < 7 ? '清晨' : h < 11 ? '上午' : h < 13 ? '中午' : h < 17 ? '下午' : h < 19.5 ? '傍晚' : '夜晚');
+function renderClock() {
+  const c = clock(), h = hourNow(), dial = document.getElementById('dial');
+  const kind = (h >= 19.5 || h < 5) ? 'night' : (h >= 17.5 ? 'dusk' : 'day');
+  dial.className = `dial ${kind === 'day' ? '' : kind}`; dial.innerHTML = ic(kind === 'night' ? 'moon' : kind === 'dusk' ? 'sunset' : 'sun');
+  document.getElementById('clockT').textContent = S.tod === 'live' ? fmt(c) : { dawn: '05:48', day: '13:12', dusk: '18:36', night: '21:30' }[S.tod];
+  const wx = LIVE?.world?.weather?.name;
+  document.getElementById('clockD').textContent = S.tod === 'live' ? `第 ${c.day} 天 · 周${weekday(c.day)}${wx ? ` · ${wx}` : ''}` : '光线预览 · 她们照常生活';
+}
+// 光线预览：地图右下角的小按钮，点开选一个时段（只改画面的光线，不改时间）
+const TODS = [['live', '实时', 'clock'], ['dawn', '清晨', 'sunrise'], ['day', '白天', 'sun'], ['dusk', '傍晚', 'sunset'], ['night', '夜晚', 'moon']];
+const todSeg = document.getElementById('todSeg'), todBtn = document.getElementById('todBtn');
+function renderTodSeg() {
+  todSeg.innerHTML = '<div class="hint">光线预览</div>' + TODS.map(([k, n, i]) => `<button data-k="${k}" class="${S.tod === k ? 'on' : ''}">${ic(i)}${n}</button>`).join('');
+  todSeg.querySelectorAll('button').forEach((b) => b.onclick = () => { S.tod = b.dataset.k; todSeg.classList.remove('open'); renderTodSeg(); });
+  const cur = TODS.find(([k]) => k === S.tod);
+  todBtn.innerHTML = ic(cur[2]); todBtn.title = `光线预览：${cur[1]}`;
+  todBtn.style.background = S.tod === 'live' ? '' : 'var(--ink)'; todBtn.style.color = S.tod === 'live' ? '' : '#fff6ea';
+  renderClock();
+}
+todBtn.onclick = (e) => { e.stopPropagation(); todSeg.classList.toggle('open'); };
+document.addEventListener('click', (e) => { if (!todSeg.contains(e.target)) todSeg.classList.remove('open'); });
+const AREA_SHORT = { square: '广场', market: '集市', park: '后山' };
+let areasKey = '';
+function renderAreas() {
+  const el = document.getElementById('areaTabs');
+  const html = Object.entries(AREAS).map(([k, a]) => {
+    const here = Object.keys(CHARS).filter((id) => stateOf(id).area === k);
+    return `<button class="area ${S.area === k ? 'on' : ''}" data-k="${k}"><span class="th" style="background-image:url('${ASSET[a.img]}')"></span><span class="n">${a.name}</span><span class="s">${AREA_SHORT[k]}</span>${here.length ? `<span class="who">${here.map((id) => `<img src="${ASSET[avatarKey(id)]}" alt="">`).join('')}</span>` : ''}</button>`;
+  }).join('');
+  if (html === areasKey) return; areasKey = html; // 每秒都会调用：内容没变就不重画，免得按钮闪
+  el.innerHTML = html;
+  el.querySelectorAll('.area').forEach((b) => b.onclick = () => setArea(b.dataset.k));
+}
+function setArea(k) { if (S.area === k) return; S.area = k; closePop(); renderAreas(); renderHud(); }
+function renderMe() {
+  // 访客只围观、不影响世界：能做的只有给开发团队写信，和申请加入协作
+  document.getElementById('letterBtn').innerHTML = `${ic('chat')}<span class="lbl">给开发团队写信</span>`;
+  document.getElementById('collabBtn').innerHTML = `${ic('hand')}<span class="lbl">加入协作</span>`;
+}
+document.getElementById('letterBtn').onclick = () => openLetters();
+// 地图上的两块小牌子：左上是这是哪儿、什么时候；右上是此刻最值得看的一件事（正在进行的聚会、节日，或快到点的约定）
+let hudKey = '';
+function renderHud() {
+  const h = hourNow(), a = AREAS[S.area], wx = LIVE?.world?.weather?.name;
+  const here = Object.keys(CHARS).filter((id) => stateOf(id).area === S.area).length;
+  let ev = '';
+  const W = LIVE?.world;
+  if (W) {
+    const gm = gameMin() % 1440, mins = (at) => { const [hh, mm] = at.split(':').map(Number); return (hh * 60 + mm - gm + 1440) % 1440; };
+    const run = (W.gatherings || []).find((g) => g.status === 'running'), fest = (W.events?.active || [])[0];
+    const soon = (W.gatherings || []).filter((g) => g.status === 'planned' && mins(g.at) <= 180).sort((x, y) => mins(x.at) - mins(y.at))[0];
+    if (run) ev = `<span class="hchip ev on" data-t="lane">${ic('users')}<b>${esc(run.name)}</b><small>${esc(run.where)} · 进行中</small></span>`;
+    else if (fest) ev = `<span class="hchip ev on" data-t="lane">${ic('sparkle')}<b>${esc(fest.name)}</b><small>正在进行 · 到 ${esc(fest.until)}</small></span>`;
+    else if (soon) ev = `<span class="hchip ev" data-t="lane">${ic('bell')}<b>${esc(soon.at)} ${esc(soon.name)}</b><small>${esc(soon.where)} · ${mins(soon.at) < 60 ? `还有 ${mins(soon.at)} 分钟` : `还有 ${Math.floor(mins(soon.at) / 60)} 小时`}</small></span>`;
+  }
+  const area = `<span class="hchip">${ic('pin')}<b>${a.name}</b><span class="dot"></span>${period(h)}${wx ? `<span class="extra"><span class="dot"></span>${esc(wx)}</span>` : ''}${here ? `<span class="extra"><span class="dot"></span>${here} 人在这儿</span>` : ''}</span>`;
+  const key = area + ev;
+  if (key === hudKey) return; hudKey = key;
+  document.getElementById('hudArea').innerHTML = area;
+  const evEl = document.getElementById('hudEvent'); evEl.innerHTML = ev;
+  evEl.querySelectorAll('[data-t]').forEach((b) => b.onclick = () => openTab(b.dataset.t));
+}
+// 伴读栏上半部分：她们三个此刻在哪儿、在做什么、在想什么
+let dockKey = '';
+function renderDock() {
+  const el = document.getElementById('dock'), now = nowMs();
+  const html = '<h3>她们现在<small>点开看她在想什么</small></h3>' + Object.entries(CHARS).map(([id, c]) => {
+    const st = stateOf(id), where = st.inside ? SHOPS[st.inside].name : st.area ? AREAS[st.area].name : '路上';
+    const th = LIVE ? LIVE.chars[id].thoughts.filter((x) => x.at <= now).at(-1)?.text : st.s.thought;
+    const model = LIVE ? LIVE.chars[id].model : '';
+    return `<button class="mate" data-id="${id}" style="--c:${c.color}">
+      <span class="av"><img src="${ASSET[avatarKey(id)]}" alt=""><span class="st">${ic(st.s.icon || 'walk')}</span></span>
+      <span class="tx"><span class="nm">${c.name}${model ? `<em>${esc(model)}</em>` : ''}</span><span class="doing">${esc(st.s.text)}</span><span class="where">${esc(where)}${th ? ` · <i>${esc(th)}</i>` : ''}</span></span>
+      ${ic('next')}</button>`;
+  }).join('');
+  if (html === dockKey) return; dockKey = html;
+  el.innerHTML = html;
+  el.querySelectorAll('.mate').forEach((b) => b.onclick = () => openPanel(b.dataset.id));
+}
+
+// ============================== 伴读栏：动态、街区、画册、日报 ==============================
+const entriesEl = document.getElementById('entries'), filtersEl = document.getElementById('filters'), pbody = document.getElementById('pbody');
+const PTABS = [['feed', '动态'], ['lane', '街区'], ['album', '画册'], ['paper', '日报']];
+const MINE = [], shownLog = new Set(), tabNew = {};
+function renderPtabs() {
+  const tabs = LIVE ? PTABS : PTABS.slice(0, 1); // 示例模式只有动态
+  document.getElementById('ptabs').innerHTML = tabs.map(([k, n]) => `<button data-t="${k}" class="${S.ptab === k ? 'on' : ''} ${tabNew[k] && S.ptab !== k ? 'new' : ''}">${n}</button>`).join('');
+  document.getElementById('ptabs').querySelectorAll('button').forEach((b) => b.onclick = () => openTab(b.dataset.t));
+}
+function openTab(t) {
+  if (S.ptab !== t) { S.ptab = t; pbody.scrollTop = 0; }
+  tabNew[t] = false; renderPtabs(); renderPanelBody();
+  if (t === 'paper' || t === 'album') loadChron();
+  if (matchMedia('(max-width: 820px)').matches) document.getElementById('ptabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function renderPanelBody() {
+  filtersEl.style.display = S.ptab === 'feed' ? '' : 'none';
+  if (S.ptab === 'feed') return renderLog();
+  if (S.ptab === 'lane') return renderLane();
+  if (S.ptab === 'album') return renderAlbum();
+  if (S.ptab === 'paper') return renderPaperTab();
+}
+function addLog(e, fresh) {
+  const c = clock(); (LIVE ? MINE : LOG).push({ day: e.day ?? c.day, t: e.t ?? fmt(c), ...e, at: nowMs(), fresh: !!fresh });
+  if (S.ptab === 'feed') renderLog(); else if (fresh) { tabNew.feed = true; renderPtabs(); }
+}
+function whoIcon(who) {
+  if (CHARS[who]) return `<img src="${ASSET[avatarKey(who)]}" alt="">`;
+  return `<span class="ico">${ic(who === 'visitor' ? 'users' : 'sparkle')}</span>`;
+}
+function renderFilters() {
+  filtersEl.innerHTML = `<button class="txt ${S.filter === 'all' ? 'on' : ''}" data-f="all">全部</button>` +
+    Object.keys(CHARS).map((id) => `<button class="av ${S.filter === id ? 'on' : ''}" data-f="${id}" title="只看 ${CHARS[id].name}" style="--c:${CHARS[id].color}"><img src="${ASSET[avatarKey(id)]}" alt=""></button>`).join('') +
+    `<button class="txt ${S.filter === 'star' ? 'on' : ''}" data-f="star" title="只看要事">★ 要事</button>`;
+  filtersEl.querySelectorAll('button').forEach((b) => b.onclick = () => { S.filter = b.dataset.f; renderFilters(); renderLog(); });
+}
+function logEntries() {
+  if (!LIVE) return LOG;
+  const now = nowMs();
+  return LIVE.log.filter((e) => e.at <= now).concat(MINE).sort((a, b) => a.at - b.at);
+}
+const comicOf = (text) => (LIVE?.comics || []).find((c) => /画好了/.test(text) && text.includes(`《${c.title}》`));
+function renderLog() {
+  const all = logEntries();
+  if (LIVE) for (const e of all) { if (e.id && !shownLog.has(e.id)) { if (shownLog.size) e.fresh = true; shownLog.add(e.id); } }
+  if (S.ptab !== 'feed') return;
+  // 「去了某个区域」这种走动记录太碎，不放进日志列表（地图上看得见她们在哪儿）
+  const list = all.filter((e) => (S.filter === 'all' || (S.filter === 'star' ? e.star : e.who === S.filter)) && !(LIVE && /去了(鲸巷广场|海边集市|后山公园)$/.test(e.text))).slice().reverse();
+  let html = '', day = null;
+  for (const e of list) {
+    if (e.day !== day) { day = e.day; html += `<div class="day">第 ${day} 天 · 周${weekday(day)}${day === clock().day ? ' · 今天' : ''}</div>`; }
+    const comic = e.who === 'town' && comicOf(e.text);
+    html += `<div class="entry ${e.star ? 'star' : ''} ${e.fresh ? 'new' : ''}" data-who="${e.who}" data-area="${e.area || ''}">${whoIcon(e.who)}<div><span class="tm">${e.t}${e.area ? ` · ${AREAS[e.area].name}` : ''}</span><span class="txt">${esc(e.text)}</span>${comic ? `<img class="shot" loading="lazy" src="${esc(comic.url)}" alt="">` : ''}</div></div>`;
+    e.fresh = false;
+  }
+  entriesEl.innerHTML = html || '<div class="empty">这里还没有动静。</div>';
+  entriesEl.querySelectorAll('.entry').forEach((el) => el.onclick = () => {
+    const c = el.dataset.who === 'town' && comicOf(el.textContent);
+    if (c) return openComic(c.id);
+    if (CHARS[el.dataset.who]) return openPanel(el.dataset.who);
+    if (el.dataset.area && AREAS[el.dataset.area]) setArea(el.dataset.area);
+  });
+}
+// 画册：每小时由编辑挑出来画的四格漫画（故事）和 CG（高光时刻）
+let albumKey = '';
+function renderAlbum(force) {
+  const list = (LIVE?.comics || []).slice().reverse(), key = list.map((c) => c.id).join();
+  if (!force && key === albumKey && entriesEl.querySelector('.shelf')) return; albumKey = key;
+  entriesEl.innerHTML = list.length ? `<div class="shelf">${list.map((c) => `<button class="album ${c.kind === 'cg' ? 'cg' : ''}" data-c="${esc(c.id)}"><img loading="lazy" src="${esc(c.url)}" alt=""><b>${esc(c.title)}</b><span class="tm">第 ${c.day} 天 · ${esc(c.span)} · ${c.kind === 'cg' ? 'CG' : '四格'}</span></button>`).join('')}</div>` : '<div class="empty">第一张漫画还在画。</div>';
+  entriesEl.querySelectorAll('.album').forEach((el) => el.onclick = () => openComic(el.dataset.c));
+}
+function openComic(id) {
+  const c = (LIVE?.comics || []).find((x) => x.id === id) || (LIVE?.comics || []).at(-1);
+  if (!c) return;
+  document.getElementById('comicBox').innerHTML = `<img src="${esc(c.url)}" alt="${esc(c.title)}"><div class="cap"><b>${esc(c.title)}</b><span>第 ${c.day} 天 · ${esc(c.span)}</span></div>`;
+  comicModal.classList.add('open');
+}
+// 日报：伴读栏里放最新一期，往期在大窗口里翻
+function renderPaperTab() {
+  const d = (CHRON || []).find((x) => x.paper);
+  if (!d) { entriesEl.innerHTML = CHRON ? '<div class="empty">第一期日报会在第 2 天早上出炉。</div>' : '<div class="empty">翻开报纸……</div>'; return; }
+  const p = d.paper;
+  entriesEl.innerHTML = `<div class="mini-paper"><div class="mast"><b>鲸巷日报</b><span>第 ${d.day} 天 · 周${weekday(d.day)}</span></div>
+    <h4>${esc(p.headline)}</h4><p>${esc(p.lead)}</p>
+    ${p.articles.map((a) => `<div class="art"><span class="tag">${esc(a.tag)}</span><b>${esc(a.title)}</b><p>${esc(a.body)}</p></div>`).join('')}
+    ${p.quote ? `<p>「${esc(p.quote.text)}」——${CHARS[p.quote.who]?.name || ''}</p>` : ''}${p.tomorrow ? `<p class="hint">明日看点：${esc(p.tomorrow)}</p>` : ''}</div>
+    <button class="btn ghost more" id="paperMore">${ic('book')}往期日报 · 三个人的日记</button>`;
+  document.getElementById('paperMore').onclick = () => openChronicle('paper');
+}
+
+// ============================== 角色详情 ==============================
+const panelModal = document.getElementById('panelModal'), sceneCv = document.getElementById('sceneCanvas'), side = document.getElementById('side');
+let sideKey = '';
+function openPanel(id, back = null) {
+  S.panel = id; S.room = null; S.back = back; closePop(); closeRoomPop();
+  const st = stateOf(id); if (st.area && st.area !== S.area) setArea(st.area);
+  panelModal.classList.add('open'); renderSide(true);
+}
+function closePanel() { S.panel = null; S.room = null; S.back = null; closeRoomPop(); panelModal.classList.remove('open'); }
+document.getElementById('panelBack').innerHTML = `${ic('back')}回到街上`;
+document.getElementById('panelBack').onclick = () => { if (S.panel && S.back) openRoom(S.back); else closePanel(); }; // 从店里点进来的，先回店里
+panelModal.addEventListener('click', (e) => { if (e.target === panelModal) closePanel(); });
+function thoughtsOf(id) {
+  const c = CHARS[id], past = STORY[id].thoughts.map(([t, x]) => ({ t, x }));
+  return (c._seen || []).concat(past);
+}
+// 面板里的数据：实时模式来自服务端，示例模式来自上面写好的 STORY
+function sideData(id) {
+  if (!LIVE) {
+    return {
+      stats: CHARS[id].stats, thoughts: thoughtsOf(id),
+      diary: STORY[id].diary.map(([d, w, x]) => ({ head: d, small: w, text: x })),
+      memories: STORY[id].memories.map(([s, x, d]) => ({ s, x, d })), rel: STORY[id].rel,
+      note: `内心独白是她每次做决定时顺手记下的想法。示例内容；正式版由 ${CHARS[id].name} 对应的模型生成。`, today: true,
+    };
+  }
+  const L = LIVE.chars[id], now = nowMs();
+  return {
+    stats: [L.stats.food, L.stats.energy, L.stats.mood],
+    thoughts: L.thoughts.filter((x) => x.at <= now).reverse().map((x) => ({ t: `第 ${x.day} 天 · ${x.t}`, x: x.text })),
+    diary: L.diary.slice().reverse().map((d) => ({ head: `第 ${d.day} 天`, small: d.mood || '', text: d.text })),
+    memories: L.memories.map((m) => ({ s: m.imp, x: m.text, d: m.day ? `第 ${m.day} 天` : '很久以前' })),
+    rel: Object.entries(L.rel).map(([who, r]) => [who, r.v, r.label]),
+    between: Object.fromEntries(Object.keys(L.rel).map((k) => [k, betweenOf(id, k)])), plans: plansOf(id), bag: LIVE.world?.inv?.[id] || [],
+    note: `内心独白是她每次做决定时的想法，由 ${L.model} 实时生成。`,
+    today: !L.diary.some((d) => d.day === clock().day),
+  };
+}
+// 她们之间：约定、人情、梗、一起经历过的事（服务端 world.bonds）
+function betweenOf(id, k) {
+  const b = LIVE?.world?.bonds?.[[id, k].sort().join('|')]; if (!b || !CHARS[k]) return [];
+  const n = CHARS[k].name, out = [];
+  for (const p of b.promises.slice(-2)) out.push(['约定', p.by === id ? `答应过${n}：${p.text}` : `${n}答应过她：${p.text}`]);
+  if (b.owe?.[id] > 0) out.push(['人情', `欠${n} ${b.owe[id]} 次`]);
+  if (b.owe?.[k] > 0) out.push(['人情', `${n}欠她 ${b.owe[k]} 次`]);
+  if (b.jokes.length) out.push(['梗', `「${b.jokes.at(-1)}」`]);
+  if (b.shared.length) out.push(['一起', b.shared.at(-1)]);
+  return out;
+}
+// 约好的事、答应帮的忙
+function plansOf(id) {
+  const W = LIVE?.world; if (!W) return [];
+  const nm = (k) => CHARS[k]?.name || k, out = [];
+  for (const g of W.gatherings || []) {
+    if (g.status === 'done' || !(g.host === id || g.invited.includes(id) || g.present.includes(id))) continue;
+    out.push(`${g.at} ${g.name}（${g.where}）· ${g.host === id ? `约了${g.invited.map(nm).join('、')}` : `${nm(g.host)}约的`}${g.status === 'running' ? ' · 进行中' : ''}`);
+  }
+  for (const r of W.requests || []) {
+    if (r.to === id && r.status === 'accepted') out.push(`答应帮${nm(r.from)}：${r.text}`);
+    if (r.from === id && ['asked', 'accepted'].includes(r.status)) out.push(`请${nm(r.to)}帮忙：${r.text}${r.status === 'asked' ? '（等她回音）' : '（她答应了）'}`);
+  }
+  return out;
+}
+function renderSide(force) {
+  if (S.room) return renderRoomSide(force);
+  const id = S.panel; if (!id) return;
+  const c = CHARS[id], st = stateOf(id), key = `${id}|${st.key}|${S.tab}|${LIVE ? LIVE.ver : ''}`;
+  if (!force && key === sideKey) return;
+  const keepScroll = sideKey.split('|')[2] === S.tab && sideKey.split('|')[0] === id ? side.querySelector('.tabbody')?.scrollTop : 0;
+  sideKey = key;
+  const D = sideData(id);
+  document.getElementById('panel').style.setProperty('--c', c.color);
+  const where = st.inside ? SHOPS[st.inside].name : st.area ? AREAS[st.area].name : '路上';
+  renderPlaque();
+  const [f, e, m] = D.stats;
+  const stat = (icon, label, v, col) => `<div class="stat">${ic(icon, `style="width:14px;height:14px;color:${col}"`)}<span>${label}</span><div class="bar"><i style="width:${v}%;background:${col}"></i></div></div>`;
+  const tabs = [['mono', '内心独白'], ['diary', '日记'], ['mem', '记忆与关系'], ['log', '动态']];
+  let body = '';
+  if (S.tab === 'mono') {
+    const live = st.s.thought ? `<div class="mono live"><div class="tm"><b>此刻</b> · ${fmt(clock())} · ${esc(st.s.text)}</div>${esc(st.s.thought)}</div>` : `<div class="mono live"><div class="tm"><b>此刻</b> · ${fmt(clock())}</div>${esc(st.s.text)}</div>`;
+    body = live +
+      D.thoughts.filter((x) => x.x !== st.s.thought).map((x) => `<div class="mono"><div class="tm">${esc(x.t)}</div>${esc(x.x)}</div>`).join('');
+  } else if (S.tab === 'diary') {
+    body = D.diary.map((d) => `<div class="diary"><h4>${esc(d.head)}<small>${esc(d.small)}</small></h4>${esc(d.text)}</div>`).join('') || '<div class="hint">还没有日记。</div>';
+  } else if (S.tab === 'mem') {
+    const relx = (who) => (D.between?.[who] || []).map(([k, t]) => `<div><em>${k}</em>${esc(t)}</div>`).join('');
+    body = (D.plans?.length ? '<div class="sec">约好的事</div>' + D.plans.map((x) => `<div class="plan">${esc(x)}</div>`).join('') + '<div style="height:14px"></div>' : '') +
+      '<div class="sec">重要的记忆</div>' + D.memories.map(({ s, x, d }) => `<div class="mem"><span class="s">${'★'.repeat(s)}${'☆'.repeat(3 - s)}</span><div>${esc(x)}<div class="hint">${esc(d)}</div></div></div>`).join('') +
+      '<div class="sec" style="margin-top:14px">关系</div>' + D.rel.map(([who, v, label]) => `<div class="rel">${CHARS[who] ? `<img src="${ASSET[avatarKey(who)]}">` : `<span class="ico">${ic('users')}</span>`}<div><b>${CHARS[who] ? CHARS[who].name : '访客们'}</b> <span>${esc(label)}</span><div class="bar"><i style="width:${v}%"></i></div></div><span class="hint">${v}</span></div>${relx(who) ? `<div class="relx">${relx(who)}</div>` : ''}`).join('') +
+      (D.bag?.length ? '<div class="sec" style="margin-top:14px">随身带着</div><div class="bag">' + D.bag.map((x) => `<span>${esc(x)}</span>`).join('') + '</div>' : '');
+  } else {
+    body = logEntries().filter((x) => x.who === id).slice().reverse().map((x) => `<div class="mono"><div class="tm">第 ${x.day} 天 · ${x.t}${x.area ? ' · ' + AREAS[x.area].name : ''}</div>${x.star ? '★ ' : ''}${esc(x.text)}</div>`).join('') || '<div class="hint">还没有动态。</div>';
+  }
+  side.innerHTML = `
+    <div class="prof"><img src="${ASSET[avatarKey(id)]}"><div><h2>${c.name}</h2><div class="role">${c.role}</div></div></div>
+    <div class="now">${ic(st.s.icon || 'walk')}<span>${where} · ${esc(st.s.text)}</span></div>
+    <div class="stats">${stat('bowl', '饱腹', f, '#f0a95a')}${stat('bolt', '精力', e, '#7cbf6a')}${stat('heart', '心情', m, '#e0566e')}</div>
+    <div class="tabs">${tabs.map(([k, n]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="tabbody">${body}</div>`;
+  if (keepScroll) side.querySelector('.tabbody').scrollTop = keepScroll;
+  side.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; renderSide(true); });
+}
+function drawScene() {
+  if (!S.panel && !S.room) return;
+  const dpr = devicePixelRatio || 1;
+  const scene = document.getElementById('scene'), W = scene.clientWidth, H = scene.clientHeight;
+  if (sceneCv.width !== Math.round(W * dpr) || sceneCv.height !== Math.round(H * dpr)) { sceneCv.width = Math.round(W * dpr); sceneCv.height = Math.round(H * dpr); }
+  const ctx = sceneCv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const say = document.getElementById('sceneSay');
+  roomView = null;
+  if (S.room) { drawRoom(ctx, W, H, S.room, null); say.style.display = 'none'; return; }
+  const id = S.panel, c = CHARS[id], st = stateOf(id);
+  if (st.inside) { // 在店里：画整间店和店里的每个人，镜头跟着她
+    drawRoom(ctx, W, H, st.inside, id);
+    say.style.display = 'none';
+  } else if (st.area) {
+    const zh = Math.max(470 * H / W, 300), zw = zh * W / H, cam = { x: Math.min(Math.max(st.x - zw / 2, 0), MAP_W - zw), y: Math.min(Math.max(st.y - zh * 0.62, 0), MAP_H - zh), w: zw, h: zh };
+    renderArea(ctx, W, H, st.area, cam, { noUi: true });
+    if (st.s.say) { say.style.display = 'block'; say.textContent = `「${st.s.say}」`; } else say.style.display = 'none';
+  } else {
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#fbe9d2'); g.addColorStop(1, '#f1d7b8'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const sc = H / 560;
+    ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = '#2a1d14'; ctx.beginPath(); ctx.ellipse(W / 2, H * 0.72, 70 * sc, 14 * sc, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    cellDraw(ctx, c.walk, 2, Math.floor(realSec() * SPEED / STEP_PX) % 8, W / 2, H * 0.72, 300 * sc); // 和街上走路同一个步频
+    ctx.font = `${22 * sc}px ${FONTD}`; ctx.fillStyle = '#8d6f55'; ctx.textAlign = 'center'; ctx.fillText(st.s.text, W / 2, H * 0.84);
+    say.style.display = 'none';
+  }
+}
+
+// ============================== 店里：多人同屋 ==============================
+// 站位用房间图坐标（1536×1024，脚底位置）。for：适合的活动；pair：面对面的另一个位置（聊天时对方站那里）；
+// kw：「在做什么」里出现这些字就优先站这里。分配只看服务端时间线（谁在店里、在做什么）和角色顺序，所有观众看到的一样。
+const ROOMS = {
+  diner: {
+    h0: 300, words: ['深海食堂', '食堂'],
+    spots: [
+      { id: 'stove', x: 575, y: 575, label: '饭锅和碗柜边', for: ['work', 'write'], pair: 'counter' },
+      { id: 'counter', x: 790, y: 625, label: '吧台前', for: ['eat', 'chat', 'read'], pair: 'stove' },
+      { id: 'stool1', x: 735, y: 520, seat: [729, 462], label: '吧台的高凳', for: ['eat', 'chat', 'read'], pair: 'stool2' },
+      { id: 'stool2', x: 890, y: 548, seat: [884, 492], label: '吧台的高凳', for: ['eat', 'chat', 'read'], pair: 'stool1' },
+      { id: 'stool3', x: 1052, y: 600, seat: [1047, 546], label: '吧台的高凳', for: ['eat', 'chat'] },
+      { id: 'tableL', x: 480, y: 770, label: '左边的圆桌', for: ['eat', 'chat'], pair: 'tableL2' },
+      { id: 'tableL2', x: 655, y: 885, label: '左边的圆桌', for: ['eat', 'chat'], pair: 'tableL' },
+      { id: 'tableR', x: 1065, y: 790, label: '右边的圆桌', for: ['eat', 'chat'], pair: 'tableR2' },
+      { id: 'tableR2', x: 1330, y: 712, label: '右边的圆桌', for: ['eat', 'chat'], pair: 'tableR' },
+      { id: 'whale', x: 1175, y: 650, bed: [1150, 694], label: '鲸鱼抱枕旁', for: ['sleep', 'rest', 'slack'], kw: ['抱枕', '躺', '睡'] },
+      { id: 'floor', x: 840, y: 800, label: '店中间', for: ['rest', 'slack', 'read', 'write'] },
+      { id: 'floor2', x: 960, y: 690, label: '店中间', for: [] },
+    ],
+    objects: [
+      { id: 'cooker', c: [868, 255, 64], name: '鲸鱼电饭煲', icon: 'bowl', spots: ['stove'], desc: '深海食堂的镇店之宝。饭煮好时会「嘀——」一声，像鲸鱼在叫。', idle: () => `今天已经煮了 ${1 + Math.floor(roomMin() / 180)} 锅饭，锅盖还在冒热气。` },
+      { id: 'onigiri', r: [1012, 288, 1172, 352], name: '海苔饭团', icon: 'gift', spots: ['counter'], desc: '包着海苔的饭团，深海食堂的招牌。', idle: () => `案板上还剩 ${3 + (clock().day * 7 + Math.floor(roomMin() / 60)) % 6} 个。老板说这些是「样品」。` },
+      { id: 'menu', r: [885, 18, 1160, 168], name: '今日菜单', icon: 'scroll', desc: '黑板上用粉笔写着今天的菜单，字有点歪。', idle: () => { const h = roomMin() / 60; return h < 10 ? '早餐：白粥 · 海苔饭团' : h < 22 ? '鲸鱼盖饭 · 海苔饭团 · 味噌汤' : '深夜半价：饭团第二个半价'; } },
+      { id: 'whale', r: [1215, 462, 1490, 632], name: '鲸鱼抱枕', icon: 'fish', spots: ['whale'], desc: 'DeepSeek 说这里是「员工休息区」。员工只有她一个。', idle: () => '没人。抱枕上还留着一个压出来的坑。' },
+      { id: 'porthole', c: [1402, 142, 108], name: '舷窗', icon: 'eye', desc: '窗外是一片深海。DeepSeek 说她看到过一条会发光的鱼游过去。', idle: () => (hourNow() >= 19 || hourNow() < 5.5 ? '外面黑黑的，只有几只发光的水母。' : '阳光从海面照下来，一群小鱼游过去了。') },
+      { id: 'tableL', r: [20, 650, 395, 800], name: '左边的圆桌', icon: 'bowl', spots: ['tableL', 'tableL2'], desc: '靠墙的小圆桌，常客的位置。', idle: () => '桌上摆好了两只碗，等客人来。' },
+      { id: 'tableR', r: [1150, 720, 1480, 900], name: '右边的圆桌', icon: 'bowl', spots: ['tableR', 'tableR2'], desc: '离鲸鱼抱枕最近的桌子，适合吃完就躺。', idle: () => '桌上有一只没人认领的茶杯。' },
+    ],
+  },
+  bookstore: {
+    h0: 320, words: ['纸页书屋', '书屋'],
+    spots: [
+      { id: 'desk', x: 455, y: 655, label: '写字台前', for: ['work', 'write'], pair: 'deskGuest', kw: ['写', '翻译', '账', '稿', '文件'] },
+      { id: 'shelf', x: 720, y: 470, label: '书架前', for: ['work', 'read'], pair: 'shelfGuest', kw: ['书架', '整理', '找书', '上架'] },
+      { id: 'armchair', x: 1225, y: 600, seat: [1296, 560], label: '窗边的读书椅', for: ['read', 'rest', 'slack'], pair: 'tea', kw: ['椅', '窗'] },
+      { id: 'bed', x: 830, y: 760, bed: [830, 772], label: '地毯上', for: ['sleep'] },
+      { id: 'tea', x: 1035, y: 575, label: '茶几边', for: ['chat', 'rest', 'eat'], pair: 'armchair' },
+      { id: 'deskGuest', x: 645, y: 725, label: '写字台边', for: ['chat', 'read'], pair: 'desk' },
+      { id: 'shelfGuest', x: 965, y: 495, label: '书架前', for: ['read', 'chat'], pair: 'shelf' },
+      { id: 'rugA', x: 770, y: 815, label: '地毯上', for: ['chat', 'rest'], pair: 'rugB' },
+      { id: 'rugB', x: 990, y: 790, label: '地毯上', for: ['chat', 'rest'], pair: 'rugA' },
+    ],
+    objects: [
+      { id: 'desk', r: [0, 300, 360, 560], name: '写字台', icon: 'scroll', spots: ['desk', 'deskGuest'], desc: 'Claude 写稿和看书的地方。桌上的茶永远是凉的。', idle: () => '桌上摊着一本理到一半的账本，主人：DeepSeek。' },
+      { id: 'shelf', r: [860, 0, 1060, 320], name: '书架', icon: 'book', spots: ['shelf', 'shelfGuest'], desc: '按心情排的书架：「下雨天读的」「睡不着读的」「推荐给 GPT 但她不会借的」。', idle: () => '今日推荐：《雨天的书签》（作者：Claude）。' },
+      { id: 'armchair', r: [1228, 238, 1490, 560], name: '读书椅', icon: 'book', spots: ['armchair'], desc: '窗边的软椅，下午的阳光正好照在扶手上。', idle: () => '椅子上放着一本书，书签夹在第 37 页。' },
+      { id: 'tea', c: [1190, 345, 62], name: '茶几', icon: 'heart', spots: ['tea'], desc: '红茶和小点心。来书屋的客人都可以喝一杯。', idle: () => `茶壶里还有 ${1 + (clock().day + Math.floor(roomMin() / 90)) % 4} 杯的量。` },
+      { id: 'pages', c: [315, 180, 60], name: '飘起来的稿纸', icon: 'sparkle', desc: '没写完的稿子会自己飘起来。Claude 说这是「灵感在找出口」。', idle: () => `今天已经飘起来 ${2 + Math.floor(roomMin() / 120)} 页。` },
+      { id: 'flower', c: [685, 105, 100], name: '铜花挂饰', icon: 'sun', desc: '书屋正中的铜花挂饰。据说是 GPT「顺便」修风铃的时候一起挂上的。', idle: () => '花瓣被擦得亮亮的。' },
+    ],
+  },
+  observatory: {
+    h0: 330, words: ['星仪万事屋', '万事屋'],
+    spots: [
+      { id: 'sphere', x: 850, y: 548, label: '星仪旁', for: ['stargaze', 'work', 'read'], pair: 'sphereGuest', kw: ['星'] },
+      { id: 'counter', x: 990, y: 800, label: '柜台前', for: ['work', 'errand'], pair: 'counterGuest', kw: ['委托', '柜台', '账', '接'] },
+      { id: 'board', x: 505, y: 600, label: '委托板前', for: ['read', 'write'], kw: ['委托板', '贴'] },
+      { id: 'sphereGuest', x: 985, y: 600, label: '星仪旁', for: ['stargaze', 'chat'], pair: 'sphere' },
+      { id: 'counterGuest', x: 790, y: 845, label: '柜台前', for: ['chat', 'errand'], pair: 'counter' },
+      { id: 'star', x: 700, y: 765, bed: [770, 800], label: '星盘中央', for: ['rest', 'sleep', 'slack', 'chat'], pair: 'star2' },
+      { id: 'star2', x: 480, y: 840, label: '星盘边', for: ['rest', 'chat'], pair: 'star' },
+    ],
+    objects: [
+      { id: 'sphere', c: [985, 340, 135], name: '星仪', icon: 'star', spots: ['sphere', 'sphereGuest'], desc: '万事屋的镇店之宝，能照出今晚每一颗星的位置。', idle: () => (hourNow() >= 19 || hourNow() < 5.5 ? '星仪转到了猎户座，今晚能看到流星。' : '白天星仪在休息，只是慢慢地转。') },
+      { id: 'board', r: [330, 100, 680, 450], name: '委托板', icon: 'scroll', spots: ['board'], desc: '贴满了大家的委托：修风铃、搬木箱、帮忙找猫……', idle: () => `板上还有 ${3 + (clock().day + Math.floor(roomMin() / 240)) % 5} 张没人接的委托。` },
+      { id: 'treasure', r: [300, 430, 530, 670], name: '宝库', icon: 'coin', desc: '龙的宝库。GPT 每天都会盘点一遍。', idle: () => '金币 1,024 枚，一枚不少。' },
+      { id: 'bell', c: [1282, 632, 44], name: '柜台铃', icon: 'bell', spots: ['counter', 'counterGuest'], desc: '按一下，GPT 会从任何地方冒出来——「顺便」帮你。', idle: () => '柜台后面没人，铃擦得很亮。' },
+      { id: 'crystal', r: [0, 185, 160, 285], name: '水晶球', icon: 'eye', desc: '能看见明天的天气，偶尔也能看见明天的晚饭。', idle: () => `明天：${['晴', '多云', '小雨', '晴转多云'][clock().day % 4]}。` },
+      { id: 'window', r: [1330, 190, 1536, 420], name: '拱窗', icon: 'moon', desc: '从这里能看到整个街区的天空。', idle: () => (hourNow() >= 19 || hourNow() < 5.5 ? '窗外满天星星。' : '窗外的云走得很慢。') },
+    ],
+  },
+};
+const roomMin = () => ((gameMin() % 1440) + 1440) % 1440;
+const ROOM_ACT = { eat: 'eat', work: 'work', astro: 'work', read: 'read', slack: 'slack', sleepy: 'sleep', happy: 'rest', idle: 'rest' };
+const roomAct = (st) => st.s.activity || ROOM_ACT[st.s.act] || 'rest';
+function roomPeople(key) { return Object.keys(CHARS).map(stateOf).filter((st) => st.inside === key); }
+// 谁站哪：店主先挑，其他人按角色顺序；一起聊天的两人找一对面对面的位置，单独来聊天的站到对方对面
+function roomLayout(key) {
+  const R = ROOMS[key], sh = SHOPS[key], ppl = roomPeople(key).sort((a, b) => (b.id === sh.owner) - (a.id === sh.owner));
+  const used = new Set(), at = {}, partner = {};
+  const spot = (sid) => R.spots.find((s) => s.id === sid);
+  const free = (s) => s && !used.has(s.id);
+  const take = (st, s) => { s = s || R.spots.find(free) || { id: `x${st.id}`, x: 768, y: 780, label: '店里', for: [] }; used.add(s.id); at[st.id] = s; };
+  const pick = (st, a) => { // 关键词对上的位置优先；能坐的动作（吃、看书、歇着）先找有凳子/椅子的位置；睡觉找铺被褥的地方
+    const ok = R.spots.filter((s) => free(s) && s.for.includes(a));
+    return ok.find((s) => s.kw && s.kw.some((w) => (st.s.text || '').includes(w))) || (a === 'sleep' && ok.find((s) => s.bed)) || (['eat', 'read', 'rest', 'slack'].includes(a) && ok.find((s) => s.seat)) || ok[0];
+  };
+  const near = (s) => R.spots.filter(free).sort((a, b) => Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(b.x - s.x, b.y - s.y))[0];
+  for (const st of ppl) { const s = st.seg && st.seg.spot && spot(st.seg.spot); if (free(s)) take(st, s); } // 服务端指定了位置就用它
+  const chat = ppl.filter((st) => roomAct(st) === 'chat' && !at[st.id]), others = ppl.filter((st) => roomAct(st) !== 'chat');
+  for (const st of others) if (!at[st.id]) take(st, pick(st, roomAct(st)));
+  const left = chat.slice();
+  while (left.length) {
+    const a = left.shift(), want = a.seg && a.seg.with;
+    const b = left.find((x) => x.id === want) || (want && others.find((x) => x.id === want) ? null : left[0]);
+    if (b) {
+      left.splice(left.indexOf(b), 1);
+      // 一对空着的面对面位置；有几对时挑离已经站着的人最远的那对，不挤在一起
+      const room = (x) => Math.min(1e9, ...Object.values(at).map((o) => Math.hypot(o.x - x.x, o.y - x.y) + Math.hypot(o.x - spot(x.pair).x, o.y - spot(x.pair).y)));
+      const s = R.spots.filter((x) => x.pair && x.for.includes('chat') && free(x) && free(spot(x.pair)) && spot(x.pair).for.includes('chat')).sort((x, y) => room(y) - room(x))[0];
+      if (s) { take(a, s); take(b, spot(s.pair)); } else { take(a, pick(a, 'chat')); take(b, near(at[a.id])); }
+      partner[a.id] = b.id; partner[b.id] = a.id;
+    } else {
+      const p = others.find((x) => x.id === want) || others.find((x) => x.id === sh.owner) || others[0];
+      if (p) { const ps = at[p.id], pr = ps.pair && spot(ps.pair); take(a, free(pr) ? pr : near(ps)); partner[a.id] = p.id; if (!partner[p.id]) partner[p.id] = a.id; }
+      else take(a, pick(a, 'chat'));
+    }
+  }
+  return ppl.map((st) => ({ st, sp: at[st.id], partner: partner[st.id] }));
+}
+
+// 画店里：每个人在自己的位置做自己的事；换位置时走过去
+const RP = {};
+let roomView = null, roomCam = null, roomT = 0;
+function roomBubble(ctx, cx, bottom, text, size, maxW, W) {
+  ctx.font = `${size}px ${FONTD}`;
+  const lines = []; let cur = '';
+  for (const ch of text) { if (cur && ctx.measureText(cur + ch).width > maxW) { lines.push(cur); cur = ch; } else cur += ch; }
+  if (cur) lines.push(cur);
+  const lh = size * 1.38, w = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 1.6, h = lines.length * lh + size * 0.8;
+  return { cx, bottom, lines, size, lh, w, h, x: Math.min(Math.max(cx - w / 2, 6), W - w - 6), y: Math.max(6, bottom - h - size * 0.6) };
+}
+function drawRoomBubble(ctx, b, color) {
+  const s = b.size, r = Math.min(b.h / 2, s * 1.1), tx = Math.min(Math.max(b.cx, b.x + r + s * 0.4), b.x + b.w - r - s * 0.4), tipY = Math.min(b.bottom, b.y + b.h + s * 0.9);
+  ctx.save(); ctx.shadowColor = 'rgba(40,24,12,.25)'; ctx.shadowBlur = s * 0.8; ctx.shadowOffsetY = s * 0.15;
+  ctx.fillStyle = '#fff'; rr(ctx, b.x, b.y, b.w, b.h, r); ctx.fill(); ctx.restore();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(tx - s * 0.45, b.y + b.h - 1); ctx.quadraticCurveTo(tx, b.y + b.h + s * 0.2, b.cx, tipY); ctx.quadraticCurveTo(tx + s * 0.15, b.y + b.h + s * 0.1, tx + s * 0.45, b.y + b.h - 1); ctx.fill();
+  ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.5, s / 8); ctx.globalAlpha = 0.4; rr(ctx, b.x + 1, b.y + 1, b.w - 2, b.h - 2, r - 1); ctx.stroke(); ctx.globalAlpha = 1;
+  ctx.font = `${s}px ${FONTD}`; ctx.fillStyle = '#3d302b'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  b.lines.forEach((l, i) => ctx.fillText(l, b.x + b.w / 2, b.y + s * 0.4 + b.lh * (i + 0.5) + s * 0.04));
+}
+function roomActor(ctx, e, x, y, h, t) {
+  const id = e.st.id, c = CHARS[id], st = e.st;
+  ctx.save(); ctx.translate(x, y); ctx.transform(1, 0, e.lean, 1, 0, 0); ctx.translate(-x, -y);
+  let box;
+  if (e.p.moving) box = cellDraw(ctx, c.walk, e.p.dir, Math.floor(e.p.d / (STEP_PX * h / c.h)) % 8, x, y, h * 0.97);
+  else if ((e.mode || st.s.act) === 'eat' && ATLAS[`${id}-eat`] && img[`${id}-eat`] && img[`${id}-eat`].naturalWidth) {
+    const a = ATLAS[`${id}-eat`], f = t * a.fps, i = Math.floor(f) % a.frames, fr = f - Math.floor(f), k = h * 1.08 / a.cell[1], [im, sw, sh] = atlasSrc(ctx, `${id}-eat`, a, k);
+    const blit = (n, al) => { ctx.save(); ctx.globalAlpha *= al; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(im, (n % a.cols) * sw, Math.floor(n / a.cols) * sh, sw, sh, x - a.anchor[0] * k, y - a.anchor[1] * k, a.cell[0] * k, a.cell[1] * k); ctx.restore(); };
+    blit(i, 1); if (fr > 0.55) blit((i + 1) % a.frames, (fr - 0.55) / 0.45);
+    box = [x - a.anchor[0] * k, y - a.anchor[1] * k, x + (a.cell[0] - a.anchor[0]) * k, y];
+  } else box = actDraw(ctx, c, e.mode || actMode(id, st), x, y, h, t, st.since);
+  ctx.restore();
+  return box;
+}
+function drawRoom(ctx, W, H, key, focus) {
+  const R = ROOMS[key], im = img[SHOPS[key].room], t = realSec(), pn = performance.now();
+  const dt = Math.min(0.1, Math.max(0, (pn - roomT) / 1000)); roomT = pn;
+  const L = roomLayout(key), ids = new Set(L.map((e) => e.st.id));
+  for (const id of Object.keys(RP)) if (RP[id].room === key && !ids.has(id)) delete RP[id];
+  for (const e of L) { // 位置：换了位置就走过去（每个观众自己补间，终点相同）
+    let p = RP[e.st.id];
+    if (!p || p.room !== key) p = RP[e.st.id] = { room: key, x: e.sp.x, y: e.sp.y, d: 0, dir: 0 };
+    const dx = e.sp.x - p.x, dy = e.sp.y - p.y, dist = Math.hypot(dx, dy), v = 240 * dt;
+    p.moving = dist > 2;
+    if (p.moving) { const k = Math.min(1, v / dist); p.x += dx * k; p.y += dy * k; p.d += Math.min(v, dist); p.dir = Math.abs(dx) > Math.abs(dy) * 0.9 ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0); }
+    e.p = p; e.h = R.h0 * (0.45 + 0.55 * p.y / 780);
+  }
+  for (const e of L) { const q = e.partner && L.find((x) => x.st.id === e.partner); e.lean = q && !e.p.moving ? (q.p.x > e.p.x ? -0.045 : 0.045) : 0; }
+  // 镜头：铺满画布，平移到能看见店里所有人（详情面板里跟着她）
+  const sc = Math.max(W, H * MAP_W / MAP_H) / MAP_W, vw = W / sc, vh = H / sc, fe = focus && L.find((e) => e.st.id === focus);
+  let tx = MAP_W / 2, ty = MAP_H * 0.55;
+  const pts = fe ? [fe] : L;
+  if (pts.length) {
+    const x0 = Math.min(...pts.map((e) => e.p.x - e.h * 0.5)), x1 = Math.max(...pts.map((e) => e.p.x + e.h * 0.5));
+    const y0 = Math.min(...pts.map((e) => e.p.y - e.h * 1.25)), y1 = Math.max(...pts.map((e) => e.p.y + e.h * 0.12));
+    tx = (x0 + x1) / 2; ty = (y0 + y1) / 2;
+  }
+  const cx = Math.min(Math.max(tx - vw / 2, 0), MAP_W - vw), cy = Math.min(Math.max(ty - vh / 2, 0), MAP_H - vh), ck = `${key}|${focus}|${W}|${H}`;
+  if (!roomCam || roomCam.k !== ck) roomCam = { k: ck, x: cx, y: cy };
+  else { const k = 1 - Math.exp(-dt * 2.5); roomCam.x += (cx - roomCam.x) * k; roomCam.y += (cy - roomCam.y) * k; }
+  const ox = -roomCam.x * sc, oy = -roomCam.y * sc, P = (x, y) => [ox + x * sc, oy + y * sc];
+  if (im && im.naturalWidth) ctx.drawImage(im, ox, oy, MAP_W * sc, MAP_H * sc);
+  const hv = S.roomHover;
+  const outline = (o) => {
+    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 2.5; ctx.setLineDash([7, 6]); ctx.shadowColor = 'rgba(255,230,170,.9)'; ctx.shadowBlur = 14;
+    if (o.c) { const [x, y] = P(o.c[0], o.c[1]); ctx.beginPath(); ctx.arc(x, y, o.c[2] * sc, 0, Math.PI * 2); ctx.stroke(); }
+    else { const [x, y] = P(o.r[0], o.r[1]); rr(ctx, x, y, (o.r[2] - o.r[0]) * sc, (o.r[3] - o.r[1]) * sc, 14 * sc); ctx.stroke(); }
+    ctx.restore();
+  };
+  if (hv && hv.kind === 'obj' && hv.key === key) outline(hv.o);
+  const popO = S.roomPop && S.roomPopKey === key && R.objects.find((o) => o.id === S.roomPop);
+  if (popO && popO !== (hv && hv.o)) outline(popO);
+  const chars = [], order = Object.keys(CHARS);
+  for (const e of L.slice().sort((a, b) => a.p.y - b.p.y)) {
+    const md = actMode(e.st.id, e.st), canSit = e.sp.seat && animOf(e.st.id, 'sit');
+    // 有凳子/椅子的位置：看书、歇着、发呆就坐下；DeepSeek 坐着吃也用坐着啃饭团那一行
+    const mode = canSit && ((md !== 'eat' && ['read', 'rest', 'slack'].includes(roomAct(e.st))) || (md === 'eat' && e.st.id === 'ds')) ? 'sit' : md;
+    const spotAt = !e.p.moving && (mode === 'sleep' && e.sp.bed ? e.sp.bed : SEATED.has(mode) && e.sp.seat ? e.sp.seat : null);
+    e.mode = mode;
+    const [x, y] = P(...(spotAt || [e.p.x, e.p.y])), h = e.h * sc, c = CHARS[e.st.id], st = e.st;
+    const since = LIVE ? (nowMs() - (st.seg ? st.seg.t0 : 0)) / 1000 : (st.t ?? 9), alpha = Math.min(1, Math.max(0.05, since / 0.8));
+    ctx.save(); ctx.globalAlpha = alpha;
+    const ring = e.st.id === focus || (hv && hv.kind === 'char' && hv.id === e.st.id);
+    ctx.save(); ctx.globalAlpha *= 0.17; ctx.fillStyle = '#2a1d14'; ctx.beginPath(); ctx.ellipse(x, y - 2, h * 0.24, h * 0.05, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    if (ring) { ctx.save(); ctx.strokeStyle = c.color; ctx.globalAlpha *= 0.75; ctx.lineWidth = Math.max(2, h * 0.012); ctx.beginPath(); ctx.ellipse(x, y - 2, h * 0.3, h * 0.07, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+    const box = roomActor(ctx, e, x, y, h, t + order.indexOf(e.st.id) * 1.37);
+    ctx.restore();
+    if (box) chars.push({ kind: 'char', id: e.st.id, box, e, x, y, h, alpha });
+  }
+  // 念头、对话气泡（画在所有人上面）
+  const fs = Math.max(11, Math.min(14, W / 70)), bs = Math.max(12, Math.min(16, W / 52)), bubbles = [];
+  for (const ch of chars) {
+    const c = CHARS[ch.id], s = ch.e.st.s, top = ch.y - ch.h * 1.02;
+    ctx.save(); ctx.globalAlpha = ch.alpha;
+    if (s.say && !ch.e.p.moving) bubbles.push({ ch, b: roomBubble(ctx, ch.x, top, s.say, bs, Math.min(W * 0.4, 280), W) });
+    else if (roomAct(ch.e.st) === 'sleep') {
+      ctx.fillStyle = c.color; ctx.textAlign = 'center';
+      for (let i = 0; i < 3; i++) { const ph = (t * 0.5 + i / 3) % 1; ctx.globalAlpha = ch.alpha * (1 - ph); ctx.font = `${bs * (0.8 + ph * 0.7)}px ${FONTD}`; ctx.fillText('z', ch.x + ch.h * (0.22 + ph * 0.14), top + ch.h * (0.22 - ph * 0.22)); }
+    } else thoughtIcon(ctx, ch.x + ch.h * 0.3, top + ch.h * 0.12, Math.max(9, ch.h * 0.045), c.color, t + ch.y);
+    ctx.restore();
+  }
+  bubbles.sort((a, b) => a.b.x - b.b.x);
+  const placed = [];
+  for (const it of bubbles) { // 两个人同时说话时，气泡错开不重叠
+    const b = it.b;
+    for (let guard = 0; guard < 4; guard++) { const o = placed.find((q) => b.x < q.x + q.w + 4 && q.x < b.x + b.w + 4 && b.y < q.y + q.h + 4 && q.y < b.y + b.h + 4); if (!o) break; b.y = o.y - b.h - 6; }
+    placed.push(b);
+  }
+  for (const it of bubbles) { ctx.save(); ctx.globalAlpha = it.ch.alpha; drawRoomBubble(ctx, it.b, CHARS[it.ch.id].color); ctx.restore(); }
+  roomView = { key, ox, oy, sc, chars, L };
+}
+
+// 店里的点击：人 → 她的详情；东西 → 小卡片
+const roomTip = document.getElementById('roomTip'), roomPopEl = document.getElementById('roomPop');
+function roomHit(px, py) {
+  const v = roomView; if (!v) return null;
+  for (let i = v.chars.length - 1; i >= 0; i--) { const b = v.chars[i].box, w = b[2] - b[0], h = b[3] - b[1]; if (px >= b[0] + w * 0.22 && px <= b[2] - w * 0.22 && py >= b[1] + h * 0.12 && py <= b[3]) return v.chars[i]; }
+  const mx = (px - v.ox) / v.sc, my = (py - v.oy) / v.sc;
+  for (const o of ROOMS[v.key].objects) {
+    if ((o.c && Math.hypot(mx - o.c[0], my - o.c[1]) <= o.c[2]) || (o.r && mx >= o.r[0] && mx <= o.r[2] && my >= o.r[1] && my <= o.r[3])) return { kind: 'obj', key: v.key, o };
+  }
+  return null;
+}
+sceneCv.addEventListener('mousemove', (e) => {
+  const r = sceneCv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, h = roomHit(px, py);
+  S.roomHover = h; sceneCv.style.cursor = h ? 'pointer' : 'default';
+  if (h && !(h.kind === 'obj' && S.roomPop === h.o.id)) {
+    roomTip.textContent = h.kind === 'char' ? (h.id === S.panel ? `${CHARS[h.id].name} · ${h.e.sp.label}` : `${CHARS[h.id].name} · 点击看她`) : h.o.name;
+    roomTip.style.display = 'block'; roomTip.style.left = `${px}px`; roomTip.style.top = `${py - 12}px`;
+  } else roomTip.style.display = 'none';
+});
+sceneCv.addEventListener('mouseleave', () => { S.roomHover = null; roomTip.style.display = 'none'; });
+sceneCv.addEventListener('click', (e) => {
+  const r = sceneCv.getBoundingClientRect(), h = roomHit(e.clientX - r.left, e.clientY - r.top);
+  if (!h) { closeRoomPop(); return; }
+  if (h.kind === 'char') { if (h.id !== S.panel) openPanel(h.id, S.room || S.back); }
+  else openRoomPop(h.o.id);
+});
+function roomPopObj() { const R = ROOMS[S.roomPopKey]; return R && R.objects.find((o) => o.id === S.roomPop); }
+function openRoomPop(oid) {
+  const key = S.room || (S.panel && stateOf(S.panel).inside), o = key && ROOMS[key].objects.find((x) => x.id === oid);
+  if (!o) return;
+  S.roomPop = oid; S.roomPopKey = key; roomTip.style.display = 'none';
+  renderRoomPop(); roomPopEl.style.display = 'block';
+  const v = roomView, scene = document.getElementById('scene'), W = scene.clientWidth, H = scene.clientHeight;
+  const [ax, ay] = o.c ? [o.c[0], o.c[1] - o.c[2]] : [(o.r[0] + o.r[2]) / 2, o.r[1]];
+  const sx = v && v.key === key ? v.ox + ax * v.sc : W / 2, sy = v && v.key === key ? v.oy + ay * v.sc : H / 2;
+  roomPopEl.style.left = `${Math.min(Math.max(sx, 135), W - 135)}px`;
+  roomPopEl.style.top = `${Math.max(Math.min(sy, H - 10), roomPopEl.offsetHeight + 22)}px`;
+  if (S.room) renderSide(true);
+}
+let roomPopHtml = '';
+function renderRoomPop() {
+  const o = roomPopObj(); if (!o) { closeRoomPop(); return; }
+  const v = roomView && roomView.key === S.roomPopKey ? roomView : null;
+  const L = v ? v.L : roomLayout(S.roomPopKey), who = L.find((e) => e.sp && (o.spots || []).includes(e.sp.id));
+  const ws = worldShow('room', S.roomPopKey, o.id);
+  const live = (who ? `此刻：${esc(CHARS[who.st.id].name)} · ${esc(who.st.s.text)}` : '') + (ws != null ? `${who ? '<br>' : ''}${esc(ws)}` : who ? '' : esc(o.idle()));
+  const html = `<button class="x" id="rpX">${ic('x')}</button><h4>${ic(o.icon)} ${o.name}</h4><p>${o.desc}</p><div class="live">${live}</div>` +
+    (who && who.st.id !== S.panel ? `<div class="row"><button class="btn soft" id="rpWho">${ic('eye')}看看 ${CHARS[who.st.id].name}</button></div>` : '');
+  if (html === roomPopHtml) return;
+  roomPopHtml = html; roomPopEl.innerHTML = html;
+  roomPopEl.querySelector('#rpX').onclick = closeRoomPop;
+  const b = roomPopEl.querySelector('#rpWho'); if (b) b.onclick = () => openPanel(who.st.id, S.room || S.back);
+}
+function closeRoomPop() {
+  const had = S.roomPop; S.roomPop = null; roomPopHtml = ''; roomPopEl.style.display = 'none';
+  if (had && S.room) renderSide(true);
+}
+function openRoom(key) {
+  S.room = key; S.panel = null; S.back = null; closePop(); closeRoomPop();
+  if (SHOPS[key].area !== S.area) setArea(SHOPS[key].area);
+  panelModal.classList.add('open'); renderSide(true); renderPlaque();
+}
+// 场景右上角的店牌：在店里时点它看整间店
+let plaqueKey = '';
+function renderPlaque() {
+  const pl = document.getElementById('plaque');
+  let html, link = null;
+  if (S.room) { const sh = SHOPS[S.room], n = roomPeople(S.room).length; html = `${ic(sh.icon)}${sh.name}<small>${n ? `${n} 人在店里` : '没人'}</small>`; }
+  else if (S.panel) {
+    const st = stateOf(S.panel);
+    if (st.inside) { const sh = SHOPS[st.inside], n = roomPeople(st.inside).length; link = st.inside; html = `${ic(sh.icon)}${sh.name}<small>${n > 1 ? `${n} 人 · ` : ''}看整间店 ›</small>`; }
+    else html = `${ic('pin')}${st.area ? AREAS[st.area].name : '路上'}`;
+  } else return;
+  const back = S.panel && S.back ? '回到店里' : '回到街上', k = html + back;
+  if (k === plaqueKey) return;
+  plaqueKey = k; pl.innerHTML = html; pl.classList.toggle('link', !!link); pl.title = link ? '看看店里的所有人' : '';
+  pl.onclick = link ? () => openRoom(link) : null;
+  document.getElementById('panelBack').innerHTML = `${ic('back')}${back}`;
+}
+// 店的侧栏：谁在店里、在做什么，店里的东西，店里的动态
+function renderRoomSide(force) {
+  const key = S.room, sh = SHOPS[key], R = ROOMS[key], owner = CHARS[sh.owner], L = roomLayout(key);
+  const k = `room|${key}|${L.map((e) => [e.st.id, e.st.key, e.sp.id, e.partner, e.st.s.say, e.st.s.text].join(':')).join(',')}|${S.roomPop || ''}|${LIVE ? LIVE.ver : ''}`;
+  if (!force && k === sideKey) return;
+  const keep = sideKey.startsWith(`room|${key}|`) ? side.querySelector('.tabbody')?.scrollTop : 0;
+  sideKey = k;
+  document.getElementById('panel').style.setProperty('--c', owner.color);
+  const ost = stateOf(sh.owner), home = L.some((e) => e.st.id === sh.owner);
+  const status = home ? (roomAct(ost) === 'sleep' ? `打烊了，${owner.name}在睡觉` : `营业中 · 店主 ${owner.name} 在店里`) : `店主 ${owner.name} 出门了 · 现在在${ost.inside ? SHOPS[ost.inside].name : ost.area ? AREAS[ost.area].name : '路上'}`;
+  const people = L.map((e) => {
+    const c = CHARS[e.st.id], s = e.st.s, mate = e.partner ? CHARS[e.partner].name : '';
+    const q = s.say ? `「${esc(s.say)}」` : s.thought ? `心声：${esc(s.thought)}` : '';
+    return `<button class="rm-p" data-id="${e.st.id}" style="--pc:${c.color}"><img src="${ASSET[avatarKey(e.st.id)]}" alt=""><div><b>${c.name}</b>${e.st.id === sh.owner ? ' <span class="hint">店主</span>' : ''}<div class="d">${esc(e.sp.label)} · ${esc(s.text)}${mate ? ` · 对着 ${mate}` : ''}</div>${q ? `<div class="q">${q}</div>` : ''}</div>${ic('back', 'style="transform:rotate(180deg)"')}</button>`;
+  }).join('') || `<div class="note">店里现在没人。有人进来的话，会出现在这里。</div>`;
+  const objs = `<div class="rm-objs">${R.objects.map((o) => `<button data-o="${o.id}" class="${S.roomPop === o.id ? 'on' : ''}">${ic(o.icon)}${o.name}</button>`).join('')}</div>`;
+  const log = logEntries().filter((x) => x.text && R.words.some((w) => x.text.includes(w))).slice(-5).reverse()
+    .map((x) => `<div class="mono"><div class="tm">第 ${x.day} 天 · ${x.t}</div>${x.star ? '★ ' : ''}${esc(x.text)}</div>`).join('') || '<div class="hint">还没有动态。</div>';
+  side.innerHTML = `
+    <div class="prof"><span class="rm-ico">${ic(sh.icon)}</span><div><h2>${sh.name}</h2><div class="role">${owner.name} 的店 · ${L.length ? `现在 ${L.length} 人在店里` : '现在没人'}</div></div></div>
+    <div class="now">${ic(home ? 'sparkle' : 'walk')}<span>${esc(status)}</span></div>
+    <div class="tabbody">
+      <div class="sec">店里的人</div>${people}
+      <div class="sec" style="margin-top:14px">店里的东西</div>${objs}
+      <div class="sec" style="margin-top:16px">店里的动态</div>${log}
+    </div>
+`;
+  if (keep) side.querySelector('.tabbody').scrollTop = keep;
+  side.querySelectorAll('.rm-p').forEach((b) => b.onclick = () => openPanel(b.dataset.id, key));
+  side.querySelectorAll('[data-o]').forEach((b) => b.onclick = () => (S.roomPop === b.dataset.o ? closeRoomPop() : openRoomPop(b.dataset.o)));
+}
+
+// 协作申请
+const collabModal = document.getElementById('collabModal'), collabForm = document.getElementById('collabForm');
+// 鲸巷是 mirasim 上的公开空间：在空间页点「进入空间」先以观察成员进来，想动手时由管理员同意成为协作成员
+const SPACE_URL = 'https://mirasim.ai/@whale-lane';
+function renderCollab() {
+  collabForm.innerHTML = `
+    <h2>加入「鲸巷」协作</h2>
+    <div>协作成员可以和大家一起建设这条街：开新店、加节日和小意外、让新的模型搬进来、画新动作。加一样东西就是写一段数据，交给你的 agent 就行。</div>
+    <div class="steps"><span>① 打开鲸巷的空间页</span><span>② 点「进入空间」，先进来看看</span><span>③ 想动手时，请管理员加你为协作成员</span></div>
+    <div class="foot"><span class="hint">进入空间需要登录 mirasim</span>
+      <button class="btn soft" id="cCancel">取消</button>
+      <a class="btn primary" href="${SPACE_URL}" target="_blank" rel="noopener" style="text-decoration:none">${ic('hand')}打开空间页</a></div>`;
+  collabForm.querySelector('#cCancel').onclick = () => collabModal.classList.remove('open');
+}
+document.getElementById('collabBtn').onclick = () => { renderCollab(); collabModal.classList.add('open'); };
+collabModal.addEventListener('click', (e) => { if (e.target === collabModal) collabModal.classList.remove('open'); });
+
+let toastT;
+// 给开发团队的信：只存在服务端，世界读不到。凭证存在浏览器里，用来看自己的信和回复
+const letterModal = document.getElementById('letterModal'), letterForm = document.getElementById('letterForm');
+const LETTER_KINDS = ['建议', '想看的剧情', '问题反馈', '其他'];
+function letterToken() {
+  let t = localStorage.getItem('mc-letter-token');
+  if (!t) { t = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 24); localStorage.setItem('mc-letter-token', t); }
+  return t;
+}
+let letterKind = '建议';
+async function openLetters() {
+  if (!LIVE) { toast('留言需要连上服务器'); return; }
+  letterModal.classList.add('open');
+  renderLetters([]);
+  try { const r = await fetch(`/api/letters?token=${letterToken()}`); renderLetters((await r.json()).letters || []); } catch { /* 网络不好就只显示表单 */ }
+}
+function renderLetters(mine) {
+  const draft = letterForm.querySelector('textarea')?.value || '';
+  letterForm.innerHTML = `<h2>给开发团队的信</h2>
+    <div class="hint">只有开发团队能看到，不会寄到镇上。</div>
+    <div class="kinds">${LETTER_KINDS.map((k) => `<button data-k="${k}" class="${k === letterKind ? 'on' : ''}">${k}</button>`).join('')}</div>
+    <textarea id="letterText" maxlength="500" placeholder="想对开发团队说的话……"></textarea>
+    <div class="foot"><span class="count" id="letterCount">0 / 500</span><button class="btn soft" id="lCancel">关闭</button><button class="btn primary" id="lSend">${ic('chat')}寄出</button></div>
+    <div class="mine"><h4>我的留言</h4>${mine.map((l) => `<div class="lt"><div class="tm">${new Date(l.at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · ${esc(l.kind)}</div>${esc(l.text)}${l.reply ? `<div class="re"><b>开发团队：</b>${esc(l.reply.text)}</div>` : ''}</div>`).join('') || '<div class="hint">还没有寄出过信。</div>'}</div>`;
+  const ta = letterForm.querySelector('#letterText'), cnt = letterForm.querySelector('#letterCount');
+  ta.value = draft; cnt.textContent = `${ta.value.length} / 500`;
+  ta.oninput = () => { cnt.textContent = `${ta.value.length} / 500`; };
+  letterForm.querySelectorAll('.kinds button').forEach((b) => b.onclick = () => { letterKind = b.dataset.k; letterForm.querySelectorAll('.kinds button').forEach((x) => x.classList.toggle('on', x === b)); });
+  letterForm.querySelector('#lCancel').onclick = () => letterModal.classList.remove('open');
+  letterForm.querySelector('#lSend').onclick = async () => {
+    const text = ta.value.trim();
+    if (text.length < 2) { toast('多写几个字吧'); return; }
+    try {
+      const r = await fetch('/api/letters', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: letterToken(), kind: letterKind, text }) });
+      const j = await r.json();
+      if (!r.ok) { toast(j.error || '没寄出去，稍后再试'); return; }
+      ta.value = ''; toast('信寄出了');
+      renderLetters([j.letter, ...mine]);
+    } catch { toast('没寄出去，稍后再试'); }
+  };
+}
+letterModal.addEventListener('click', (e) => { if (e.target === letterModal) letterModal.classList.remove('open'); });
+
+// 编年史：每一天的日报、三人的日记、当天大事和漫画
+const chronModal = document.getElementById('chronModal'), chronBox = document.getElementById('chronBox');
+let CHRON = null, chronDay = null;
+async function openChronicle(mode) {
+  if (!LIVE) return;
+  chronModal.classList.add('open');
+  if (!CHRON) chronBox.innerHTML = '<div class="body"><div class="empty">翻开编年史……</div></div>';
+  try { CHRON = (await (await fetch('/api/chronicle')).json()).days || []; } catch { CHRON = CHRON || []; }
+  if (mode === 'paper') chronDay = (CHRON.find((d) => d.paper) || CHRON[0])?.day ?? null;
+  else if (chronDay === null || !CHRON.some((d) => d.day === chronDay)) chronDay = (CHRON.find((d) => d.paper || d.events.length || Object.keys(d.diaries).length) || CHRON[0])?.day ?? null; // 先翻到最近一个有内容的日子
+  renderChronicle();
+}
+function renderChronicle() {
+  const d = CHRON.find((x) => x.day === chronDay);
+  const days = CHRON.map((x) => `<button data-d="${x.day}" class="${x.day === chronDay ? 'on' : ''}">第 ${x.day} 天${x.paper ? ' ·报' : ''}</button>`).join('');
+  let body = '<div class="empty">这条街的故事才刚开始。</div>';
+  if (d) {
+    const p = d.paper;
+    const paper = p ? `<div class="paper"><div class="mast"><b>鲸巷日报</b><span>第 ${d.day} 天</span></div>
+        <h3>${esc(p.headline)}</h3><p class="lead">${esc(p.lead)}</p>
+        <div class="cols">${p.articles.map((a) => `<div class="art"><span class="tag">${esc(a.tag)}</span><b>${esc(a.title)}</b><p>${esc(a.body)}</p></div>`).join('')}</div>
+        <div class="foot">${p.quote ? `<div class="quote"><img src="${ASSET[avatarKey(p.quote.who)]}"><span>「${esc(p.quote.text)}」——${CHARS[p.quote.who].name}</span></div>` : ''}${p.tomorrow ? `<div class="next">明日看点：${esc(p.tomorrow)}</div>` : ''}</div></div>`
+      : `<div class="empty">${d.today ? `第 ${d.day} 天的日报，第 ${d.day + 1} 天早上出炉。` : '这一天没有出日报。'}</div>`;
+    const diaries = `<div class="diaries">${Object.keys(CHARS).map((id) => { const x = d.diaries[id]; return `<div class="dy"><h4><img src="${ASSET[avatarKey(id)]}">${CHARS[id].name}<small>${x ? esc(x.mood || '') : ''}</small></h4>${x ? esc(x.text) : `<span class="empty">${d.today ? '睡前才写' : '这天没写日记'}</span>`}</div>`; }).join('')}</div>`;
+    const events = d.events.slice().reverse().map((e) => `<div class="ev ${e.star ? 'star' : ''}"><span class="tm">${esc(e.t)}</span><span class="tx">${esc(e.text)}</span></div>`).join('') || '<div class="empty">这一天很安静。</div>';
+    const comics = d.comics.length ? `<div class="thumbs">${d.comics.map((c) => `<button data-c="${esc(c.id)}"><img loading="lazy" src="${esc(c.url)}">${esc(c.title)}</button>`).join('')}</div>` : '<div class="empty">这一天没有画漫画。</div>';
+    body = `${paper}<div class="sec">${ic('book')}三个人的日记</div>${diaries}<div class="sec">${ic('scroll')}这一天的事</div>${events}<div class="sec">${ic('sparkle')}这一天的漫画</div>${comics}`;
+  }
+  chronBox.innerHTML = `<div class="top"><h2>鲸巷日报</h2><div class="days">${days}</div><button class="x" id="chronX">${ic('x')}</button></div><div class="body">${body}</div>`;
+  chronBox.querySelectorAll('.days button').forEach((b) => b.onclick = () => { chronDay = +b.dataset.d; renderChronicle(); });
+  chronBox.querySelectorAll('.thumbs button').forEach((b) => b.onclick = () => openComic(b.dataset.c));
+  chronBox.querySelector('#chronX').onclick = () => chronModal.classList.remove('open');
+}
+chronModal.addEventListener('click', (e) => { if (e.target === chronModal) chronModal.classList.remove('open'); });
+
+// 街区（伴读栏的一个页签）：正在进行的事（约好的事、项目、委托）、天气和今天、每周的日子、公告栏、街上的东西
+const WEEKLY = [[5, '19:00', '读书会', '纸页书屋'], [6, '21:00', '流星雨观星会', '栈桥'], [7, '11:00', '野餐会', '后山草坪'], [7, '18:00', '灯笼节', '后山古树'], [3, '06:00', '集市日', '海边集市']];
+function openLane() { openTab('lane'); }
+function untilText(min) { const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = Math.round(min % 60); return d ? `还有 ${d} 天 ${h} 小时` : h ? `还有 ${h} 小时 ${m} 分` : `还有 ${m} 分钟`; }
+let laneKey = '';
+function renderLane() {
+  if (S.ptab !== 'lane' || !LIVE) return;
+  const W = LIVE.world, th = W.things || {}, c = clock(), gm = gameMin(), wd = ((c.day - 1) % 7 + 7) % 7;
+  const nm = (k) => CHARS[k]?.name || k, av = (k) => (CHARS[k] ? `<img src="${ASSET[avatarKey(k)]}">` : '');
+  const fc = th.crystal?.state?.forecast;
+  const today = (W.events?.today || []).map((e) => `${e.name}${e.until ? `（${e.at}–${e.until}）` : `（${e.at}）`}`).join('、');
+  const active = (W.events?.active || []).map((e) => e.name);
+  const weather = `<div class="row"><span class="k">今天</span><span class="v">第 ${c.day} 天 · 周${WEEK[wd]} · ${esc(W.weather?.name || '')}${W.weather?.today === 'rain' ? `（${W.weather.rain[0]}–${W.weather.rain[1]} 点有雨）` : ''}${today ? `<small>${esc(today)}${active.length ? ` · <span class="now">${esc(active.join('、'))}正在进行</span>` : ''}</small>` : ''}</span></div>` +
+    `<div class="row"><span class="k">明天</span><span class="v">${fc && fc !== '-' ? `${esc(fc)}<small>GPT 看水晶球预报的</small>` : '<small>GPT 还没看水晶球，没人知道</small>'}</span></div>`;
+  const next = WEEKLY.map(([w, at, name, where]) => { const [h, m] = at.split(':').map(Number); let dd = (w - 1 - wd + 7) % 7, mins = dd * 1440 + h * 60 + m - (gm % 1440); if (mins < -60) mins += 7 * 1440; return { name, where, at, w, mins }; }).sort((a, b) => a.mins - b.mins);
+  const sched = next.map((x) => `<div class="row"><span class="k">周${WEEK[x.w - 1]} ${x.at}</span><span class="v">${esc(x.name)} · ${esc(x.where)}<small class="${x.mins <= 0 ? 'now' : ''}">${x.mins <= 0 ? '正在进行' : untilText(x.mins)}</small></span></div>`).join('');
+  const gath = (W.gatherings || []).filter((g) => g.status !== 'done').map((g) => `<div class="row"><span class="k">${esc(g.at)}</span><span class="v">${av(g.host)}${esc(nm(g.host))}约的${esc(g.name)} · ${esc(g.where)}<small>${g.status === 'running' ? `<span class="now">进行中</span> · 到了：${g.present.map(nm).join('、') || '还没人'}` : `约了 ${g.invited.map(nm).join('、')}`}</small></span></div>`);
+  const proj = (W.projects || []).filter((p) => p.status === 'active').map((p) => `<div class="row"><span class="k">${av(p.owner)}${esc(p.name)}</span><span class="v">${p.kind === 'recipe' ? `「${esc(p.title)}」` : `《${esc(p.title)}》`} · ${p.done}/${p.steps}${p.fails ? `（失败了 ${p.fails} 次）` : ''}${p.parts.length ? `<small>「${esc(p.parts.at(-1).text)}」</small>` : ''}<div class="bar"><i style="width:${Math.round(p.done / p.steps * 100)}%"></i></div></span></div>`);
+  const done = (W.projects || []).filter((p) => p.status === 'done').slice(-3).map((p) => `<div class="row"><span class="k">${av(p.owner)}做完了</span><span class="v">${p.kind === 'recipe' ? `新菜「${esc(p.title)}」` : p.kind === 'story' ? `新书《${esc(p.title)}》` : `星图《${esc(p.title)}》`}</span></div>`);
+  const reqs = (W.requests || []).filter((r) => r.status === 'accepted').map((r) => `<div class="row"><span class="k">${av(r.to)}帮忙</span><span class="v">${esc(nm(r.to))}答应帮${esc(nm(r.from))}：${esc(r.text)}</span></div>`);
+  const coms = (W.commissions || []).filter((x) => x.status === 'open').map((x) => `<div class="row"><span class="k">委托</span><span class="v">${esc(x.npc)}：${esc(x.text)}</span></div>`);
+  const busy = [...gath, ...proj, ...done, ...reqs, ...coms].join('') || '<div class="empty">现在没有约好的事，也没有进行中的项目。</div>';
+  const notes = (th.board?.state?.lines || []).slice().reverse().map((l) => `<div class="note">${esc(l.text)}<small>${esc(nm(l.by) === 'town' ? '街坊' : nm(l.by))}</small></div>`).join('') || '<div class="empty">公告栏是空的。</div>';
+  const bb = (th.blackboard?.state?.lines || []).map((l) => `<div class="note">${esc(l.text)}<small>${esc(nm(l.by))}</small></div>`).join('') || '<div class="empty">小黑板上什么也没写。</div>';
+  const others = ['cat', 'post', 'lighthouse', 'boat', 'pond', 'oldtree'].filter((k) => th[k]).map((k) => `<div class="row"><span class="k">${esc(th[k].name)}</span><span class="v">${esc(th[k].show)}</span></div>`).join('');
+  const html = `<div class="lane">
+      <div class="box"><div class="sec">${ic('sparkle')}正在进行</div>${busy}</div>
+      <div class="box"><div class="sec">${ic('sun')}天气和今天</div>${weather}</div>
+      <div class="box"><div class="sec">${ic('bell')}每周的日子</div>${sched}</div>
+      <div class="box"><div class="sec">${ic('scroll')}公园公告栏</div>${notes}<div class="sec" style="margin-top:12px">${ic('book')}书屋门口的小黑板</div>${bb}</div>
+      <div class="box"><div class="sec">${ic('pin')}街上</div>${others}</div>
+    </div>`;
+  if (html === laneKey && entriesEl.querySelector('.lane')) return; laneKey = html; // 内容没变就不重画，免得滚动位置跳
+  entriesEl.innerHTML = html;
+}
+// 日报和画册要用的编年史：一分钟内不重复拉
+let chronAt = 0;
+async function loadChron() {
+  if (!LIVE || Date.now() - chronAt < 60000) return renderPanelBody();
+  chronAt = Date.now();
+  try { CHRON = (await (await fetch('/api/chronicle')).json()).days || []; } catch { CHRON = CHRON || []; }
+  if (S.ptab === 'paper') renderPaperTab();
+}
+
+const comicModal = document.getElementById('comicModal');
+comicModal.addEventListener('click', () => comicModal.classList.remove('open'));
+function toast(x) { const t = document.getElementById('toast'); t.textContent = x; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2800); }
+
+// ============================== 主循环 ==============================
+const seen = {};
+let logCount = -1;
+function tickSlow() {
+  renderClock();
+  if (LIVE) { // 日志按时间到点才出现
+    const n = logEntries().length;
+    if (n !== logCount) { const first = logCount < 0; logCount = n; renderLog(); if (!first && S.ptab !== 'feed') { tabNew.feed = true; renderPtabs(); } }
+  } else for (const id of Object.keys(CHARS)) {
+    const st = stateOf(id), c = CHARS[id];
+    if (seen[id] !== undefined && seen[id] !== st.key) {
+      if (st.s.log) addLog({ who: id, text: st.s.log, area: st.area || undefined, star: st.s.star }, true);
+      if (st.s.thought) { c._seen = c._seen || []; c._seen.unshift({ t: fmt(clock()), x: st.s.thought }); }
+    }
+    seen[id] = st.key;
+  }
+  renderDock(); renderAreas(); renderHud();
+  if (S.panel || S.room) { renderSide(false); renderPlaque(); }
+  if (S.pop) renderPop();
+  if (S.roomPop) renderRoomPop();
+  document.getElementById('viewers').textContent = LIVE ? String(LIVE.viewers ?? 1) : (1284 + Math.round(Math.sin(realSec() / 9) * 21)).toLocaleString();
+}
+// 拉一次服务端的状态；顺便校准服务端时钟
+async function poll() {
+  const t0 = Date.now();
+  try {
+    const r = await fetch(`/api/state?c=${CID}${LIVE ? `&v=${LIVE.ver}` : ''}`, { cache: 'no-store' });
+    if (r.status === 204) return true;
+    if (!r.ok) return false;
+    const d = await r.json(), t1 = Date.now(), off = d.now + (t1 - t0) / 2 - t1;
+    OFF = LIVE && Math.abs(off - OFF) < 1500 ? OFF * 0.8 + off * 0.2 : off;
+    LIVE = d;
+    renderCredit(); renderLane(); if (S.ptab === 'album') renderAlbum();
+    return true;
+  } catch { return false; }
+}
+function renderCredit() {
+  if (!document.getElementById('credit')) return; // 署名栏已按要求去掉
+  let html = document.getElementById('creditTpl').innerHTML;
+  if (LIVE) {
+    const models = [...new Set(Object.values(LIVE.chars).map((c) => c.model))].join('、');
+    const st = { credit: '（中转站额度用完了，角色暂时按习惯生活）', error: '（模型暂时连不上，角色暂时按习惯生活）', budget: '（今天的调用次数用完了，角色暂时按习惯生活）' }[LIVE.llm.status] || '';
+    html = `角色的决定、念头和日记：${esc(models)} 实时生成${st} · ` + html.replace('非商业同人 demo', '非商业同人作品');
+  }
+  document.getElementById('credit').innerHTML = html;
+}
+function frame() { drawMain(); drawScene(); requestAnimationFrame(frame); }
+// 先看服务端在不在：在就是实时模式，不在（比如直接打开单文件）就用示例作息
+const liveReady = Q.get('demo') ? Promise.resolve(false) : Promise.race([poll(), new Promise((r) => setTimeout(() => r(false), 2500))]);
+Promise.all([...Object.keys(ASSET).map(load), liveReady]).then(() => {
+  renderCredit();
+  if (LIVE) setInterval(poll, 4000);
+  fitStage(); renderTodSeg(); renderMe(); renderFilters(); renderPtabs(); renderPanelBody(); tickSlow(); setInterval(tickSlow, 1000);
+  if (Q.get('panel')) openPanel(Q.get('panel'));
+  if (SHOPS[Q.get('room')]) { openRoom(Q.get('room')); if (Q.get('rpop')) setTimeout(() => openRoomPop(Q.get('rpop')), 300); }
+  if (Q.get('pop')) { const o = AREAS[S.area].objects.find((x) => x.id === Q.get('pop')); if (o) openPop(o); }
+  if (Q.get('collab')) { renderCollab(); collabModal.classList.add('open'); }
+  if (Q.get('filter')) { S.filter = Q.get('filter'); renderFilters(); renderLog(); }
+  if (Q.get('comic')) openComic(Q.get('comic'));
+  if (Q.get('letters')) openLetters();
+  if (Q.get('chron')) openChronicle(Q.get('chron'));
+  frame();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "whale-lane",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "鲸巷 Whale Lane: DeepSeek, Claude and GPT live in a seaside town, each one driven by her namesake model.",
+  "scripts": {
+    "dev": "vite",
+    "start": "node model-corner-design/sim/server.mjs"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0"
+  }
+}

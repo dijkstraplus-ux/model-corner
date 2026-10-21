@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "model": "deepseek-v4.1-flash-1017",
+  "models": {
+    "ds": "deepseek-v4.1-flash-1017",
+    "claude": "claude:claude-haiku-5-5",
+    "gpt": "codex:gpt-6-luna"
+  },
+  "reasoning": {
+    "enabled": false
+  },
+  "temperature": 0.9,
+  "maxCallsPerHour": 120,
+  "maxCallsPerDay": 2000,
+  "comic": {
+    "enabled": true,
+    "everyMinutes": 60
+  },
+  "paper": {
+    "enabled": true
+  }
+}

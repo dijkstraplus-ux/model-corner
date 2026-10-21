@@ -1,0 +1,370 @@
+{
+ "ds-walk8": {
+  "cell": [
+   163,
+   157
+  ],
+  "anchor": [
+   81,
+   147
+  ],
+  "rows": [
+   "down",
+   "left",
+   "right",
+   "up"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   408,
+   392
+  ]
+ },
+ "ds-act8": {
+  "cell": [
+   235,
+   201
+  ],
+  "anchor": [
+   117,
+   195
+  ],
+  "rows": [
+   "idle",
+   "slack",
+   "happy",
+   "sleepy"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   470,
+   402
+  ]
+ },
+ "claude-walk8": {
+  "cell": [
+   151,
+   164
+  ],
+  "anchor": [
+   75,
+   161
+  ],
+  "rows": [
+   "down",
+   "left",
+   "right",
+   "up"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   378,
+   410
+  ]
+ },
+ "claude-act8": {
+  "cell": [
+   208,
+   201
+  ],
+  "anchor": [
+   104,
+   195
+  ],
+  "rows": [
+   "idle",
+   "read",
+   "work",
+   "sleepy"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   416,
+   402
+  ]
+ },
+ "gpt-walk8": {
+  "cell": [
+   159,
+   149
+  ],
+  "anchor": [
+   79,
+   143
+  ],
+  "rows": [
+   "down",
+   "left",
+   "right",
+   "up"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   398,
+   372
+  ]
+ },
+ "gpt-act8": {
+  "cell": [
+   232,
+   201
+  ],
+  "anchor": [
+   116,
+   195
+  ],
+  "rows": [
+   "idle",
+   "astro",
+   "happy",
+   "sleepy"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   464,
+   402
+  ]
+ },
+ "critters": {
+  "cell": [
+   175,
+   158
+  ],
+  "anchor": [
+   87,
+   120
+  ],
+  "rows": [
+   "catwalk",
+   "catrest",
+   "gull",
+   "misc"
+  ],
+  "cols": 4,
+  "frames": 4
+ },
+ "ds-eat": {
+  "cell": [
+   220,
+   260
+  ],
+  "anchor": [
+   110,
+   259
+  ],
+  "frames": 50,
+  "cols": 10,
+  "fps": 5.0,
+  "rows": [
+   "eat"
+  ],
+  "hd": [
+   352,
+   416
+  ]
+ },
+ "ds-act8b": {
+  "cell": [
+   235,
+   201
+  ],
+  "anchor": [
+   117,
+   195
+  ],
+  "rows": [
+   "stir",
+   "serve",
+   "wave",
+   "carry"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   470,
+   402
+  ]
+ },
+ "claude-act8b": {
+  "cell": [
+   208,
+   201
+  ],
+  "anchor": [
+   104,
+   195
+  ],
+  "rows": [
+   "write",
+   "recite",
+   "wave",
+   "hug"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   416,
+   402
+  ]
+ },
+ "gpt-act8b": {
+  "cell": [
+   232,
+   201
+  ],
+  "anchor": [
+   116,
+   195
+  ],
+  "rows": [
+   "carry",
+   "hover",
+   "point",
+   "wave"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   464,
+   402
+  ]
+ },
+ "ds-act8c": {
+  "cell": [
+   201,
+   298
+  ],
+  "anchor": [
+   100,
+   248
+  ],
+  "rows": [
+   "sit",
+   "swing",
+   "crouch",
+   "sleep"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   402,
+   596
+  ]
+ },
+ "claude-act8c": {
+  "cell": [
+   211,
+   251
+  ],
+  "anchor": [
+   105,
+   217
+  ],
+  "rows": [
+   "sit",
+   "swing",
+   "crouch",
+   "sleep"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   422,
+   502
+  ]
+ },
+ "gpt-act8c": {
+  "cell": [
+   199,
+   290
+  ],
+  "anchor": [
+   99,
+   227
+  ],
+  "rows": [
+   "sit",
+   "swing",
+   "crouch",
+   "sleep"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   398,
+   580
+  ]
+ },
+ "ds-act8d": {
+  "cell": [
+   235,
+   201
+  ],
+  "anchor": [
+   117,
+   195
+  ],
+  "rows": [
+   "shape",
+   "chalk",
+   "pray",
+   "fish"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   470,
+   402
+  ]
+ },
+ "claude-act8d": {
+  "cell": [
+   208,
+   201
+  ],
+  "anchor": [
+   104,
+   195
+  ],
+  "rows": [
+   "eat",
+   "chalk",
+   "pray",
+   "fish"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   416,
+   402
+  ]
+ },
+ "gpt-act8d": {
+  "cell": [
+   232,
+   201
+  ],
+  "anchor": [
+   116,
+   195
+  ],
+  "rows": [
+   "eat",
+   "fix",
+   "chalk",
+   "pray"
+  ],
+  "cols": 8,
+  "frames": 8,
+  "hd": [
+   464,
+   402
+  ]
+ }
+}

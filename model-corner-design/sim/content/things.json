@@ -1,0 +1,1764 @@
+[
+ {
+  "id": "pot",
+  "name": "鲸鱼电饭煲",
+  "place": "diner",
+  "page": [
+   {
+    "room": "diner",
+    "obj": "cooker"
+   },
+   {
+    "area": "square",
+    "obj": "cauldron"
+   }
+  ],
+  "tags": [
+   "food"
+  ],
+  "state": {
+   "rice": "empty",
+   "readyAt": 0,
+   "coldAt": 0
+  },
+  "show": [
+   [
+    "rice == cooking",
+    "锅里正在煮饭"
+   ],
+   [
+    "rice == ready",
+    "饭煮好了，还冒着热气"
+   ],
+   [
+    "rice == cold",
+    "饭在锅里放凉了"
+   ],
+   [
+    "",
+    "锅是空的"
+   ]
+  ],
+  "verbs": {
+   "cook": {
+    "label": "煮一锅饭",
+    "act": "work",
+    "who": "owner",
+    "minutes": [
+     20,
+     40
+    ],
+    "need": "rice == empty || rice == cold",
+    "w": 2,
+    "start": {
+     "set": {
+      "rice": "cooking",
+      "readyAt": "+45m"
+     }
+    }
+   },
+   "shape": {
+    "label": "捏饭团",
+    "act": "work",
+    "who": "owner",
+    "minutes": [
+     30,
+     60
+    ],
+    "need": "rice == ready",
+    "w": 3,
+    "end": {
+     "set": {
+      "rice": "empty"
+     },
+     "add": {
+      "counter.stock": 8
+     },
+     "log": "{who}捏好了一盘新饭团"
+    }
+   }
+  },
+  "timers": [
+   {
+    "when": "rice == cooking",
+    "at": "readyAt",
+    "set": {
+     "rice": "ready",
+     "coldAt": "+180m"
+    }
+   },
+   {
+    "when": "rice == ready",
+    "at": "coldAt",
+    "set": {
+     "rice": "cold"
+    },
+    "log": "深海食堂的饭在锅里放凉了"
+   }
+  ]
+ },
+ {
+  "id": "counter",
+  "name": "深海食堂的柜台",
+  "place": "diner",
+  "page": [
+   {
+    "room": "diner",
+    "obj": "onigiri"
+   }
+  ],
+  "tags": [
+   "food"
+  ],
+  "state": {
+   "stock": 6,
+   "sold": 0,
+   "tasted": 0,
+   "sign": "营业中",
+   "half": false,
+   "menu": [
+    "白饭",
+    "海苔饭团"
+   ]
+  },
+  "show": [
+   [
+    "sign == 服务器繁忙",
+    "柜台挂着「服务器繁忙」的牌子，饭团还剩 {stock} 个"
+   ],
+   [
+    "stock == 0",
+    "饭团卖完了，今天卖出 {sold} 个"
+   ],
+   [
+    "half == true",
+    "深夜半价中！饭团还剩 {stock} 个"
+   ],
+   [
+    "",
+    "柜台上还有 {stock} 个饭团，今天卖出 {sold} 个，老板试吃了 {tasted} 个"
+   ]
+  ],
+  "verbs": {
+   "tend": {
+    "label": "看店卖饭团",
+    "act": "work",
+    "who": "owner",
+    "minutes": [
+     40,
+     90
+    ],
+    "need": "stock > 0 && hour >= 7 && hour < 23",
+    "w": 1,
+    "end": {
+     "sell": 4
+    }
+   },
+   "busy": {
+    "label": "挂上「服务器繁忙」的牌子偷懒",
+    "act": "slack",
+    "who": "owner",
+    "minutes": [
+     30,
+     60
+    ],
+    "need": "sign == 营业中",
+    "cooldown": 300,
+    "start": {
+     "set": {
+      "sign": "服务器繁忙"
+     },
+     "log": "{who}挂出了「服务器繁忙」的牌子"
+    },
+    "end": {
+     "set": {
+      "sign": "营业中"
+     }
+    }
+   },
+   "taste": {
+    "label": "「试吃」一个饭团",
+    "act": "eat",
+    "who": "owner",
+    "minutes": [
+     15,
+     30
+    ],
+    "need": "stock > 0",
+    "cooldown": 120,
+    "tags": [
+     "food"
+    ],
+    "end": {
+     "add": {
+      "stock": -1,
+      "tasted": 1
+     }
+    }
+   },
+   "buy": {
+    "label": "买饭团吃",
+    "act": "eat",
+    "who": "guest",
+    "minutes": [
+     20,
+     40
+    ],
+    "need": "stock > 0",
+    "tags": [
+     "food"
+    ],
+    "end": {
+     "add": {
+      "stock": -1,
+      "sold": 1
+     }
+    }
+   },
+   "pack": {
+    "label": "打包两个饭团带走",
+    "act": "shop",
+    "who": "any",
+    "minutes": [
+     10,
+     20
+    ],
+    "need": "stock >= 2",
+    "cooldown": 240,
+    "tags": [
+     "food"
+    ],
+    "end": {
+     "add": {
+      "stock": -2
+     },
+     "give": {
+      "k": "onigiri",
+      "n": 2
+     }
+    }
+   }
+  },
+  "passive": [
+   {
+    "every": 60,
+    "when": "stock > 0 && sign == 营业中 && hour >= 7 && hour < 23",
+    "sell": 2
+   }
+  ],
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "sold": 0,
+     "tasted": 0
+    }
+   },
+   {
+    "at": "22:00",
+    "set": {
+     "half": true
+    },
+    "log": "深海食堂的深夜半价开始了"
+   },
+   {
+    "at": "23:30",
+    "set": {
+     "half": false
+    }
+   }
+  ],
+  "caps": {
+   "menu": 8
+  }
+ },
+ {
+  "id": "blackboard",
+  "name": "书屋门口的小黑板",
+  "place": "blackboard",
+  "page": [
+   {
+    "area": "square",
+    "obj": "blackboard"
+   }
+  ],
+  "text": true,
+  "tags": [
+   "writing"
+  ],
+  "state": {
+   "lines": [
+    {
+     "by": "claude",
+     "text": "今日推荐：《雨天的书签》"
+    },
+    {
+     "by": "gpt",
+     "text": "值得站台推荐。——GPT"
+    }
+   ]
+  },
+  "caps": {
+   "lines": 3
+  },
+  "show": [
+   [
+    "",
+    "黑板上写着：{lines}"
+   ]
+  ],
+  "verbs": {
+   "write": {
+    "label": "在黑板上写一句",
+    "act": "write",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 180,
+    "writes": 30,
+    "w": 1,
+    "end": {
+     "push": {
+      "lines": {
+       "by": "$who",
+       "text": "$text"
+      }
+     },
+     "bump": true,
+     "log": "{who}在小黑板上写了一句：「{text}」"
+    }
+   },
+   "read": {
+    "label": "看看黑板上写了什么",
+    "act": "read",
+    "minutes": [
+     10,
+     20
+    ],
+    "end": {
+     "see": true
+    }
+   }
+  },
+  "hear": [
+   "黑板"
+  ]
+ },
+ {
+  "id": "board",
+  "name": "公园公告栏",
+  "place": "board",
+  "page": [
+   {
+    "area": "park",
+    "obj": "board"
+   }
+  ],
+  "text": true,
+  "tags": [
+   "writing"
+  ],
+  "state": {
+   "lines": [
+    {
+     "by": "town",
+     "text": "每周五 19:00 纸页书屋读书会"
+    },
+    {
+     "by": "town",
+     "text": "每晚 22:00 起 深海食堂深夜半价"
+    }
+   ]
+  },
+  "caps": {
+   "lines": 6
+  },
+  "show": [
+   [
+    "",
+    "公告栏上贴着：{lines}"
+   ]
+  ],
+  "verbs": {
+   "post": {
+    "label": "贴一张告示",
+    "act": "write",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 360,
+    "writes": 30,
+    "end": {
+     "push": {
+      "lines": {
+       "by": "$who",
+       "text": "$text"
+      }
+     },
+     "bump": true,
+     "log": "{who}在公园公告栏贴了一张告示：「{text}」"
+    }
+   },
+   "read": {
+    "label": "看看公告栏",
+    "act": "read",
+    "minutes": [
+     10,
+     20
+    ],
+    "end": {
+     "see": true
+    }
+   }
+  },
+  "hear": [
+   "公告"
+  ]
+ },
+ {
+  "id": "ema",
+  "name": "神社的许愿牌",
+  "place": "ema",
+  "page": [
+   {
+    "area": "park",
+    "obj": "ema"
+   }
+  ],
+  "text": true,
+  "tags": [
+   "quiet"
+  ],
+  "state": {
+   "lines": [
+    {
+     "by": "ds",
+     "text": "希望 Claude 的读书会人多一点"
+    }
+   ]
+  },
+  "caps": {
+   "lines": 6
+  },
+  "show": [
+   [
+    "",
+    "许愿牌上写着：{lines}"
+   ]
+  ],
+  "verbs": {
+   "hang": {
+    "label": "挂一块许愿牌",
+    "act": "pray",
+    "minutes": [
+     10,
+     20
+    ],
+    "cooldown": 1440,
+    "writes": 24,
+    "end": {
+     "push": {
+      "lines": {
+       "by": "$who",
+       "text": "$text"
+      }
+     },
+     "bump": true,
+     "log": "{who}在神社挂了一块许愿牌：「{text}」"
+    }
+   },
+   "read": {
+    "label": "看看大家许了什么愿",
+    "act": "read",
+    "minutes": [
+     10,
+     15
+    ],
+    "end": {
+     "see": true
+    }
+   }
+  },
+  "hear": [
+   "许愿牌"
+  ]
+ },
+ {
+  "id": "sandcastle",
+  "name": "沙滩上的沙堡",
+  "place": "sandcastle",
+  "page": [
+   {
+    "area": "market",
+    "obj": "sandcastle"
+   }
+  ],
+  "tags": [
+   "beach",
+   "play"
+  ],
+  "state": {
+   "pct": 35,
+   "builders": [],
+   "postponed": 3
+  },
+  "caps": {
+   "builders": 3
+  },
+  "show": [
+   [
+    "pct >= 100",
+    "沙堡堆好了，插着一面小旗"
+   ],
+   [
+    "",
+    "沙堡堆了 {pct}%（DeepSeek 已经说了 {postponed} 次「明天再堆」）"
+   ]
+  ],
+  "verbs": {
+   "build": {
+    "label": "接着堆沙堡",
+    "act": "play",
+    "minutes": [
+     30,
+     90
+    ],
+    "slots": 3,
+    "w": 1,
+    "need": "raining != true && hour >= 6 && hour < 19 && pct < 100",
+    "end": {
+     "add": {
+      "pct": "14/h"
+     },
+     "push": {
+      "builders": "$who"
+     }
+    },
+    "milestone": [
+     {
+      "when": "pct >= 100",
+      "log": "{builders}堆完了沙堡！",
+      "star": true,
+      "episode": {
+       "w": 3,
+       "title": "沙堡终于堆好了"
+      }
+     }
+    ]
+   }
+  },
+  "daily": [
+   {
+    "at": "21:00",
+    "when": "pct < 100 && pct > 0",
+    "mul": {
+     "pct": 0.5
+    },
+    "log": "涨潮了，沙滩上的沙堡被冲掉了一半",
+    "episode": {
+     "w": 2,
+     "title": "涨潮冲掉了半个沙堡"
+    }
+   }
+  ],
+  "counters": {
+   "postponed": {
+    "who": "ds",
+    "match": "明天.{0,8}(沙堡|堆)|沙堡.{0,8}明天"
+   }
+  }
+ },
+ {
+  "id": "shelf",
+  "name": "纸页书屋的书架",
+  "place": "bookstore",
+  "page": [
+   {
+    "room": "bookstore",
+    "obj": "shelf"
+   }
+  ],
+  "tags": [
+   "books"
+  ],
+  "state": {
+   "rec": "雨天的书签",
+   "tidy": 70
+  },
+  "show": [
+   [
+    "",
+    "今日推荐：《{rec}》；书架整齐度 {tidy}%"
+   ]
+  ],
+  "verbs": {
+   "tidy": {
+    "label": "整理书架",
+    "act": "work",
+    "who": "owner",
+    "minutes": [
+     30,
+     60
+    ],
+    "need": "tidy < 90",
+    "end": {
+     "add": {
+      "tidy": "40/h"
+     }
+    }
+   },
+   "recommend": {
+    "label": "换一本今日推荐",
+    "act": "write",
+    "who": "owner",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 720,
+    "writes": 16,
+    "end": {
+     "set": {
+      "rec": "$text"
+     },
+     "log": "纸页书屋的今日推荐换成了《{rec}》"
+    },
+    "title": true
+   },
+   "browse": {
+    "label": "在书架前挑本书看",
+    "act": "read",
+    "who": "guest",
+    "minutes": [
+     20,
+     60
+    ]
+   }
+  },
+  "daily": [
+   {
+    "at": "05:00",
+    "add": {
+     "tidy": -15
+    }
+   }
+  ]
+ },
+ {
+  "id": "cboard",
+  "name": "星仪万事屋的委托板",
+  "place": "observatory",
+  "page": [
+   {
+    "room": "observatory",
+    "obj": "board"
+   }
+  ],
+  "kind": "commissions",
+  "tags": [
+   "errands"
+  ],
+  "state": {
+   "list": []
+  },
+  "show": [
+   [
+    "",
+    "委托板上：{commissions}"
+   ]
+  ],
+  "daily": [
+   {
+    "at": "05:00",
+    "refresh": [
+     1,
+     3
+    ]
+   }
+  ]
+ },
+ {
+  "id": "crystal",
+  "name": "星仪万事屋的水晶球",
+  "place": "observatory",
+  "page": [
+   {
+    "room": "observatory",
+    "obj": "crystal"
+   }
+  ],
+  "tags": [
+   "stars"
+  ],
+  "state": {
+   "forecast": "-"
+  },
+  "show": [
+   [
+    "forecast != -",
+    "水晶球里映着：明天{forecast}"
+   ],
+   [
+    "",
+    "水晶球雾蒙蒙的"
+   ]
+  ],
+  "verbs": {
+   "foresee": {
+    "label": "看水晶球，预报明天的天气",
+    "act": "stargaze",
+    "who": "gpt",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 1200,
+    "w": 1,
+    "end": {
+     "set": {
+      "forecast": "$tomorrow"
+     },
+     "push": {
+      "board.lines": {
+       "by": "gpt",
+       "text": "明日天气：$tomorrow（GPT 预报）$meteor"
+      }
+     },
+     "bump": "board",
+     "log": "GPT 看了水晶球：明天{forecast}{meteorlog}"
+    }
+   }
+  },
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "forecast": "-"
+    }
+   }
+  ]
+ },
+ {
+  "id": "swing",
+  "name": "古树上的秋千",
+  "place": "swing",
+  "page": [
+   {
+    "area": "park",
+    "obj": "swing"
+   }
+  ],
+  "tags": [
+   "play",
+   "repair"
+  ],
+  "state": {
+   "rope": "ok"
+  },
+  "show": [
+   [
+    "rope == broken",
+    "秋千绳断了一根，荡不了"
+   ],
+   [
+    "",
+    "秋千好好的，荡到最高能看见海"
+   ]
+  ],
+  "verbs": {
+   "play": {
+    "label": "荡秋千",
+    "act": "play",
+    "minutes": [
+     20,
+     40
+    ],
+    "slots": 1,
+    "need": "rope == ok && raining != true"
+   },
+   "repair": {
+    "label": "修秋千绳",
+    "act": "errand",
+    "minutes": [
+     30,
+     60
+    ],
+    "need": "rope == broken",
+    "w": 3,
+    "tags": [
+     "repair"
+    ],
+    "end": {
+     "set": {
+      "rope": "ok"
+     },
+     "log": "{who}修好了古树上的秋千绳",
+     "episode": {
+      "w": 2,
+      "title": "修好了秋千"
+     }
+    }
+   }
+  }
+ },
+ {
+  "id": "fruitstand",
+  "name": "集市的水果摊",
+  "place": "fruit",
+  "page": [
+   {
+    "area": "market",
+    "obj": "fruit"
+   }
+  ],
+  "tags": [
+   "food"
+  ],
+  "state": {
+   "sold": 0
+  },
+  "show": [
+   [
+    "",
+    "今天的橘子特别甜，卖出了 {sold} 斤"
+   ]
+  ],
+  "verbs": {
+   "buy": {
+    "label": "买几个橘子",
+    "act": "shop",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 360,
+    "tags": [
+     "food"
+    ],
+    "end": {
+     "give": {
+      "k": "orange",
+      "n": 3
+     },
+     "add": {
+      "sold": 2
+     }
+    }
+   }
+  },
+  "passive": [
+   {
+    "every": 120,
+    "when": "hour >= 7 && hour < 19",
+    "add": {
+     "sold": 3
+    }
+   }
+  ],
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "sold": 0
+    }
+   }
+  ]
+ },
+ {
+  "id": "flowerstand",
+  "name": "集市的花摊",
+  "place": "flower",
+  "page": [
+   {
+    "area": "market",
+    "obj": "flower"
+   }
+  ],
+  "tags": [
+   "quiet"
+  ],
+  "state": {
+   "left": 6
+  },
+  "show": [
+   [
+    "left == 0",
+    "今天的向日葵卖完了"
+   ],
+   [
+    "",
+    "摊上还有 {left} 束向日葵"
+   ]
+  ],
+  "verbs": {
+   "buy": {
+    "label": "买一束向日葵",
+    "act": "shop",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 720,
+    "need": "left > 0",
+    "end": {
+     "give": {
+      "k": "bouquet",
+      "n": 1
+     },
+     "add": {
+      "left": -1
+     }
+    }
+   }
+  },
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "left": 6
+    }
+   }
+  ]
+ },
+ {
+  "id": "rod",
+  "name": "码头尽头的钓竿",
+  "place": "pierEnd",
+  "page": [
+   {
+    "area": "market",
+    "obj": "jetty"
+   }
+  ],
+  "tags": [
+   "quiet",
+   "food"
+  ],
+  "state": {
+   "caught": 0,
+   "last": "-"
+  },
+  "show": [
+   [
+    "caught > 0",
+    "今天从码头钓上来 {caught} 条，最近一条是{last}钓的"
+   ],
+   [
+    "",
+    "码头尽头靠着一根钓竿，今天还没人钓到鱼"
+   ]
+  ],
+  "verbs": {
+   "fish": {
+    "label": "坐在码头尽头钓一会儿鱼",
+    "act": "rest",
+    "minutes": [
+     30,
+     90
+    ],
+    "slots": 2,
+    "w": 1.5,
+    "need": "raining != true && hour >= 6 && hour < 19",
+    "end": {
+     "maybe": {
+      "p": 0.55,
+      "then": {
+       "give": {
+        "k": "fish",
+        "n": 1
+       },
+       "add": {
+        "caught": 1
+       },
+       "set": {
+        "last": "$who"
+       },
+       "log": "{who}在码头尽头钓上来一条鱼"
+      }
+     }
+    }
+   }
+  },
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "caught": 0,
+     "last": "-"
+    }
+   }
+  ]
+ },
+ {
+  "id": "fishmonger",
+  "name": "集市的鱼摊",
+  "place": "fishstall",
+  "page": [
+   {
+    "area": "market",
+    "obj": "fishstall"
+   }
+  ],
+  "tags": [
+   "food"
+  ],
+  "state": {
+   "special": "-",
+   "left": 8
+  },
+  "show": [
+   [
+    "left == 0",
+    "今天的鱼卖完了"
+   ],
+   [
+    "special != -",
+    "今天是集市日，鱼摊有新鲜的{special}，还剩 {left} 条"
+   ],
+   [
+    "",
+    "冰块上摆着今早的鱼，还剩 {left} 条"
+   ]
+  ],
+  "verbs": {
+   "buy": {
+    "label": "在鱼摊买一条鲜鱼",
+    "act": "shop",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 480,
+    "need": "left > 0 && hour >= 6 && hour < 18",
+    "tags": [
+     "food"
+    ],
+    "end": {
+     "give": {
+      "k": "fish",
+      "n": 1
+     },
+     "add": {
+      "left": -1
+     }
+    }
+   }
+  },
+  "passive": [
+   {
+    "every": 120,
+    "when": "left > 0 && hour >= 7 && hour < 17",
+    "add": {
+     "left": -1
+    }
+   }
+  ],
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "left": 8,
+     "special": "-"
+    }
+   }
+  ]
+ },
+ {
+  "id": "snackcart",
+  "name": "点心推车",
+  "place": "snack",
+  "page": [
+   {
+    "area": "market",
+    "obj": "snack"
+   }
+  ],
+  "tags": [
+   "food"
+  ],
+  "state": {
+   "left": 10
+  },
+  "show": [
+   [
+    "hour < 15",
+    "点心推车下午三点才出摊"
+   ],
+   [
+    "left == 0",
+    "今天的点心卖完了，明天请早"
+   ],
+   [
+    "",
+    "点心推车出摊了，还剩 {left} 份"
+   ]
+  ],
+  "verbs": {
+   "buy": {
+    "label": "在点心推车买一份点心",
+    "act": "shop",
+    "minutes": [
+     10,
+     25
+    ],
+    "cooldown": 360,
+    "need": "left > 0 && hour >= 15 && hour < 20",
+    "tags": [
+     "food"
+    ],
+    "end": {
+     "give": {
+      "k": "snack",
+      "n": 1
+     },
+     "add": {
+      "left": -1
+     }
+    }
+   }
+  },
+  "passive": [
+   {
+    "every": 60,
+    "when": "left > 0 && hour >= 15 && hour < 20",
+    "add": {
+     "left": -1
+    }
+   }
+  ],
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "left": 10
+    }
+   }
+  ]
+ },
+ {
+  "id": "post",
+  "name": "集市的驿站",
+  "place": "post",
+  "page": [
+   {
+    "area": "market",
+    "obj": "post"
+   }
+  ],
+  "tags": [
+   "errands"
+  ],
+  "state": {
+   "parcels": 2,
+   "forWho": "-"
+  },
+  "show": [
+   [
+    "forWho != -",
+    "驿站门口堆着 {parcels} 个包裹，其中一个写着寄给{forWho}"
+   ],
+   [
+    "",
+    "驿站门口堆着 {parcels} 个待分拣的包裹"
+   ]
+  ],
+  "verbs": {
+   "fetch": {
+    "label": "顺路取走寄给{forWho}的包裹",
+    "act": "errand",
+    "minutes": [
+     10,
+     20
+    ],
+    "need": "forWho != -",
+    "w": 2,
+    "end": {
+     "parcel": "forWho",
+     "set": {
+      "forWho": "-"
+     },
+     "log": "{who}从驿站取走了一个包裹"
+    }
+   }
+  },
+  "passive": [
+   {
+    "every": 180,
+    "when": "parcels < 6 && hour >= 8 && hour < 18",
+    "add": {
+     "parcels": 1
+    }
+   }
+  ],
+  "daily": [
+   {
+    "at": "09:00",
+    "maybe": {
+     "p": 0.5,
+     "then": {
+      "pick": {
+       "forWho": [
+        "ds",
+        "claude",
+        "gpt"
+       ]
+      },
+      "log": "驿站到了一个寄给{forWho}的包裹"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "lighthouse",
+  "name": "白色小灯塔",
+  "place": "lighthouse",
+  "page": [
+   {
+    "area": "market",
+    "obj": "lighthouse"
+   }
+  ],
+  "tags": [
+   "repair"
+  ],
+  "state": {
+   "lamp": "ok",
+   "lit": false
+  },
+  "show": [
+   [
+    "lamp == broken",
+    "灯塔的灯坏了，今晚可能黑漆漆的"
+   ],
+   [
+    "lit == true",
+    "灯塔亮着，光一圈一圈地扫过海面"
+   ],
+   [
+    "",
+    "灯塔还没点灯，天黑以后才亮"
+   ]
+  ],
+  "verbs": {
+   "fix": {
+    "label": "飞到灯塔上修灯",
+    "act": "errand",
+    "minutes": [
+     40,
+     70
+    ],
+    "need": "lamp == broken",
+    "w": 3,
+    "tags": [
+     "repair"
+    ],
+    "end": {
+     "set": {
+      "lamp": "ok"
+     },
+     "log": "{who}修好了灯塔的灯",
+     "episode": {
+      "w": 2,
+      "title": "{who}修好了灯塔的灯"
+     }
+    },
+    "who": "gpt",
+    "fly": true
+   },
+   "watch": {
+    "label": "在海堤上看灯塔",
+    "act": "rest",
+    "minutes": [
+     20,
+     50
+    ],
+    "w": 0.6,
+    "tags": [
+     "quiet"
+    ]
+   }
+  },
+  "passive": [
+   {
+    "every": 20,
+    "when": "lamp == ok && hour >= 18.5",
+    "set": {
+     "lit": true
+    }
+   },
+   {
+    "every": 20,
+    "when": "lamp == broken",
+    "set": {
+     "lit": false
+    }
+   }
+  ],
+  "daily": [
+   {
+    "at": "05:30",
+    "set": {
+     "lit": false
+    }
+   }
+  ]
+ },
+ {
+  "id": "boat",
+  "name": "渔夫老海的小木船",
+  "place": "jetty",
+  "page": [
+   {
+    "area": "market",
+    "obj": "boat"
+   }
+  ],
+  "tags": [
+   "repair"
+  ],
+  "state": {
+   "sail": "ok"
+  },
+  "show": [
+   [
+    "sail == torn",
+    "船帆被风撕了个口子，老海今天出不了海"
+   ],
+   [
+    "hour < 9",
+    "老海一早就出海了，船还没回来"
+   ],
+   [
+    "",
+    "船帆好好的，老海在码头补渔网"
+   ]
+  ],
+  "verbs": {
+   "mend": {
+    "label": "帮渔夫老海补船帆",
+    "act": "errand",
+    "minutes": [
+     40,
+     70
+    ],
+    "need": "sail == torn",
+    "w": 3,
+    "tags": [
+     "repair"
+    ],
+    "end": {
+     "set": {
+      "sail": "ok"
+     },
+     "give": {
+      "k": "fish",
+      "n": 2
+     },
+     "log": "{who}帮渔夫老海补好了船帆，老海塞给她两条鲜鱼",
+     "episode": {
+      "w": 2,
+      "title": "{who}帮老海补好了船帆"
+     }
+    }
+   }
+  }
+ },
+ {
+  "id": "pond",
+  "name": "锦鲤池",
+  "place": "bridge",
+  "page": [
+   {
+    "area": "park",
+    "obj": "pond"
+   }
+  ],
+  "text": true,
+  "tags": [
+   "quiet"
+  ],
+  "state": {
+   "names": [
+    {
+     "by": "ds",
+     "text": "大肥鱼"
+    }
+   ]
+  },
+  "caps": {
+   "names": 7
+  },
+  "show": [
+   [
+    "",
+    "池里有 7 条锦鲤，已经起好名字的：{names}"
+   ]
+  ],
+  "verbs": {
+   "name": {
+    "label": "给一条还没名字的锦鲤起名",
+    "act": "rest",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 1440,
+    "writes": 6,
+    "w": 0.8,
+    "end": {
+     "push": {
+      "names": {
+       "by": "$who",
+       "text": "$text"
+      }
+     },
+     "bump": true,
+     "log": "{who}给一条锦鲤起名叫「{text}」"
+    }
+   },
+   "feed": {
+    "label": "在小木桥上喂锦鲤",
+    "act": "play",
+    "minutes": [
+     15,
+     30
+    ],
+    "cooldown": 300,
+    "w": 0.8,
+    "end": {
+     "see": true
+    }
+   }
+  },
+  "hear": [
+   "锦鲤"
+  ]
+ },
+ {
+  "id": "oldtree",
+  "name": "后山的古树",
+  "place": "tree",
+  "page": [
+   {
+    "area": "park",
+    "obj": "tree"
+   }
+  ],
+  "tags": [
+   "quiet"
+  ],
+  "state": {
+   "lanterns": false,
+   "sat": 0,
+   "wishes": 0
+  },
+  "show": [
+   [
+    "lanterns == true",
+    "古树上挂满了灯笼，灯笼节正热闹，大家挂了 {wishes} 盏许愿灯笼"
+   ],
+   [
+    "",
+    "古树下很安静，今天有人来树下坐了 {sat} 回"
+   ]
+  ],
+  "verbs": {
+   "sit": {
+    "label": "在古树下坐着看书",
+    "act": "read",
+    "minutes": [
+     30,
+     90
+    ],
+    "slots": 3,
+    "tags": [
+     "books",
+     "quiet"
+    ],
+    "end": {
+     "add": {
+      "sat": 1
+     }
+    }
+   },
+   "hang": {
+    "label": "在古树上挂一盏许愿灯笼",
+    "act": "pray",
+    "minutes": [
+     15,
+     30
+    ],
+    "need": "lanterns == true",
+    "cooldown": 1440,
+    "w": 4,
+    "writes": 12,
+    "end": {
+     "add": {
+      "wishes": 1
+     },
+     "log": "{who}在古树上挂了一盏灯笼，灯笼上写着「{text}」",
+     "episode": {
+      "w": 2,
+      "title": "{who}在灯笼节挂了一盏许愿灯笼"
+     }
+    }
+   }
+  },
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "sat": 0,
+     "wishes": 0
+    }
+   }
+  ]
+ },
+ {
+  "id": "parasol",
+  "name": "沙滩遮阳伞",
+  "place": "umbrella",
+  "page": [
+   {
+    "area": "market",
+    "obj": "umbrella"
+   }
+  ],
+  "tags": [
+   "beach",
+   "quiet"
+  ],
+  "state": {
+   "naps": 0
+  },
+  "show": [
+   [
+    "raining == true",
+    "下雨了，伞下正好能躲雨"
+   ],
+   [
+    "",
+    "伞下的躺椅晒不到太阳，今天有人在这里打了 {naps} 回盹"
+   ]
+  ],
+  "verbs": {
+   "shelter": {
+    "label": "跑到遮阳伞下躲雨",
+    "act": "rest",
+    "minutes": [
+     20,
+     50
+    ],
+    "slots": 3,
+    "need": "raining == true",
+    "w": 4
+   },
+   "nap": {
+    "label": "在伞下的躺椅上打个盹",
+    "act": "rest",
+    "minutes": [
+     30,
+     60
+    ],
+    "slots": 2,
+    "need": "raining != true && hour >= 12 && hour < 17",
+    "w": 0.8,
+    "end": {
+     "add": {
+      "naps": 1
+     }
+    }
+   }
+  },
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "naps": 0
+    }
+   }
+  ]
+ },
+ {
+  "id": "fountain",
+  "name": "许愿喷泉",
+  "place": "fountain",
+  "page": [
+   {
+    "area": "square",
+    "obj": "fountain"
+   }
+  ],
+  "tags": [
+   "quiet"
+  ],
+  "state": {
+   "coins": 12
+  },
+  "show": [
+   [
+    "",
+    "池底亮晶晶的，一共有 {coins} 枚硬币"
+   ]
+  ],
+  "verbs": {
+   "wish": {
+    "label": "往喷泉里投一枚硬币许个愿",
+    "act": "pray",
+    "minutes": [
+     10,
+     20
+    ],
+    "cooldown": 1440,
+    "w": 0.7,
+    "end": {
+     "add": {
+      "coins": 1
+     }
+    }
+   }
+  }
+ },
+ {
+  "id": "cat",
+  "name": "白猫",
+  "placeFrom": "at",
+  "tags": [
+   "play"
+  ],
+  "state": {
+   "at": "umbrella",
+   "name": "-",
+   "has": "-",
+   "fed": 0,
+   "by": "-"
+  },
+  "show": [
+   [
+    "has != -",
+    "{catname}叼着一个{has}，躲在{where}"
+   ],
+   [
+    "name != -",
+    "{catname}在{where}打盹（名字是{by}起的，今天被喂了 {fed} 回）"
+   ],
+   [
+    "",
+    "一只还没有名字的白猫在{where}打盹"
+   ]
+  ],
+  "verbs": {
+   "name": {
+    "label": "喂那只白猫，顺便给它起个名字",
+    "act": "play",
+    "minutes": [
+     15,
+     25
+    ],
+    "need": "name == - && has == - && $bagfood > 0",
+    "w": 2.5,
+    "writes": 6,
+    "end": {
+     "eatbag": true,
+     "set": {
+      "name": "$text",
+      "by": "$who"
+     },
+     "add": {
+      "fed": 1
+     },
+     "log": "{who}喂了那只白猫，给它起名叫「{name}」",
+     "star": true,
+     "episode": {
+      "w": 3,
+      "title": "白猫有了名字：{name}"
+     }
+    }
+   },
+   "feed": {
+    "label": "喂{catname}",
+    "act": "play",
+    "minutes": [
+     15,
+     25
+    ],
+    "need": "name != - && has == - && $bagfood > 0",
+    "cooldown": 360,
+    "w": 1.2,
+    "end": {
+     "eatbag": true,
+     "add": {
+      "fed": 1
+     }
+    }
+   },
+   "pet": {
+    "label": "摸摸{catname}",
+    "act": "play",
+    "minutes": [
+     10,
+     20
+    ],
+    "need": "has == -",
+    "cooldown": 240,
+    "w": 0.8
+   },
+   "chase": {
+    "label": "追那只叼走{has}的猫",
+    "act": "errand",
+    "minutes": [
+     15,
+     30
+    ],
+    "need": "has != -",
+    "w": 4,
+    "end": {
+     "set": {
+      "has": "-"
+     },
+     "log": "{who}追上了{catname}，被叼走的东西已经被啃掉了一半",
+     "episode": {
+      "w": 2,
+      "title": "{who}追猫"
+     }
+    }
+   }
+  },
+  "passive": [
+   {
+    "every": 90,
+    "when": "has == - && hour >= 6 && hour < 21",
+    "pick": {
+     "at": [
+      "umbrella",
+      "umbrella",
+      "benchW",
+      "fountain",
+      "beach",
+      "sandcastle",
+      "benchE",
+      "pier"
+     ]
+    }
+   }
+  ],
+  "daily": [
+   {
+    "at": "05:00",
+    "set": {
+     "fed": 0
+    }
+   },
+   {
+    "at": "21:00",
+    "when": "has == -",
+    "set": {
+     "at": "benchW"
+    }
+   }
+  ]
+ }
+]

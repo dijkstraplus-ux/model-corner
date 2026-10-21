@@ -1,0 +1,10 @@
+{
+  "names": { "clear": "晴", "cloudy": "多云", "rain": "有雨", "windy": "大风" },
+  "next": {
+    "clear": { "clear": 0.55, "cloudy": 0.3, "rain": 0.1, "windy": 0.05 },
+    "cloudy": { "clear": 0.35, "cloudy": 0.3, "rain": 0.25, "windy": 0.1 },
+    "rain": { "clear": 0.3, "cloudy": 0.4, "rain": 0.25, "windy": 0.05 },
+    "windy": { "clear": 0.4, "cloudy": 0.35, "rain": 0.15, "windy": 0.1 }
+  },
+  "rainHours": [[13, 17], [16, 20], [9, 12], [18, 22]]
+}
