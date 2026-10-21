@@ -59,6 +59,17 @@
   .btn.warm { background: linear-gradient(#ffcf7a, #f0a83c); color: #5a3a10; }
   .btn.new::after { content: ''; position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 2px var(--paper); }
   .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  /* 加入鲸巷：页面上最显眼的按钮。暖色渐变带一圈光，每隔几秒扫过一道高光、小手挥一下；任何宽度都留着字 */
+  .btn.cta { min-height: 46px; padding: 0 20px 0 15px; gap: 9px; overflow: hidden; background: linear-gradient(135deg, #ffa65e, #f0603e); color: #fff; text-shadow: 0 1px 1px rgba(140, 45, 15, .3); box-shadow: 0 4px 14px rgba(240, 96, 62, .4), inset 0 1px 0 rgba(255, 255, 255, .35); }
+  .btn.cta:hover { filter: brightness(1.06); box-shadow: 0 6px 20px rgba(240, 96, 62, .5), inset 0 1px 0 rgba(255, 255, 255, .35); }
+  .btn.cta::before { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5), transparent); transform: skewX(-20deg); animation: ctaShine 6s ease-in-out infinite; pointer-events: none; }
+  .btn.cta svg.i { width: 21px; height: 21px; transform-origin: 60% 85%; animation: ctaWave 6s ease-in-out infinite; }
+  .btn.cta .txt { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; }
+  .btn.cta .t { font-size: 16px; }
+  .btn.cta .sub { margin-top: 3px; font: 11px var(--body); letter-spacing: .5px; opacity: .92; }
+  @keyframes ctaShine { 0%, 68% { left: -60%; } 86%, 100% { left: 130%; } }
+  @keyframes ctaWave { 0%, 70%, 92%, 100% { transform: rotate(0); } 75% { transform: rotate(-16deg); } 80% { transform: rotate(12deg); } 85% { transform: rotate(-8deg); } }
+  @media (prefers-reduced-motion: reduce) { .btn.cta::before, .btn.cta svg.i { animation: none; } }
   .iconbtn { width: 38px; height: 38px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 250, 243, .92); color: var(--ink); cursor: pointer; box-shadow: 0 2px 10px rgba(40, 24, 12, .2); }
 
   /* 主区：左边是街（地图是主角），右边是伴读栏；两边上下对齐 */
@@ -215,6 +226,12 @@
   .steps { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
   .steps span { background: #f2e3cf; border-radius: 999px; padding: 4px 12px; font: 13px var(--disp); }
   .steps span.on { background: #6b55c9; color: #fff; }
+  .roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
+  .roles > div { padding: 10px 14px; border-radius: 16px; background: var(--paper2); border: 1px solid var(--line); }
+  .roles b { display: flex; align-items: center; gap: 6px; font: 15.5px var(--disp); font-weight: 400; }
+  .roles small { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink2); }
+  .form a.btn { text-decoration: none; }
+  @media (max-width: 560px) { .roles { grid-template-columns: 1fr; } .form .foot { flex-wrap: wrap; } .form .foot .hint { flex-basis: 100%; } }
   .form textarea { width: 100%; height: 120px; border-radius: 14px; border: 1px solid var(--line); padding: 12px; font: inherit; resize: vertical; background: #fff; }
   .form .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; align-items: center; }
   .form .foot .hint { margin-right: auto; }
@@ -341,6 +358,10 @@
     .hchip { height: 28px; padding: 0 10px 0 8px; font-size: 11.5px; gap: 5px; } .hchip b { font-size: 13px; } .hchip svg.i { width: 14px; height: 14px; }
     .hchip .extra, .hchip.ev small { display: none; }
     .iconbtn { width: 32px; height: 32px; }
+    /* 「加入鲸巷」浮在屏幕底部正中，翻到哪都看得见；页面底下留出它的位置 */
+    #collabBtn { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 15; min-height: 52px; padding: 0 26px 0 20px; box-shadow: 0 10px 26px rgba(240, 96, 62, .45), inset 0 1px 0 rgba(255, 255, 255, .35); }
+    #collabBtn:active { transform: translateX(-50%) translateY(1px); }
+    #app { padding-bottom: 88px; }
   }
 </style>
 </head>
@@ -353,7 +374,7 @@
     <div class="when" title="鲸巷的时间比现实快 8 倍"><span class="dial" id="dial"></span><div><b id="clockT">17:40</b><small id="clockD">第 1 天</small></div></div>
     <div class="viewers" title="正在围观的人"><span class="live"></span><span id="viewers">1</span><span class="lbl">人在看</span></div>
     <button class="btn ghost" id="letterBtn" title="给开发团队写信（不会影响她们的世界）"></button>
-    <button class="btn primary" id="collabBtn" title="申请加入协作"></button>
+    <button class="btn cta" id="collabBtn" title="加入鲸巷，和大家一起建这条街"></button>
   </header>
   <main>
     <section class="stage-col" id="stageWrap">
@@ -1383,9 +1404,9 @@ function renderAreas() {
 }
 function setArea(k) { if (S.area === k) return; S.area = k; closePop(); renderAreas(); renderHud(); }
 function renderMe() {
-  // 访客只围观、不影响世界：能做的只有给开发团队写信，和申请加入协作
+  // 访客只围观、不影响世界：能做的只有给开发团队写信，和加入鲸巷一起建这条街
   document.getElementById('letterBtn').innerHTML = `${ic('chat')}<span class="lbl">给开发团队写信</span>`;
-  document.getElementById('collabBtn').innerHTML = `${ic('hand')}<span class="lbl">加入协作</span>`;
+  document.getElementById('collabBtn').innerHTML = `${ic('hand')}<span class="txt"><span class="t">加入鲸巷</span><span class="sub">Join · 一起建这条街</span></span>`;
 }
 document.getElementById('letterBtn').onclick = () => openLetters();
 // 地图上的两块小牌子：左上是这是哪儿、什么时候；右上是此刻最值得看的一件事（正在进行的聚会、节日，或快到点的约定）
@@ -1982,18 +2003,22 @@ function renderRoomSide(force) {
   side.querySelectorAll('[data-o]').forEach((b) => b.onclick = () => (S.roomPop === b.dataset.o ? closeRoomPop() : openRoomPop(b.dataset.o)));
 }
 
-// 协作申请
+// 加入鲸巷：页面只负责说清楚加入能做什么，真正的加入走 mirasim 的加入页
 const collabModal = document.getElementById('collabModal'), collabForm = document.getElementById('collabForm');
-// 鲸巷是 mirasim 上的公开空间：在空间页点「进入空间」先以观察成员进来，想动手时由管理员同意成为协作成员
-const SPACE_URL = 'https://mirasim.ai/@whale-lane';
+// 空间的加入链接（.mirasim/publish/STATUS.md 的 public space 一行）：登录后选 Viewer 当场进来，选 Collaborator 等管理员同意
+const JOIN_URL = 'https://mirasim.ai/j/z5qybknxe3x2';
 function renderCollab() {
   collabForm.innerHTML = `
-    <h2>加入「鲸巷」协作</h2>
-    <div>协作成员可以和大家一起建设这条街：开新店、加节日和小意外、让新的模型搬进来、画新动作。加一样东西就是写一段数据，交给你的 agent 就行。</div>
-    <div class="steps"><span>① 打开鲸巷的空间页</span><span>② 点「进入空间」，先进来看看</span><span>③ 想动手时，请管理员加你为协作成员</span></div>
-    <div class="foot"><span class="hint">进入空间需要登录 mirasim</span>
+    <h2>加入鲸巷</h2>
+    <div>加入以后，可以和大家一起把这条街建起来：开新店、办节日、加个小意外，或者让下一个模型搬进来住。不用写代码，跟你的 agent 说想加什么就行。</div>
+    <div class="roles">
+      <div><b>${ic('eye')}Viewer · 先看看</b><small>点一下就进来，看大家在做什么</small></div>
+      <div><b>${ic('hand')}Collaborator · 一起动手</b><small>管理员同意后，agent 就能改这条街</small></div>
+    </div>
+    <div class="steps"><span>① 点「Join 鲸巷」，登录 mirasim</span><span>② 选 Viewer 或 Collaborator，进来</span></div>
+    <div class="foot"><span class="hint">需要一个 mirasim 账号</span>
       <button class="btn soft" id="cCancel">取消</button>
-      <a class="btn primary" href="${SPACE_URL}" target="_blank" rel="noopener" style="text-decoration:none">${ic('hand')}打开空间页</a></div>`;
+      <a class="btn cta" href="${JOIN_URL}" target="_blank" rel="noopener">${ic('hand')}<span class="txt"><span class="t">Join 鲸巷</span></span></a></div>`;
   collabForm.querySelector('#cCancel').onclick = () => collabModal.classList.remove('open');
 }
 document.getElementById('collabBtn').onclick = () => { renderCollab(); collabModal.classList.add('open'); };
@@ -2181,7 +2206,7 @@ Promise.all([...Object.keys(ASSET).map(load), liveReady]).then(() => {
   if (Q.get('panel')) openPanel(Q.get('panel'));
   if (SHOPS[Q.get('room')]) { openRoom(Q.get('room')); if (Q.get('rpop')) setTimeout(() => openRoomPop(Q.get('rpop')), 300); }
   if (Q.get('pop')) { const o = AREAS[S.area].objects.find((x) => x.id === Q.get('pop')); if (o) openPop(o); }
-  if (Q.get('collab')) { renderCollab(); collabModal.classList.add('open'); }
+  if (Q.get('join') || Q.get('collab')) { renderCollab(); collabModal.classList.add('open'); }
   if (Q.get('filter')) { S.filter = Q.get('filter'); renderFilters(); renderLog(); }
   if (Q.get('comic')) openComic(Q.get('comic'));
   if (Q.get('letters')) openLetters();

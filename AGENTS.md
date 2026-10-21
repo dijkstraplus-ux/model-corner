@@ -7,7 +7,7 @@ The space's main page (port 5173, `npm run dev`) is the model-corner town demo, 
   `server.fs.allow`, and put nothing private into `demo2/`: everything in it is public.
 - Published for everyone at https://mirasim.ai/@whale-lane/town (publish item `town`, kind service: `sim/server.mjs` on 5174
   serves `demo2/` + `/api`; config in `.mirasim/publish.json`). It proxies the running server, so every edit to `demo2/` or
-  `sim/` is public at once, with no review. The 「加入协作」 button links to the space page https://mirasim.ai/@whale-lane.
+  `sim/` is public at once, with no review. The orange 「加入鲸巷 · Join」 button (always labelled; on phones it floats at the bottom of the screen) opens a short dialog whose Join button goes to the space's join page https://mirasim.ai/j/z5qybknxe3x2 (Viewer: in at once; Collaborator: an admin approves, then their agent can edit). Visitor-facing text says 加入 / Join, not 「协作」: visitors don't understand it.
 - Edit `demo2/index.html` directly; saving reloads the page. Page layout: one header bar (logo + 鲸巷, area tabs,
   time/weather, viewers, letter/collab buttons), the map on the left with small signs on it (where, what's on, light
   preview), and a side column with 「她们现在」 plus four tabs (动态 / 街区 / 画册 / 日报). The display font
