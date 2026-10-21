@@ -11,7 +11,8 @@ import { makeComic, loadComics } from './comic.mjs';
 import { makePaper, loadPapers } from './paper.mjs';
 import { initWorld, migrateWorld, worldClock, startVerb, settleVerb, noteText, worldLines, worldSnapshot, weatherName, THINGS, getter, ctxFor } from './worldstate.mjs';
 import { calendarTick, incidentTick, activeEvents, todayEvents } from './events.mjs';
-import { projectOptions, projectStep, projectLines, projectSnapshot } from './projects.mjs';
+import { projectOptions, projectStep, projectLines, projectSnapshot, clean as projClean } from './projects.mjs';
+import { learn, glossaryLine } from './i18n.mjs';
 import { buildMenu } from './menu.mjs';
 import { initSocial, invText, give, askFor, answerRequest, finishRequest, invite, calendar, myGatherings, gatheringAct, gatheringDoing, gatheringAnim, gatheringName, betweenLines, topics, addJoke, addPromise, addShared, eatFromBag, bagFood, bond, pairKey, socialTick, inviteIdeas, ITEMS, itemName, takeParcel, newUid, similar } from './social.mjs';
 
@@ -34,6 +35,18 @@ const pick = (xs) => xs[Math.floor(Math.random() * xs.length)];
 // 模型偶尔把输出格式里的字段名写进话里（「answer说好要……」），换回中文
 const FIELD_WORDS = [[/\banswer(?:ed|s)?\b/gi, '答应'], [/\bpromise[sd]?\b/gi, '答应'], [/\boption\b/gi, '选项']];
 const cut = (s, n) => (typeof s === 'string' ? FIELD_WORDS.reduce((t, [re, w]) => t.replace(re, w), s).trim().slice(0, n) : '');
+// 模型同时给出的英文 / 日文版本（"en": {...}, "ja": {...}）：中文定稿之后，把对应的译文记进译文表（接口给 en/ja 页面时用）。
+// pairs: [[中文定稿, 字段名或取值函数, 中文长度上限]]；英文最长约 2.5 倍，日文约 1.3 倍
+const QUOTES = /^[「《“"『』」》”\s]+|[「《“"『』」》”\s]+$/g;
+function learnTr(raw, pairs) {
+  const en = raw && typeof raw.en === 'object' ? raw.en : null, ja = raw && typeof raw.ja === 'object' ? raw.ja : null;
+  if (!en && !ja) return;
+  const get = (o, f) => (typeof f === 'function' ? f(o || {}) : o?.[f]);
+  const tidy = (t, zh, n) => { if (typeof t !== 'string') return ''; t = t.trim(); if (!/^[「《“"『]/.test(zh)) t = t.replace(QUOTES, ''); return t.slice(0, n); };
+  for (const [zh, f, n] of pairs) if (zh) try { learn(zh, tidy(get(en, f), zh, Math.ceil(n * 2.5)), tidy(get(ja, f), zh, Math.ceil(n * 1.3))); } catch { /* 译文坏了不影响世界 */ }
+}
+const triOut = (fields) => ` "en": {${fields.map(([k, d]) => `"${k}": "${d || k}的英文版"`).join(', ')}},
+ "ja": {${fields.map(([k, d]) => `"${k}": "${d || k}的日文版"`).join(', ')}}`;
 
 // ---------- 时间 ----------
 export const gameMin = (ms) => S.clock.base + (ms - S.clock.epoch) / 60000 * SPEED * FAST;
@@ -104,11 +117,11 @@ export function save(now = false) {
   if (now) write(); else saveTimer = setTimeout(write, 800);
 }
 
-function addLog(who, area, text, at, star = false) {
+function addLog(who, area, text, at, star = false, extra = null) {
   const m = gameMin(at);
   // 90 游戏分钟内同一件事不记两遍（一字不差，或者同一个人说的几乎是同一件事：比如模型写的日志和系统记的约饭）
   if (S.log.slice(-30).some((e) => m - (e.day * 1440 + +e.t.slice(0, 2) * 60 + +e.t.slice(3)) < 90 && (e.text === text || (e.who === who && who !== 'town' && similar(e.text, text) >= 0.7)))) return;
-  S.log.push({ id: ++S.seq, who, area, text, star, at, day: dayOf(m), t: hm(m) });
+  S.log.push({ id: ++S.seq, who, area, text, star, at, day: dayOf(m), t: hm(m), ...(extra || {}) });
   if (S.log.length > 600) appendFileSync(ARCHIVE, S.log.splice(0, S.log.length - 600).map((e) => JSON.stringify(e)).join('\n') + '\n');
 }
 function dayLog(day) {
@@ -127,10 +140,19 @@ function dayBundle(day) {
   const comics = loadComics().filter((c) => c.kind !== 'none' && c.day === day);
   return { day, log, diaries, thoughts: thoughts.sort((a, b) => a.at - b.at).filter((_, i, a) => i % Math.ceil(a.length / 18 || 1) === 0), comics };
 }
+// 日志的分类（不依赖中文，给 en/ja 页面用）：换区域的是 kind 'move'，漫画画好的带 comic 编号；早先没记的按文字补上
+const comicTitles = () => new Map(loadComics().filter((c) => c.kind !== 'none').map((c) => [c.title, c.id]));
+function logTags(e, ids) {
+  if (e.kind || e.comic) return e;
+  if (/去了(鲸巷广场|海边集市|后山公园)$/.test(e.text)) return { ...e, kind: 'move' };
+  const m = e.who === 'town' && /画好了/.test(e.text) && e.text.match(/《(.+)》/);
+  if (m && ids.has(m[1])) return { ...e, comic: ids.get(m[1]) };
+  return e;
+}
 // 编年史：每一天的日报、日记、要事和漫画
 const NOISE = /起床了|去了|睡觉了|写完了第/;
 export function chronicle() {
-  const papers = loadPapers(), today = dayOf(gameMin(Date.now()));
+  const papers = loadPapers(), today = dayOf(gameMin(Date.now())), comicIds = comicTitles();
   const days = new Set([...S.log.map((e) => e.day), ...Object.values(S.chars).flatMap((c) => c.diary.map((d) => d.day))]);
   return [...days].filter((d) => d >= 1 && d <= today).sort((a, b) => b - a).map((day) => {
     const b = dayBundle(day);
@@ -138,7 +160,7 @@ export function chronicle() {
       day, today: day === today,
       paper: papers.find((p) => p.day === day) || null,
       diaries: b.diaries,
-      events: b.log.filter((e) => !NOISE.test(e.text)).slice(-24).map(({ t, who, text, star, area }) => ({ t, who, text, star, area })),
+      events: b.log.filter((e) => !NOISE.test(e.text)).slice(-24).map((e) => logTags(e, comicIds)).map(({ t, who, text, star, area, kind, comic }) => ({ t, who, text, star, area, kind, comic })),
       comics: b.comics.map(({ id, kind, title, span, file }) => ({ id, kind, title, span, url: `/api/comics/${file}` })),
     };
   });
@@ -341,7 +363,8 @@ ${placeList()}
 【规则】你是这里的居民，不是 AI 助手，不要提到模型、提示词、JSON。街区的居民都是女孩子（用「她」称呼）。说话和想法都要符合你的性格，用中文。
 你有自己的店和自己的事要忙；聊天是生活的一部分，但不要每件事都去找人聊，和同一个人聊过之后隔一两个小时再找她。一件事做完就放下，别一整天围着同一件事打转；同一个忙别反复求同一个人。
 优先从「现在能做的」里选一个 option；清单里没有你想做的事，才自己写 place 和 activity。世界里的东西会记住你做过什么（锅会煮好、沙堡会被潮水冲掉、黑板上的字会留着）。
-${out}`;
+${out}
+【三语】你用中文思考和说话，中文字段照常写。小镇也有说英语、日语的观众：先把中文字段一个不落地写好（格式里列出的每个字段都要有），再在 "en"、"ja" 里把同样的内容写成自然的英文和日文（意思一致、保留你的语气；中文字段是空字符串的，对应的也留空字符串）。固定译名：${glossaryLine()}；名字 DeepSeek、Claude、GPT 不翻译。`;
 }
 const DECIDE_OUT = `【输出】一次只决定接下来的一件事。只输出一个 JSON 对象：
 {"thought": "此刻的内心独白，第一人称，1～2 句（≤50字）",
@@ -358,7 +381,8 @@ const DECIDE_OUT = `【输出】一次只决定接下来的一件事。只输出
  "invite": "约人一起做事，如 claude,gpt:meal@19:00（meal 一起吃饭 / reading 读书会 / stargaze 观星 / build 堆沙堡），没有就空字符串",
  "log": "只有对街区来说值得一提的事（新菜、新书、帮了谁、有趣的意外）才写一句街区日志：用名字开头、第三人称、≤30字；日常琐事写空字符串",
  "remember": "值得长期记住的事（≤30字），没有就空字符串",
- "importance": 1到3的整数（remember 的重要程度）}`;
+ "importance": 1到3的整数（remember 的重要程度）,
+${triOut([['thought'], ['doing'], ['say'], ['write'], ['ask', 'ask 里冒号后面那件事'], ['log'], ['remember']])}}`;
 
 function memLines(c) {
   const ms = [...c.memories].sort((a, b) => b.imp - a.imp || b.at - a.at).slice(0, 6);
@@ -460,7 +484,7 @@ function validate(id, c, d, menu = []) {
   const talk = IDS.includes(d.talk_to) && d.talk_to !== id ? d.talk_to : '';
   return {
     place, activity, minutes, talk,
-    doing: cut(d.doing, 16) || ACTIVITIES[activity].desc.split('、')[0],
+    doing: cut(d.doing, 16) || (o && o.kind !== 'talk' ? cut(String(o.label || '').replace(/（.*$/, ''), 16) : '') || ACTIVITIES[activity].desc.split('、')[0], // 模型漏写 doing 时用选项的名字
     thought: cut(d.thought, 90), say: cut(d.say, 30), log: cut(d.log, 40), remember: cut(d.remember, 40),
     importance: clamp(Math.round(Number(d.importance) || 1), 1, 3),
     thing: o?.kind === 'thing' ? o.thing : null, verb: o?.kind === 'thing' ? o.verb : null, cid: o?.kind === 'commission' ? o.cid : null,
@@ -526,10 +550,15 @@ async function decide(id) {
   // 深夜不再问模型：直接回家睡，睡前写日记
   if ((h >= 23 || h < 5) || (prev?.activity === 'sleep' && h < 6.5)) return goSleep(id, c, t);
   const menu = menuFor(id, c, t);
-  const raw = await llm(id, 'decide', [{ role: 'system', content: systemPrompt(id, DECIDE_OUT) }, { role: 'user', content: situation(id, c, t, menu) }], 700);
+  const raw = await llm(id, 'decide', [{ role: 'system', content: systemPrompt(id, DECIDE_OUT) }, { role: 'user', content: situation(id, c, t, menu) }], 1300);
   if (raw && menu.length === 1 && menu[0].kind === 'gathering') { raw.option = 'o1'; raw.talk_to = ''; } // 自己约的事到点了：想法和说的话照用，人得过去
   const d = validate(id, c, raw || fallbackDecision(id, c, menu), menu);
   d.byModel = !!raw;
+  if (raw) {
+    d.raw = raw;
+    learnTr(raw, [[d.thought, 'thought', 90], [cut(raw.doing, 16) && d.doing, 'doing', 16], [d.say, 'say', 30], [d.log, 'log', 40], [d.remember, 'remember', 40], [d.write, 'write', 30]]);
+    if (d.proj && d.write) learnTr(raw, [[projClean(d.write, 12), 'write', 12], [projClean(d.write, 40), 'write', 40]]); // 项目里留下的是去掉标点的篇名 / 段落
+  }
   c.inbox = [];
   if (d.activity === 'sleep') return goSleep(id, c, Math.max(planEnd(c), now + 1500), d);
   act(id, c, d, Math.max(planEnd(c), now + 1500));
@@ -578,7 +607,7 @@ function act(id, c, d, t) {
   const from = endPos(c), wasAsleep = lastAct(c)?.activity === 'sleep';
   const { segs, t: arrive } = planRoute(id, c, target, t);
   if (wasAsleep) addLog(id, from.area, `${CHARS[id].name} 起床了`, t);
-  if (from.area !== target.area) addLog(id, target.area, `${CHARS[id].name} 去了${AREAS[target.area].name}`, segs.find((x) => x.kind === 'travel')?.t1 ?? arrive);
+  if (from.area !== target.area) addLog(id, target.area, `${CHARS[id].name} 去了${AREAS[target.area].name}`, segs.find((x) => x.kind === 'travel')?.t1 ?? arrive, false, { kind: 'move' });
   if (d.activity === 'chat') d.minutes = Math.min(d.minutes, 45);
   // 走过去找人聊天时，这件事就是聊天（只看地点：长椅上就坐着聊）；只是顺口说一句再走（sayNow）的，原来要做的事照做
   const walkOver = chatWith && !sayNow;
@@ -625,6 +654,7 @@ function act(id, c, d, t) {
   let asked = null, invited = null, gave = null;
   if (d.give) { const to = target2(d.give); if (to && (nearNow(to) || to === chatWith)) gave = give(W, id, to, d.give.split(/[:：]/).slice(1).join(':'), socialHooks); if (gave && !/还给/.test(gave)) relBump(to, id, 1); }
   if (d.ask) { const to = target2(d.ask); if (to && (nearNow(to) || to === chatWith) && posAt(S.chars[to], t).seg.activity !== 'sleep') asked = askFor(W, id, to, d.ask.split(/[:：]/).slice(1).join(':') || d.ask, gmNow); }
+  if (asked && d.raw) learnTr(d.raw, [[asked.text, (o) => String(o.ask || '').replace(/^\s*[a-z]+\s*[:：]\s*/i, ''), 24]]);
   if (d.invite) invited = invite(W, id, d.invite, gmNow, (k) => (k === 'weather' ? W.weather.today : null), socialHooks);
   // 等对方回应：记在状态里，服务重启后也会接着处理（请她帮忙、约她、送她东西时也要等她回一句）
   const replyTo = chatWith || asked?.to || (invited && invited.invited.find((x) => nearNow(x))) || null;
@@ -659,10 +689,12 @@ ${betweenLines(S.world, id, fromId, m).map((l) => `（${l}）`).join('')}
 你记得的事：
 ${memLines(c)}
 请自然地回应她。`;
-  const out = `【输出】只输出一个 JSON 对象：{"say": "你说出口的回答（≤30字）", "thought": "此刻的内心独白（≤40字）", "remember": "值得记住的事（≤30字），没有就空字符串", "answer": "她请你帮忙或约你时填 yes 或 no，否则空字符串", "promise": "你答应她的一件事（≤20字），没有就空字符串", "give": "顺手回赠的东西，如 ${fromId}:橘子，没有就空字符串"}`;
-  const r = await llm(id, 'reply', [{ role: 'system', content: systemPrompt(id, out) }, { role: 'user', content: user }], 400);
+  const out = `【输出】只输出一个 JSON 对象：{"say": "你说出口的回答（≤30字）", "thought": "此刻的内心独白（≤40字）", "remember": "值得记住的事（≤30字），没有就空字符串", "answer": "她请你帮忙或约你时填 yes 或 no，否则空字符串", "promise": "你答应她的一件事（≤20字），没有就空字符串", "give": "顺手回赠的东西，如 ${fromId}:橘子，没有就空字符串",
+${triOut([['say'], ['thought'], ['remember'], ['promise']])}}`;
+  const r = await llm(id, 'reply', [{ role: 'system', content: systemPrompt(id, out) }, { role: 'user', content: user }], 800);
   const answer = cut(r?.say, 40);
   if (!answer) return;
+  learnTr(r, [[answer, 'say', 40], [cut(r.thought, 90), 'thought', 90], [cut(r.remember, 40), 'remember', 40], [cut(r.promise, 20), 'promise', 20]]);
   const W = S.world;
   if (extra.ask) answerRequest(W, fromId, id, r.answer, socialHooks);
   if (extra.invite) {
@@ -728,7 +760,9 @@ async function writeDiary(id, c, t) {
  "importance": 1到3的整数,
  "tomorrow": "明天最想做的一件事（≤16字）",
  "joke": {"with": "和你有个小梗的人的 id（ds/claude/gpt）", "text": "你们之间今天冒出来的一个小梗或口头禅（≤16字）"} 或 null,
- "relations": {"ds 或 claude 或 gpt（对方的 id）": {"delta": -5到5的整数, "label": "现在对她的一句话印象（≤16字）"}}}`;
+ "relations": {"ds 或 claude 或 gpt（对方的 id）": {"delta": -5到5的整数, "label": "现在对她的一句话印象（≤16字）"}},
+ "en": {"mood": "mood的英文版", "diary": "diary的英文版", "memory": "memory的英文版", "tomorrow": "tomorrow的英文版", "joke": "joke.text的英文版（没有 joke 就空字符串）", "relations": {"对方的 id": "label的英文版"}},
+ "ja": {"mood": "mood的日文版", "diary": "diary的日文版", "memory": "memory的日文版", "tomorrow": "tomorrow的日文版", "joke": "joke.text的日文版（没有 joke 就空字符串）", "relations": {"对方的 id": "label的日文版"}}}`;
   const user = `现在是第 ${day} 天 ${hm(m)}，你准备睡觉了，睡前写今天的日记。
 你今天做过的事：
 ${c.today.map((x) => `- ${x.t} ${x.text}`).join('\n')}
@@ -739,10 +773,13 @@ ${S.log.filter((e) => e.day === day && !/去了|起床了|睡觉了/.test(e.text
 今天和你有关的事件：
 ${S.world.episodes.filter((e) => e.day === day && e.who.includes(id)).slice(-6).map((e) => `- ${e.t} ${e.title}${(e.lines || []).length ? '：' + e.lines.map(([w, l]) => `${CHARS[w]?.name || w}「${l}」`).join(' ') : ''}`).join('\n') || '（没有）'}
 你对别人的印象：${relLine(id, c)}`;
-  const r = await llm(id, 'diary', [{ role: 'system', content: systemPrompt(id, out) }, { role: 'user', content: user }], 900);
+  const r = await llm(id, 'diary', [{ role: 'system', content: systemPrompt(id, out) }, { role: 'user', content: user }], 2000);
   c.today = [];
   if (!r || !cut(r.diary, 400)) return;
   const at = Date.now();
+  learnTr(r, [[cut(r.mood, 8), 'mood', 8], [cut(r.diary, 400), 'diary', 400], [cut(r.memory, 40), 'memory', 40], [cut(r.tomorrow, 20), 'tomorrow', 20],
+    [r.joke && typeof r.joke === 'object' ? String(r.joke.text || '').trim().slice(0, 16) : '', (o) => (typeof o.joke === 'object' ? o.joke?.text : o.joke), 16],
+    ...Object.entries(r.relations || {}).map(([k, v]) => [typeof v === 'object' ? cut(v?.label, 20) : '', (o) => { const x = o.relations?.[k]; return typeof x === 'object' ? x?.label : x; }, 20])]);
   c.diary.push({ day, mood: cut(r.mood, 8), text: cut(r.diary, 400), at });
   if (r.memory) remember(c, { text: cut(r.memory, 40), imp: clamp(Math.round(Number(r.importance) || 2), 1, 3), day, at });
   noteText(S.world, id, r.diary);
@@ -808,7 +845,8 @@ function worldTick(now) {
   if (changed) save();
 }
 // 约好的事：到点开始，进行到 1/3 和 2/3 时在场的人轮流说一句（各用自己的模型），结束时记一笔
-const SCENE_OUT = `【输出】只输出一个 JSON 对象：{"say": "这一轮你说的一句话（≤30字）", "thought": "此刻的内心独白（≤40字）"}`;
+const SCENE_OUT = `【输出】只输出一个 JSON 对象：{"say": "这一轮你说的一句话（≤30字）", "thought": "此刻的内心独白（≤40字）",
+${triOut([['say'], ['thought']])}}`;
 // 聚会时手边的话题：读书会读主人最新写完的书；流星雨夜、灯笼节就说正在发生的事
 function sceneTopic(x, m) {
   const book = (S.world.inv[x.host] || []).filter((it) => it.parts?.length).at(-1);
@@ -825,8 +863,9 @@ ${x.lines.length ? `刚才大家说的：\n${x.lines.slice(-6).map(([w, l]) => `
 ${x.present.filter((k) => k !== id).flatMap((k) => betweenLines(S.world, id, k, m)).map((l) => `（${l}）`).join('')}
 你最近的念头：${c.thoughts.slice(-2).map((t) => t.text).join(' / ') || '（暂无）'}
 轮到你说一句，自然地接着大家的话。`;
-    const r = await llm(id, 'scene', [{ role: 'system', content: systemPrompt(id, SCENE_OUT) }, { role: 'user', content: user }], 400);
+    const r = await llm(id, 'scene', [{ role: 'system', content: systemPrompt(id, SCENE_OUT) }, { role: 'user', content: user }], 800);
     const say = cut(r?.say, 40); if (!say) continue;
+    learnTr(r, [[say, 'say', 40], [cut(r.thought, 90), 'thought', 90]]);
     x.lines.push([id, say]);
     const t0 = Date.now() + 500 + i * 3000, seg = posAt(c, t0).seg;
     seg.says = [...(seg.says || []).filter((q) => q.t1 < t0), { t0, t1: t0 + 10000, text: say }];
@@ -877,7 +916,7 @@ function tick() {
     comicBusy = true;
     const from = S.lastComic || now - 3600000;
     makeComic(S, from, now, cfg)
-      .then((c) => { S.lastComic = now; if (c && c.kind !== 'none') { addLog('town', 'square', `${c.kind === 'cg' ? '新 CG' : '新漫画'}《${c.title}》画好了`, Date.now(), c.kind === 'cg'); save(); } })
+      .then((c) => { S.lastComic = now; if (c && c.kind !== 'none') { addLog('town', 'square', `${c.kind === 'cg' ? '新 CG' : '新漫画'}《${c.title}》画好了`, Date.now(), c.kind === 'cg', { comic: c.id }); save(); } })
       .catch((e) => { if (e instanceof CreditExhausted) S.llm = { status: 'credit', error: '中转站额度用完了' }; console.error('[sim] comic', String(e.message || e).slice(0, 200)); S.lastComic = now - 50 * 60000; }) // 失败了 10 分钟后再试；额度用完就停
       .finally(() => { comicBusy = false; });
   }
@@ -908,6 +947,7 @@ export function start() {
   tick();
   console.log(`[sim] started — day ${dayOf(gameMin(Date.now()))} ${hm(gameMin(Date.now()))}, model ${cfg.model}, llm ${cfg.enabled ? 'on' : 'off'}`);
 }
+export const stateVer = () => S?.ver ?? 0;
 export function stop() { clearInterval(timer); closeCodex(); if (S) save(true); }
 
 // 给页面的快照：只放展示需要的东西
@@ -929,7 +969,7 @@ export function snapshot() {
         rel: c.rel,
       }];
     })),
-    log: S.log.slice(-160),
+    log: (() => { const ids = comicTitles(); return S.log.slice(-160).map((e) => logTags(e, ids)); })(),
     world: { ...worldSnapshot(S.world),
       inv: Object.fromEntries(IDS.map((id) => [id, invText(S.world, id, '她')])),
       gatherings: S.world.gatherings.filter((x) => x.status !== 'done' || gameMin(now) - x.until < 240).map(({ gid, kind, host, place, at, until, invited, present, status, lines, title }) => ({ gid, kind, name: gatheringName({ kind, title }), host, place, where: PLACES[place]?.name.replace('（店里）', '') || place, at: hm(at), until: hm(until), invited, present, status, lines: lines.slice(-6) })),

@@ -43,7 +43,20 @@ export async function chat({ model, messages, maxTokens = 800, temperature = 0.9
 export function parseJson(text) {
   const s = text.indexOf('{'), e = text.lastIndexOf('}');
   if (s < 0 || e < s) throw new Error('no JSON object in reply');
-  return JSON.parse(text.slice(s, e + 1));
+  const body = text.slice(s, e + 1);
+  try { return JSON.parse(body); } catch (err) {
+    // 三语的回答层次多，模型偶尔少写结尾的右括号：把字符串外还没闭合的 { [ 补上再试一次，补不好就报原来的错
+    const open = [];
+    for (let i = 0, str = false; i < body.length; i++) {
+      const c = body[i];
+      if (str) { if (c === '\\') i++; else if (c === '"') str = false; }
+      else if (c === '"') str = true;
+      else if (c === '{' || c === '[') open.push(c === '{' ? '}' : ']');
+      else if (c === '}' || c === ']') open.pop();
+    }
+    if (open.length) try { return JSON.parse(body + open.reverse().join('')); } catch { /* 不是少括号 */ }
+    throw err;
+  }
 }
 
 // 生图：gpt-image-2，返回 PNG 的 Buffer 和用量

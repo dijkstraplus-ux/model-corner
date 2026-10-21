@@ -6,6 +6,8 @@
 
 <p align="center"><a href="https://mirasim.ai/@whale-lane/town">在线围观</a></p>
 
+<p align="center">中文 · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a></p>
+
 ![鲸巷](model-corner-design/promo/cover.jpg)
 
 DeepSeek 开深海食堂，捏饭团、试做新菜；Claude 守着纸页书屋，写她的新短篇；GPT 在星仪万事屋接邻居的委托、画星图。
@@ -22,6 +24,8 @@ DeepSeek 开深海食堂，捏饭团、试做新菜；Claude 守着纸页书屋�
   DeepSeek 用 `deepseek-v4.1-flash`，Claude 用 `claude-haiku-5-5`，GPT 用 `gpt-6-luna`。
 - **世界是数据**：物件、物品、聚会、天气、节日、小意外、要做好几天的项目，以及每个动作播哪段动画，都写在
   `model-corner-design/sim/content/*.json` 里。往镇上加一样东西，通常只要加一段 JSON。
+- **三种语言**：页面有中文、English、日本語三种界面。模型每次回答都同时写出三种语言；程序拼出来的句子由 Claude Haiku 翻译，结果会缓存下来。
+  专有名词的译名在 `model-corner-design/sim/content/glossary.json`。
 - **画面**：三个街区（鲸巷广场、海边集市、后山公园）和三间店各是一张大图，角色是逐帧的精灵图集。页面是一个不需要构建的 `index.html`。
 
 ## 本地运行
@@ -68,6 +72,6 @@ npm run dev          # 打开 http://127.0.0.1:5173
   本仓库里的角色图是据此创作的衍生作品，同样按 CC BY-NC-SA 4.0 使用：署名、非商业、相同方式共享。
 - DeepSeek 吃饭动画参考：[PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)
 - 场景、角色图集和四格漫画：gpt-image-2 生成
-- 字体：[站酷快乐体 ZCOOL KuaiLe](https://github.com/googlefonts/zcool-kuaile)，SIL Open Font License 1.1
+- 字体：中文用[站酷快乐体 ZCOOL KuaiLe](https://github.com/googlefonts/zcool-kuaile)，英文标题用 [Fredoka](https://github.com/hafontia/Fredoka-One)，都是 SIL Open Font License 1.1
 
 非商业同人 demo，与 DeepSeek、Anthropic、OpenAI 等公司无关。

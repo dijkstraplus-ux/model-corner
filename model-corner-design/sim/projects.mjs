@@ -9,7 +9,7 @@ import { CHARS } from './personas.mjs';
 const read = (f) => JSON.parse(readFileSync(fileURLToPath(new URL(`./content/${f}`, import.meta.url)), 'utf8'));
 export const PROJECTS = read('projects.json');
 const dayOf = (gm) => Math.floor(gm / 1440);
-const clean = (s, n) => String(s || '').replace(/[《》「」"]/g, '').trim().slice(0, n).replace(/^[，。、！？,.!?\s]+|[，。、！？,.!?\s]+$/g, ''); // 题目两头不留标点
+export const clean = (s, n) => String(s || '').replace(/[《》「」"]/g, '').trim().slice(0, n).replace(/^[，。、！？,.!?\s]+|[，。、！？,.!?\s]+$/g, ''); // 题目两头不留标点
 
 export const activeProject = (W, kind) => (W.projects || []).find((x) => x.kind === kind && x.status === 'active');
 

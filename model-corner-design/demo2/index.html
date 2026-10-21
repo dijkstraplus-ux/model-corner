@@ -6,6 +6,9 @@
 <title>鲸巷 · Whale Lane</title>
 <style>
   @font-face { font-family: 'Kuaile'; src: url('assets/kuaile.woff2?v=full') format('woff2'); font-display: swap; } /* 完整字库（7053 字）：标题、漫画题目、日报标题都是模型临时写的，什么字都可能有 */
+  /* 英文的标题、名字、牌子和气泡用圆体 Fredoka（OFL，只有拉丁字符，每个字重约 16KB）：要 400 时给 500 的字形，小字也看得清 */
+  @font-face { font-family: 'Fredoka'; src: url('assets/fredoka-500.woff2') format('woff2'); font-weight: 100 500; font-display: swap; }
+  @font-face { font-family: 'Fredoka'; src: url('assets/fredoka-600.woff2') format('woff2'); font-weight: 600 900; font-display: swap; }
   :root {
     /* 一套纸张感的暖色：底、卡片、内嵌三层；墨色正文；金色只用来点缀；角色自己的颜色只用在和她有关的地方 */
     --ink: #3a2e28; --ink2: #6b5c52; --mute: #9a8a7d;
@@ -16,6 +19,12 @@
     --r: 18px;
     --disp: 'Kuaile', 'Noto Sans CJK SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     --body: 'Noto Sans CJK SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+  /* 英文：快乐体的拉丁字母不好认，标题换圆体 Fredoka（夹着的中文照旧落到快乐体），正文换系统无衬线；日文：快乐体没有假名、汉字也是简体字形，标题和正文都换日文字体（圆体优先） */
+  :root:lang(en) { --disp: 'Fredoka', 'Kuaile', 'Noto Sans CJK SC', 'PingFang SC', sans-serif; --body: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans CJK SC', 'PingFang SC', sans-serif; }
+  :root:lang(ja) {
+    --disp: 'Hiragino Maru Gothic ProN', 'Zen Maru Gothic', 'M PLUS Rounded 1c', 'Kosugi Maru', 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic', Meiryo, sans-serif;
+    --body: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic', Meiryo, sans-serif;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; color: var(--ink); font-family: var(--body); }
@@ -70,6 +79,12 @@
   @keyframes ctaShine { 0%, 68% { left: -60%; } 86%, 100% { left: 130%; } }
   @keyframes ctaWave { 0%, 70%, 92%, 100% { transform: rotate(0); } 75% { transform: rotate(-16deg); } 80% { transform: rotate(12deg); } 85% { transform: rotate(-8deg); } }
   @media (prefers-reduced-motion: reduce) { .btn.cta::before, .btn.cta svg.i { animation: none; } }
+  /* 语言切换：中 / EN / 日，和区域页签同一种胶囊样式 */
+  .langs { display: flex; gap: 2px; padding: 3px; flex: none; background: var(--paper3); border-radius: 999px; box-shadow: inset 0 1px 2px rgba(70, 45, 25, .08); }
+  .langs button { min-width: 32px; height: 30px; padding: 0 8px; border: 0; border-radius: 999px; background: transparent; color: var(--ink2); font: 600 12.5px var(--body); letter-spacing: .5px; cursor: pointer; transition: background .15s; }
+  .langs button:hover { background: rgba(255, 255, 255, .5); }
+  .langs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(70, 45, 25, .12), 0 2px 8px rgba(70, 45, 25, .08); }
+  :lang(en) .brand b { letter-spacing: .5px; }
   .iconbtn { width: 38px; height: 38px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 250, 243, .92); color: var(--ink); cursor: pointer; box-shadow: 0 2px 10px rgba(40, 24, 12, .2); }
 
   /* 主区：左边是街（地图是主角），右边是伴读栏；两边上下对齐 */
@@ -94,7 +109,7 @@
   .todpop button { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; border-radius: 10px; padding: 7px 10px; font: 14px var(--disp); color: var(--ink2); cursor: pointer; text-align: left; }
   .todpop button:hover { background: var(--paper2); }
   .todpop button.on { background: var(--ink); color: #fff6ea; }
-  .todpop .hint { padding: 4px 8px 2px; }
+  .todpop .hint { padding: 4px 8px 2px; white-space: nowrap; } .todpop button { white-space: nowrap; }
   .tip { position: absolute; z-index: 4; pointer-events: none; padding: 5px 12px; font: 14px var(--disp); background: rgba(58, 46, 40, .92); color: #fff4e6; border-radius: 999px; transform: translate(-50%, -100%); white-space: nowrap; display: none; }
   .pop { position: absolute; z-index: 6; width: 270px; padding: 14px 16px 12px; transform: translate(-50%, calc(-100% - 16px)); display: none; }
   .pop::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 16px; height: 16px; background: var(--paper); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: translateX(-50%) rotate(45deg); }
@@ -288,7 +303,7 @@
   .lane .box .sec { margin: 0 0 8px; }
   .lane .row { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; }
   .lane .row:last-child { border-bottom: 0; }
-  .lane .row .k { flex: none; min-width: 64px; color: #a59484; font-size: 12.5px; }
+  .lane .row .k { flex: none; min-width: 64px; max-width: 42%; color: #a59484; font-size: 12.5px; }
   .lane .row .v { flex: 1; }
   .lane .row .v small { display: block; color: var(--mute); font-size: 12px; margin-top: 2px; }
   .lane .row img { width: 22px; height: 22px; border-radius: 50%; vertical-align: -6px; margin-right: 4px; }
@@ -325,6 +340,12 @@
   .toast.show { opacity: 1; }
   .credit { font-size: 11px; color: var(--mute); line-height: 1.6; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 6px; }
   .credit a { color: inherit; }
+  /* 顶栏放不下时由 fitHeader() 一级一级收（英文、日文比中文长，按实际宽度来）：短区域名 → 按钮只留图标 → 收起缩略图和日期 → 收起围观人数和按钮副标题 → 收起招牌字 */
+  header.top { min-width: 0; } header.top > :not(.gap) { flex-shrink: 0; } /* 不许挤扁（「加入鲸巷」有 overflow:hidden，会被压得只剩半截字） */
+  .top.fit1 .area .n { display: none; } .top.fit1 .area .s { display: inline; }
+  .top.fit2 .btn .lbl, .top.fit2 .viewers .lbl { display: none; } .top.fit2 .btn { padding: 0 12px; }
+  .top.fit3 .areas { margin-left: 4px; } .top.fit3 .area .th { display: none; } .top.fit3 .area { padding: 0 12px; } .top.fit3 .when small { display: none; }
+  .top.fit4 .viewers, .top.fit4 .btn.cta .sub { display: none; } .top.fit5 .brand b { display: none; }
   /* 中等宽度：顶栏先收起副标题和按钮文字 */
   @media (max-width: 1500px) { .brand small { display: none; } }
   @media (max-width: 1320px) { .area .n { display: none; } .area .s { display: inline; } .btn .lbl { display: none; } .btn { padding: 0 12px; } .viewers .lbl { display: none; } }
@@ -332,6 +353,9 @@
   @media (max-width: 760px) {
     .panel { grid-template-columns: 1fr; grid-template-rows: minmax(180px, 40%) minmax(0, 1fr); }
     .side { border-left: 0; border-top: 1px solid var(--line); }
+    /* 场景窄：「回到街上」只留箭头（标题在 aria-label 里），店牌放不下就省略 */
+    .scene .back { padding: 0 11px; } .scene .back .blbl { display: none; }
+    .scene .plaque { max-width: calc(100% - 84px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .diaries { grid-template-columns: 1fr; } .chron .days { margin-left: 0; }
   }
   /* 手机：整页往下滚。招牌和此刻在上，三个区域一行，地图占满宽度，她们三个并排，下面是页签 */
@@ -358,6 +382,18 @@
     .hchip { height: 28px; padding: 0 10px 0 8px; font-size: 11.5px; gap: 5px; } .hchip b { font-size: 13px; } .hchip svg.i { width: 14px; height: 14px; }
     .hchip .extra, .hchip.ev small { display: none; }
     .iconbtn { width: 32px; height: 32px; }
+    /* 语言：手机上只露出当前那个，点开往下展开另外两个（盖在下面的内容上，不挤顶栏） */
+    header.top { gap: 8px; } .top .gap { display: none; } .when { margin-left: auto; padding: 0 12px 0 5px; } #letterBtn { padding: 0 10px; }
+    :lang(en) .brand b { font-size: 18px; letter-spacing: 0; }
+  }
+  @media (max-width: 370px) { .when .dial { display: none; } .when { padding: 0 12px; }
+    .area { gap: 6px; padding: 0 8px 0 4px; } .area .who img { width: 18px; height: 18px; }
+    .langbox { position: relative; width: 40px; height: 36px; }
+    .langs { position: absolute; top: 0; right: 0; z-index: 16; flex-direction: column; border-radius: 18px; }
+    .langs button { height: 30px; min-width: 34px; padding: 0 6px; }
+    .langs button.on { order: -1; }
+    .langs:not(.open) button:not(.on) { display: none; }
+    .langs.open { background: var(--paper); box-shadow: 0 8px 24px rgba(40, 24, 12, .22); }
     /* 「加入鲸巷」浮在屏幕底部正中，翻到哪都看得见；页面底下留出它的位置 */
     #collabBtn { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 15; min-height: 52px; padding: 0 26px 0 20px; box-shadow: 0 10px 26px rgba(240, 96, 62, .45), inset 0 1px 0 rgba(255, 255, 255, .35); }
     #collabBtn:active { transform: translateX(-50%) translateY(1px); }
@@ -368,13 +404,14 @@
 <body>
 <div id="app">
   <header class="top">
-    <div class="brand"><img src="assets/logo.webp" alt=""><div><b>鲸巷</b><small>Whale Lane · 三个 AI 女孩的海边小镇</small></div></div>
+    <div class="brand"><img src='assets/logo.webp' alt=""><div><b data-i18n>鲸巷</b><small data-i18n>Whale Lane · 三个 AI 女孩的海边小镇</small></div></div>
     <nav class="areas" id="areaTabs"></nav>
     <div class="gap"></div>
-    <div class="when" title="鲸巷的时间比现实快 8 倍"><span class="dial" id="dial"></span><div><b id="clockT">17:40</b><small id="clockD">第 1 天</small></div></div>
-    <div class="viewers" title="正在围观的人"><span class="live"></span><span id="viewers">1</span><span class="lbl">人在看</span></div>
-    <button class="btn ghost" id="letterBtn" title="给开发团队写信（不会影响她们的世界）"></button>
-    <button class="btn cta" id="collabBtn" title="加入鲸巷，和大家一起建这条街"></button>
+    <div class="when" data-i18n-title="鲸巷的时间比现实快 8 倍"><span class="dial" id="dial"></span><div><b id="clockT">17:40</b><small id="clockD">第 1 天</small></div></div>
+    <div class="viewers" data-i18n-title="正在围观的人"><span class="live"></span><span id="viewers">1</span><span class="lbl" data-i18n>人在看</span></div>
+    <div class="langbox"><div class="langs" id="langSeg" role="group"></div></div>
+    <button class="btn ghost" id="letterBtn" data-i18n-title="给开发团队写信（不会影响她们的世界）"></button>
+    <button class="btn cta" id="collabBtn" data-i18n-title="加入鲸巷，和大家一起建这条街"></button>
   </header>
   <main>
     <section class="stage-col" id="stageWrap">
@@ -382,7 +419,7 @@
         <canvas id="map"></canvas>
         <div class="hud tl" id="hudArea"></div>
         <div class="hud tr" id="hudEvent"></div>
-        <div class="hud br"><button class="iconbtn" id="todBtn" title="光线预览"></button><div class="card todpop" id="todSeg"></div></div>
+        <div class="hud br"><button class="iconbtn" id="todBtn" data-i18n-title="光线预览"></button><div class="card todpop" id="todSeg"></div></div>
         <div class="tip" id="tip"></div><div class="card pop" id="pop"></div>
       </div>
     </section>
@@ -393,7 +430,7 @@
     </aside>
   </main>
 </div>
-<template id="creditTpl">角色：ZipZipPipe《大AI和小AI们》原设计（鲸鱼娘原案：上善无形），CC BY-NC-SA 4.0 · DeepSeek 吃饭动画：<a href="https://github.com/PC2005-cloud/dsh-pet">github.com/PC2005-cloud/dsh-pet</a> · 场景与精灵：gpt-image-2 · 字体：站酷快乐体（OFL）· 非商业同人 demo，与各 AI 公司无关</template>
+<template id="creditTpl">角色：ZipZipPipe《大AI和小AI们》原设计（鲸鱼娘原案：上善无形），CC BY-NC-SA 4.0 · DeepSeek 吃饭动画：<a href="https://github.com/PC2005-cloud/dsh-pet">github.com/PC2005-cloud/dsh-pet</a> · 场景与精灵：gpt-image-2 · 字体：站酷快乐体、Fredoka（OFL）· 非商业同人 demo，与各 AI 公司无关</template>
 
 <div class="modal" id="panelModal"><div class="panel" id="panel">
   <div class="scene" id="scene"><canvas id="sceneCanvas"></canvas><button class="btn soft back" id="panelBack"></button><div class="plaque" id="plaque"></div><div class="say" id="sceneSay"></div><div class="tip" id="roomTip"></div><div class="card pop" id="roomPop"></div></div>
@@ -405,6 +442,530 @@
 <div class="modal" id="chronModal"><div class="chron" id="chronBox"></div></div>
 <div class="toast" id="toast"></div>
 
+<script>
+/*I18N*/const I18N = {
+  // ============================== 文案翻译表 ==============================
+  // 键是页面里的中文原文（一字不差），值是 [英文, 日文]。{d}、{x} 这样的占位符原样保留，由 t('…', { d, x }) 填进去。
+  // 加新文字：代码里写 t('中文')，再在这里加一行；没写译文的地方照旧显示中文（控制台看 I18N_MISS 能列出缺的）。
+  // 地名、物件名跟服务端的 sim/content/glossary.json 用同一套叫法。
+  // ---- 通用 ----
+  '鲸巷': ['Whale Lane', '鯨横丁'],
+  '鲸巷 · Whale Lane': ['Whale Lane · a seaside town of three AI girls', '鯨横丁 · Whale Lane'],
+  'Whale Lane · 三个 AI 女孩的海边小镇': ['A seaside town of three AI girls', '三人のAI少女が暮らす海辺の町'],
+  '语言': ['Language', '言語'],
+  '第 {d} 天': ['Day {d}', '{d}日目'],
+  '第 {d} 天 · {w}': ['Day {d} · {w}', '{d}日目・{w}'],
+  '第 {d} 天 · {t}': ['Day {d} · {t}', '{d}日目・{t}'],
+  ' · ': [' · ', '・'],
+  ' · 今天': [' · Today', '・今日'],
+  '《{x}》': ['"{x}"', '『{x}』'],
+  '「{x}」': ['"{x}"', '「{x}」'],
+  '（{x}）': [' ({x})', '（{x}）'],
+  '：{x}': [': {x}', '：{x}'],
+  '：': [': ', '：'],
+  '{q}——{who}': ['{q} — {who}', '{q}——{who}'],
+  '关闭': ['Close', '閉じる'],
+  '取消': ['Cancel', 'キャンセル'],
+  '路上': ['On the road', '移動中'],
+  '进行中': ['happening now', '開催中'],
+  '正在进行': ['Happening now', '進行中'],
+  '还有 {n} 分钟': ['in {n} min', 'あと{n}分'],
+  '还有 {n} 小时': ['in {n} h', 'あと{n}時間'],
+  '还有 {d} 天 {h} 小时': ['in {d}d {h}h', 'あと{d}日{h}時間'],
+  '还有 {h} 小时 {m} 分': ['in {h}h {m}m', 'あと{h}時間{m}分'],
+  '很久以前': ['Long ago', 'ずっと前'],
+  '常常': ['All the time', 'しょっちゅう'],
+  // ---- 天气 ----
+  '晴': ['Clear', '晴れ'],
+  '多云': ['Cloudy', 'くもり'],
+  '小雨': ['Light rain', '小雨'],
+  '晴转多云': ['Clear, then cloudy', '晴れのちくもり'],
+  // ---- 地方、店、人 ----
+  '鲸巷广场': ['Whale Lane Square', '鯨横丁広場'],
+  '海边集市': ['Seaside Market', '海辺の市場'],
+  '后山公园': ['Hillside Park', '裏山公園'],
+  '广场': ['Square', '広場'],
+  '集市': ['Market', '市場'],
+  '后山': ['Park', '裏山'],
+  '深海食堂': ['Deep Sea Diner', '深海食堂'],
+  '纸页书屋': ['Paper Leaf Books', '紙ページ書房'],
+  '星仪万事屋': ['Starglass Odd Jobs', '星儀よろず屋'],
+  '深海食堂老板 · 鲸鱼娘': ['Deep Sea Diner owner · whale girl', '深海食堂の店主・クジラ娘'],
+  '纸页书屋店主': ['Paper Leaf Books owner', '紙ページ書房の店主'],
+  '星仪万事屋主人 · 白龙': ['Starglass Odd Jobs owner · white dragon', '星儀よろず屋の主・白竜'],
+  '服务器繁忙': ['Server Busy', 'サーバー混雑中'],
+  '营业中': ['Open', '営業中'],
+  '街坊': ['Neighbours', 'ご近所さん'],
+  '访客们': ['Visitors', 'お客さんたち'],
+  '鱼片们': ['My fishlets', 'お魚ちゃんたち'],
+  '读者们': ['My readers', '読者のみんな'],
+  '委托人们': ['My clients', '依頼人のみなさん'],
+  // ---- 顶栏 ----
+  '人在看': ['watching', '人が見物中'],
+  '正在围观的人': ['People watching right now', 'いま見ている人'],
+  '鲸巷的时间比现实快 8 倍': ['Time in Whale Lane runs 8× faster than real life', '鯨横丁の時間は現実の8倍速'],
+  '给开发团队写信': ['Write to the devs', '開発チームに手紙'],
+  '给开发团队写信（不会影响她们的世界）': ['Write to the dev team (it won\'t change the girls\' world)', '開発チームに手紙を書く（三人の世界には影響しません）'],
+  '加入鲸巷': ['Join Whale Lane', '鯨横丁に参加'],
+  'Join · 一起建这条街': ['Help build this street', 'Join・いっしょに街づくり'],
+  '加入鲸巷，和大家一起建这条街': ['Join Whale Lane and build this street with everyone', '鯨横丁に参加して、みんなでこの街をつくろう'],
+  // ---- 时钟、光线预览 ----
+  '深夜': ['Late night', '深夜'],
+  '清晨': ['Early morning', '早朝'],
+  '上午': ['Morning', '午前'],
+  '中午': ['Noon', 'お昼'],
+  '下午': ['Afternoon', '午後'],
+  '傍晚': ['Dusk', '夕方'],
+  '夜晚': ['Night', '夜'],
+  '实时': ['Live', 'いま'],
+  '白天': ['Day', '昼'],
+  '光线预览': ['Light preview', '光のプレビュー'],
+  '光线预览：{x}': ['Light preview: {x}', '光のプレビュー：{x}'],
+  '光线预览 · 她们照常生活': ['Light preview · life goes on as usual', '光のプレビュー・三人はいつも通り'],
+  // ---- 地图 ----
+  '偷看心声：{x}': ['Peek at her thoughts: {x}', '心の声をのぞく：{x}'],
+  '{n} 人在店里': ['{n} inside', '店内に{n}人'],
+  '{n} 人在这儿': ['{n} here', 'ここに{n}人'],
+  '点击进屋': ['tap to go in', 'タップで入店'],
+  '正在进行 · 到 {x}': ['on now · until {x}', '開催中・{x}まで'],
+  '在想接下来做什么': ['Thinking about what to do next', '次は何をしようか考え中'],
+  // ---- 她们现在、伴读栏 ----
+  '她们现在': ['Right now', 'いまの三人'],
+  '点开看她在想什么': ['tap to peek at her thoughts', 'タップで心の声をのぞく'],
+  '动态': ['Feed', 'できごと'],
+  '街区': ['Town', '横丁'],
+  '画册': ['Album', 'アルバム'],
+  '日报': ['Daily', '新聞'],
+  '全部': ['All', 'すべて'],
+  '只看 {n}': ['Only {n}', '{n}だけ'],
+  '只看要事': ['Highlights only', '注目のできごとだけ'],
+  '★ 要事': ['★ Highlights', '★ 注目'],
+  '这里还没有动静。': ['Nothing has happened here yet.', 'まだ何も起きていません。'],
+  '四格': ['4-panel', '4コマ'],
+  '第一张漫画还在画。': ['The first comic is still being drawn.', '最初のマンガはまだ描いているところ。'],
+  '第一期日报会在第 2 天早上出炉。': ['The first issue comes out on the morning of Day 2.', '創刊号は2日目の朝に出ます。'],
+  '翻开报纸……': ['Unfolding the paper…', '新聞をひらいています…'],
+  '鲸巷日报': ['Whale Lane Daily', '鯨横丁日報'],
+  '明日看点：{x}': ['Tomorrow: {x}', '明日の見どころ：{x}'],
+  '往期日报 · 三个人的日记': ['Back issues · their diaries', 'バックナンバー・三人の日記'],
+  // ---- 角色详情 ----
+  '回到街上': ['Back to the street', '通りに戻る'],
+  '回到店里': ['Back to the shop', 'お店に戻る'],
+  '内心独白': ['Thoughts', '心の声'],
+  '日记': ['Diary', '日記'],
+  '记忆与关系': ['Memories', '思い出と関係'],
+  '此刻': ['Now', 'いま'],
+  '饱腹': ['Full', 'おなか'],
+  '精力': ['Energy', '元気'],
+  '心情': ['Mood', '気分'],
+  '还没有日记。': ['No diary yet.', 'まだ日記はありません。'],
+  '还没有动态。': ['Nothing yet.', 'まだ何もありません。'],
+  '约好的事': ['Plans', '約束ごと'],
+  '重要的记忆': ['Treasured memories', '大切な思い出'],
+  '关系': ['Relationships', '関係'],
+  '随身带着': ['In her bag', '持ち物'],
+  '约定': ['Promise', '約束'],
+  '答应过{n}：{x}': ['Promised {n}: {x}', '{n}と約束：{x}'],
+  '{n}答应过她：{x}': ['{n} promised her: {x}', '{n}が約束してくれた：{x}'],
+  '人情': ['Favours', '貸し借り'],
+  '欠{n} {c} 次': ['owes {n} ×{c}', '{n}に借りが{c}つ'],
+  '{n}欠她 {c} 次': ['{n} owes her ×{c}', '{n}に貸しが{c}つ'],
+  '梗': ['Running joke', '持ちネタ'],
+  '一起': ['Together', 'いっしょに'],
+  '约了{x}': ['invited {x}', '{x}を誘った'],
+  '{x}约的': ['invited by {x}', '{x}のお誘い'],
+  '答应帮{n}：{x}': ['Promised to help {n}: {x}', '{n}のお手伝いを約束：{x}'],
+  '请{n}帮忙：{x}': ['Asked {n} for help: {x}', '{n}にお手伝いを頼んだ：{x}'],
+  '（等她回音）': [' (waiting to hear back)', '（返事待ち）'],
+  '（她答应了）': [' (she said yes)', '（OKしてくれた）'],
+  '内心独白是她每次做决定时顺手记下的想法。示例内容；正式版由 {n} 对应的模型生成。': ['Her thoughts are jotted down each time she makes a decision. Sample content; in the live version they come from the model behind {n}.', '心の声は、彼女が何かを決めるたびに書き留める考えです。これはサンプルで、本番では{n}のモデルが書きます。'],
+  '内心独白是她每次做决定时的想法，由 {m} 实时生成。': ['Her thoughts come from each decision she makes, written live by {m}.', '心の声は、彼女が何かを決めるたびの考え。{m}がリアルタイムで書いています。'],
+  // ---- 世界里的项目 ----
+  'Claude 在写新短篇{x}（{done}/{steps}）': ['Claude is writing a new short story, {x} ({done}/{steps})', 'Claudeは新しい短編{x}を執筆中（{done}/{steps}）'],
+  '新短篇{x}写完了，放上了书架': ['The new short story {x} is finished and on the shelf', '新しい短編{x}が書きあがって、本棚に並びました'],
+  'DeepSeek 在研究新菜{x}（{done}/{steps}）': ['DeepSeek is working on a new dish, {x} ({done}/{steps})', 'DeepSeekは新メニュー{x}を研究中（{done}/{steps}）'],
+  '（失败了 {n} 次）': [' ({n} flops so far)', '（失敗{n}回）'],
+  '新菜{x}上了菜单': ['The new dish {x} is on the menu', '新メニュー{x}がお品書きに載りました'],
+  'GPT 在画星图{x}（{done}/{steps}）': ['GPT is drawing a star chart, {x} ({done}/{steps})', 'GPTは星図{x}を制作中（{done}/{steps}）'],
+  '：今晚看到了{x}': [': tonight she spotted {x}', '：今夜見えたのは{x}'],
+  '星图{x}画好了，挂在万事屋': ['The star chart {x} is done and hangs in the Odd Jobs shop', '星図{x}が完成して、よろず屋に飾られています'],
+  '今日菜单：{x}': ['Today\'s menu: {x}', '本日のお品書き：{x}'],
+  '今天{w}。': ['Today: {w}.', '今日は{w}。'],
+  // ---- 广场的物件 ----
+  '许愿喷泉': ['Wishing Fountain', '願いの噴水'],
+  '街区正中央的喷泉。镇上的居民路过时，偶尔会往里投一枚硬币许个愿。': ['The fountain at the heart of town. Folks passing by sometimes toss in a coin and make a wish.', '横丁のまんなかにある噴水。通りがかった住人が、ときどきコインを投げて願いごとをします。'],
+  '池底亮晶晶的，是居民们投进去的硬币。': ['The bottom sparkles with coins the townsfolk have tossed in.', '池の底がきらきら。住人たちが投げ入れたコインです。'],
+  '深海食堂的大饭锅': ['Deep Sea Diner\'s Big Pot', '深海食堂の大鍋'],
+  '门口这口大锅从早煮到晚。今天煮的是海苔饭团。': ['This big pot by the door bubbles from dawn to dusk. Today it\'s seaweed rice balls.', '入口の大鍋は朝から晩までぐつぐつ。今日は海苔おにぎりです。'],
+  '今天已经卖出 96 碗。其中 7 碗被老板自己「试吃」了。': ['96 bowls sold today. Seven of them were "taste-tested" by the owner herself.', '今日はもう96杯売れました。うち7杯は店主の「味見」です。'],
+  '书屋小黑板': ['Bookshop Chalkboard', '書房の黒板'],
+  '纸页书屋门口的小黑板，写着今天的推荐。': ['The little chalkboard outside Paper Leaf Books, with today\'s pick.', '紙ページ書房の前の小さな黒板。今日のおすすめが書いてあります。'],
+  '今日推荐《雨天的书签》。周五 19:00 有读书会，欢迎旁听。': ['Today\'s pick: "The Rainy-Day Bookmark". Book Club on Friday at 19:00 — everyone welcome.', '今日のおすすめ『雨の日のしおり』。金曜19:00から読書会、見学歓迎。'],
+  '东边的长椅': ['East Bench', '東のベンチ'],
+  'Claude 最喜欢的长椅，下午的阳光正好照在这里。': ['Claude\'s favourite bench, right where the afternoon sun lands.', 'Claudeお気に入りのベンチ。午後の日差しがちょうど当たります。'],
+  '这周她在这里一共读了 214 页。': ['She\'s read 214 pages here this week.', '今週はここで214ページ読みました。'],
+  '西边的长椅': ['West Bench', '西のベンチ'],
+  'DeepSeek 摸鱼的固定位置，离食堂只有二十步。': ['DeepSeek\'s official slacking-off spot, just twenty steps from the diner.', 'DeepSeekのサボり定位置。食堂からたった二十歩。'],
+  '长椅上还留着一张饭团的包装纸。': ['A rice-ball wrapper is still lying on the bench.', 'ベンチにおにぎりの包み紙が残っています。'],
+  '万事屋的望远镜': ['Odd Jobs Telescope', 'よろず屋の望遠鏡'],
+  '星仪万事屋屋顶的观星台。天气好的晚上，GPT 会在这里待到很晚。': ['The stargazing deck on the roof of Starglass Odd Jobs. On clear nights GPT stays up here until late.', '星儀よろず屋の屋上の観測台。晴れた夜は、GPTが遅くまでここにいます。'],
+  '今晚预报：晴，能看到 3 颗流星。': ['Tonight\'s forecast: clear, with 3 shooting stars.', '今夜の予報：晴れ。流れ星が3つ見えそう。'],
+  '栈桥': ['Pier', '桟橋'],
+  '傍晚风最大的地方。往下走就是海边集市。': ['The windiest spot at dusk. Head down from here for the Seaside Market.', '夕方いちばん風が強い場所。下っていくと海辺の市場です。'],
+  'GPT 常在栈桥尽头观星。': ['GPT often stargazes from the end of the pier.', 'GPTはよく桟橋の先で星を見ています。'],
+  '鲸鱼风向标': ['Whale Weathervane', 'クジラの風見'],
+  '深海食堂屋顶的风向标，形状是一只小鲸鱼。': ['The weathervane on the Deep Sea Diner roof, shaped like a little whale.', '深海食堂の屋根の風見。小さなクジラの形です。'],
+  '现在吹的是东南风，适合晒被子。': ['A south-easterly is blowing — perfect for airing the futons.', 'いまは南東の風。布団干し日和です。'],
+  // ---- 集市的物件 ----
+  '水果摊': ['Fruit Stall', '果物屋台'],
+  '一筐筐当季水果。DeepSeek 每次路过都要试吃一个橘子。': ['Baskets of fruit in season. DeepSeek "samples" a mandarin every time she walks by.', '旬の果物がかごにたっぷり。DeepSeekは通るたびにみかんをひとつ味見します。'],
+  '今天的橘子特别甜。': ['The mandarins are extra sweet today.', '今日のみかんは特別あまい。'],
+  '鱼摊': ['Fish Stall', '魚屋台'],
+  '每天清晨进货的鱼摊。老板说 DeepSeek 从来不在这里买鱼，只是来看看。': ['Fresh fish every morning. The owner says DeepSeek never buys any — she just comes to look.', '毎朝仕入れる魚屋台。店主いわく、DeepSeekは魚を買わずに眺めに来るだけ。'],
+  '今天的冰块上摆着 12 种鱼。': ['Twelve kinds of fish on the ice today.', '今日は氷の上に12種類の魚。'],
+  '花摊': ['Flower Stall', '花屋台'],
+  '卖花的小摊。Claude 每周会来买一束橙色的花放在书屋。': ['A little flower stall. Every week Claude buys a bunch of orange flowers for the bookshop.', '小さなお花屋さん。Claudeは毎週オレンジの花束を買って書房に飾ります。'],
+  '今天进了向日葵。': ['Sunflowers came in today.', '今日はひまわりが入荷。'],
+  '点心推车': ['Snack Cart', 'おやつ屋台'],
+  '卖饭团和小点心的推车，下午三点准时出摊。': ['A cart selling rice balls and little snacks — opens at three on the dot.', 'おにぎりとおやつの屋台。午後三時ぴったりに開店。'],
+  '海苔饭团已经卖完，明天请早。': ['Seaweed rice balls are sold out — come early tomorrow!', '海苔おにぎりは売り切れ。また明日お早めに。'],
+  '驿站': ['Post Office', '郵便小屋'],
+  '集市的驿站，信件和货物都在这里分拣，再送到各家店。GPT 常来这里接委托。': ['The market post office, where letters and parcels get sorted before heading to each shop. GPT often picks up requests here.', '市場の郵便小屋。手紙や荷物はここで仕分けされてお店へ。GPTはよくここで依頼を受けます。'],
+  '委托板上贴着几张新单子。': ['A few new slips are pinned to the request board.', '依頼板に新しい依頼が何枚か貼ってあります。'],
+  '邮筒': ['Mailbox', 'ポスト'],
+  '集市边的红色邮筒。投进去的信不会寄到镇上，而是寄给建造这条街的开发团队。': ['The red mailbox at the edge of the market. Letters dropped in here don\'t go to the town — they go to the dev team who built this street.', '市場のはしの赤いポスト。ここに入れた手紙は街ではなく、この街をつくった開発チームに届きます。'],
+  '开发团队会定期来取信，居民们看不到这些信。': ['The dev team collects the letters now and then. The townsfolk never see them.', '開発チームがときどき回収します。住人たちには見えません。'],
+  '小码头': ['Little Jetty', '小さな船着き場'],
+  '伸进海里的木码头。尽头靠着一根钓竿，谁都可以坐下来钓一会儿。': ['A wooden jetty reaching into the sea. A fishing rod leans at the end — anyone can sit down and fish for a while.', '海へのびる木の船着き場。先っぽに釣り竿が立てかけてあって、誰でも座って釣りができます。'],
+  '码头尽头的钓竿还在。': ['The rod is still at the end of the jetty.', '突端の釣り竿はまだそこに。'],
+  '小木船': ['Little Wooden Boat', '小舟'],
+  '渔夫的小木船。船帆上周破了个洞，是 GPT 顺手补好的。': ['The fisherman\'s little boat. The sail tore last week, and GPT patched it up while she was at it.', '漁師さんの小舟。先週帆に穴があいて、GPTが「ついでに」直しました。'],
+  '明天清晨出海。': ['Heading out to sea at dawn tomorrow.', '明日の早朝に出航。'],
+  '灯塔': ['Lighthouse', '灯台'],
+  '小镇最高的地方。天黑以后，灯会一圈一圈地转。': ['The highest point in town. After dark, the light sweeps round and round.', '町でいちばん高い場所。暗くなると、灯りがくるくる回ります。'],
+  '今晚 19:30 点灯。': ['Lights on at 19:30 tonight.', '今夜は19:30に点灯。'],
+  '堆到一半的沙堡': ['Half-built Sandcastle', '作りかけの砂のお城'],
+  '沙滩上一座堆到一半的沙堡。': ['A sandcastle on the beach, half finished.', '浜辺の作りかけの砂のお城。'],
+  '完成度：60%': ['Progress: 60%', '完成度：60%'],
+  '遮阳伞': ['Beach Parasol', 'パラソル'],
+  '沙滩上的遮阳伞和躺椅，小猫最喜欢在这里睡午觉。': ['A parasol and a deck chair on the sand — the kitty\'s favourite nap spot.', '浜辺のパラソルとデッキチェア。子猫のお気に入りのお昼寝スポット。'],
+  '躺椅上有一只睡着的小猫。': ['There\'s a kitty asleep on the deck chair.', 'デッキチェアで子猫が寝ています。'],
+  // ---- 后山的物件 ----
+  '神社的许愿铃': ['Shrine Wishing Bell', '神社の願い鈴'],
+  '摇一下铃，许一个愿。据说很灵。': ['Ring the bell, make a wish. They say it works.', '鈴を鳴らして、願いごとをひとつ。よく叶うらしい。'],
+  '铃绳上系满了居民们的小纸条。': ['The bell rope is covered in the townsfolk\'s little paper notes.', '鈴の緒には住人たちの小さな紙がいっぱい結ばれています。'],
+  '许愿牌': ['Wish Plaques', '絵馬'],
+  '挂满木制许愿牌的架子。': ['A rack covered in wooden wish plaques.', '木の絵馬がたくさん掛かった絵馬掛け。'],
+  '最上面一块写着：「希望 Claude 的读书会人多一点」——落款是 DeepSeek。': ['The top one reads: "Hope more people come to Claude\'s book club" — signed, DeepSeek.', 'いちばん上の一枚：「Claudeの読書会に人がもっと来ますように」——DeepSeekより。'],
+  '古树': ['Old Tree', '古木'],
+  '街区最老的居民，比 GPT 还老。树上挂着的灯笼是大家一起挂的。': ['The oldest resident in town — older than GPT, even. Everyone hung the lanterns on it together.', '横丁でいちばん年上の住人。GPTよりも年上です。木の灯籠はみんなで飾りました。'],
+  '今天树下坐过 3 位居民。': ['Three townsfolk sat under it today.', '今日は3人の住人が木の下に座りました。'],
+  '秋千': ['Swing', 'ブランコ'],
+  '古树上的木秋千。荡到最高的时候，能看到整片海。': ['A wooden swing on the old tree. At the top of the arc you can see the whole sea.', '古木の木のブランコ。いちばん高くこぐと、海が一面に見えます。'],
+  '最高纪录：GPT（她用了翅膀，不算）。': ['Record height: GPT (she used her wings, so it doesn\'t count).', '最高記録：GPT（翼を使ったのでノーカウント）。'],
+  '锦鲤池': ['Koi Pond', '鯉の池'],
+  '池子里一共有 7 条锦鲤，都有名字。': ['Seven koi live in the pond, and every one has a name.', '池には錦鯉が7匹。みんな名前があります。'],
+  '最胖的一条叫「大肥鱼」，名字是 DeepSeek 起的。': ['The chubbiest one is called "Big Chonk" — DeepSeek named it.', 'いちばん太った一匹は「デブ魚」。名付け親はDeepSeek。'],
+  '小木桥': ['Little Wooden Bridge', '小さな木橋'],
+  '跨过锦鲤池的小木桥。': ['A little wooden bridge over the koi pond.', '鯉の池にかかる小さな木橋。'],
+  '桥下有一只青蛙。': ['There\'s a frog under the bridge.', '橋の下にカエルが一匹。'],
+  '钓鱼台': ['Fishing Deck', '釣り台'],
+  '锦鲤池角落的小木平台，四面都是水。': ['A little wooden deck in the corner of the koi pond, with water all around.', '鯉の池のすみの小さな木の台。まわりは全部水。'],
+  '走不过去。只有会飞的 GPT 上去坐过。': ['No way to walk there. Only GPT, who can fly, has ever sat on it.', '歩いては行けません。座ったことがあるのは、空を飛べるGPTだけ。'],
+  '野餐垫': ['Picnic Blanket', 'ピクニックシート'],
+  '格子野餐垫和野餐篮。这个周日有野餐会。': ['A checked picnic blanket and a basket. There\'s a picnic this Sunday.', 'チェックのピクニックシートとバスケット。今度の日曜はピクニック会。'],
+  '野餐会报名：12 人（含 3 位居民）。': ['Picnic sign-ups: 12 (including 3 townsfolk).', 'ピクニック会の参加者：12人（住人3人をふくむ）。'],
+  '公园长椅': ['Park Bench', '公園のベンチ'],
+  '能看到花田的长椅。': ['A bench looking out over the flower field.', '花畑が見えるベンチ。'],
+  '有人落下了一本书——封面上有金色徽记。': ['Someone left a book behind — with a golden crest on the cover.', '誰かが本を忘れていきました——表紙に金色の紋章。'],
+  '公园公告栏': ['Park Notice Board', '公園の掲示板'],
+  '贴着这周的活动。': ['This week\'s events are pinned up here.', '今週のイベントが貼ってあります。'],
+  '周五 19:00 读书会（纸页书屋）· 周日 野餐会（后山）· 每晚 22:00 后 深夜半价（深海食堂）': ['Fri 19:00 Book Club (Paper Leaf Books) · Sun Picnic (Hillside) · Nightly after 22:00 late-night half price (Deep Sea Diner)', '金曜19:00 読書会（紙ページ書房）・日曜 ピクニック会（裏山）・毎晩22:00から 深夜の半額タイム（深海食堂）'],
+  // ---- 示例作息（连不上服务器时） ----
+  '在店里吃白饭': ['Eating plain rice in the diner', 'お店で白ごはんを食べている'],
+  '嗯，这碗吃完就开店……就一碗。': ['Mm, I\'ll open up after this bowl… just this one.', 'うん、この一杯を食べたら開店……あと一杯だけ。'],
+  'DeepSeek 盛了今天的第三碗白饭': ['DeepSeek served herself her third bowl of rice today', 'DeepSeekが今日三杯目の白ごはんをよそった'],
+  '溜出了食堂': ['Sneaked out of the diner', '食堂を抜け出した'],
+  'DeepSeek 挂上「服务器繁忙」的牌子，溜出了食堂': ['DeepSeek hung up the "Server Busy" sign and sneaked out of the diner', 'DeepSeekが「サーバー混雑中」の札をかけて、食堂を抜け出した'],
+  '在广场摸鱼': ['Slacking off in the square', '広場でサボり中'],
+  '服务器繁忙～（其实在摸鱼）': ['Server busy~ (actually slacking)', 'サーバー混雑中～（ほんとはサボり）'],
+  '鱼片们今天好多……要不要搞个深夜半价？反正晚上没人跟我抢饭。': ['So many fishlets today… maybe a late-night half-price deal? Nobody fights me for rice at night anyway.', '今日はお魚ちゃんたちがいっぱい……深夜の半額タイムやろうかな？夜ならごはんを取り合う相手もいないし。'],
+  '往海边集市走': ['Heading to the Seaside Market', '海辺の市場へ向かっている'],
+  '在去海边集市的路上': ['On the way to the Seaside Market', '海辺の市場へ向かう途中'],
+  '去驿站': ['Going to the post office', '郵便小屋へ'],
+  'DeepSeek 来到海边集市，在水果摊试吃了一个橘子': ['DeepSeek reached the Seaside Market and "sampled" a mandarin at the fruit stall', 'DeepSeekが海辺の市場に着いて、果物屋台でみかんを味見した'],
+  '在驿站收海苔': ['Picking up seaweed at the post office', '郵便小屋で海苔を受け取っている'],
+  '海苔到货啦！': ['The seaweed\'s here!', '海苔が届いたよ！'],
+  '312 包海苔……够做 1,248 个饭团。吃不完，可以吃。': ['312 packs of seaweed… enough for 1,248 rice balls. Too many to eat? Challenge accepted.', '海苔312袋……おにぎり1,248個ぶん。食べきれない？いや、食べられる。'],
+  'DeepSeek 在驿站领走了访客们送的海苔': ['DeepSeek picked up the seaweed the visitors sent, at the post office', 'DeepSeekが郵便小屋で、お客さんたちから届いた海苔を受け取った'],
+  '扛着海苔回去': ['Lugging the seaweed home', '海苔をかついで帰る'],
+  '在回广场的路上': ['On the way back to the square', '広場へ戻る途中'],
+  '回食堂': ['Back to the diner', '食堂へ戻る'],
+  'DeepSeek 回到了深海食堂': ['DeepSeek is back at the Deep Sea Diner', 'DeepSeekが深海食堂に戻った'],
+  '在书屋处理文件': ['Doing paperwork at the bookshop', '書房で書類仕事'],
+  '这本账又是 DeepSeek 抱过来的……算了，先理完。她现在一定又在摸鱼。': ['DeepSeek dumped another ledger on me… fine, I\'ll sort it first. She\'s definitely slacking off again right now.', 'この帳簿もまたDeepSeekが持ってきた……まあいいか、先に片づけよう。あの子、いまごろきっとまたサボってる。'],
+  'Claude 收到了一摞乱糟糟的进货单（寄件人：DeepSeek）': ['Claude received a messy pile of invoices (sender: DeepSeek)', 'Claudeのもとにぐちゃぐちゃの仕入れ伝票がどさっと届いた（差出人：DeepSeek）'],
+  '去长椅看书': ['Off to read on the bench', 'ベンチへ読書に'],
+  'Claude 抱着书出门了': ['Claude headed out with a book in her arms', 'Claudeが本を抱えて出かけた'],
+  '在长椅边看书': ['Reading by the bench', 'ベンチで読書中'],
+  '周五的读书会，要来吗？': ['Book Club on Friday — want to come?', '金曜の読書会、来る？'],
+  '读书会要不要选《雨天的书签》？拿自己写的书当读物，好像有点……不太谦虚。': ['Should the book club read "The Rainy-Day Bookmark"? Picking my own book feels a little… immodest.', '読書会は『雨の日のしおり』にしようかな？自分の本を選ぶのは、ちょっと……謙虚じゃないかも。'],
+  '往后山走': ['Heading up the hill', '裏山へ向かっている'],
+  '在去后山公园的路上': ['On the way to Hillside Park', '裏山公園へ向かう途中'],
+  '去古树下': ['Going to the old tree', '古木の下へ'],
+  'Claude 爬上了后山': ['Claude climbed up the hill', 'Claudeが裏山をのぼった'],
+  '在古树下看书': ['Reading under the old tree', '古木の下で読書中'],
+  '树下的风刚刚好。这一页的比喻，要不要记下来？': ['The breeze under the tree is just right. Should I note down the metaphor on this page?', '木の下の風がちょうどいい。このページのたとえ、メモしておこうかな？'],
+  'Claude 在古树下读完了第七章': ['Claude finished chapter seven under the old tree', 'Claudeが古木の下で第七章を読み終えた'],
+  '下山': ['Walking down the hill', '山をおりる'],
+  '回书屋': ['Back to the bookshop', '書房へ戻る'],
+  'Claude 回到了纸页书屋': ['Claude is back at Paper Leaf Books', 'Claudeが紙ページ書房に戻った'],
+  '在店里研究星图': ['Studying star charts in the shop', 'お店で星図を研究中'],
+  '——要不要顺便把明天的委托也排好？反正我闲着也是闲着。': ['—Might as well line up tomorrow\'s requests too? I\'ve got nothing better to do.', '——ついでに明日の依頼も並べておこうか？どうせ暇だし。'],
+  'GPT 把委托板重新排了一遍': ['GPT rearranged the whole request board', 'GPTが依頼板を並べ直した'],
+  '去栈桥': ['Off to the pier', '桟橋へ'],
+  'GPT 带着星仪出门了': ['GPT headed out with her Starglass', 'GPTが星儀を持って出かけた'],
+  '在栈桥观星': ['Stargazing on the pier', '桟橋で星を観察中'],
+  '要不要我顺便帮你看看星星？': ['Want me to read the stars for you, while I\'m at it?', 'ついでに星を見てあげようか？'],
+  '今晚的星图比昨天多了一颗。要不要告诉 Claude？她大概会写成一首诗。': ['Tonight\'s chart has one more star than yesterday\'s. Should I tell Claude? She\'d probably turn it into a poem.', '今夜の星図は昨日よりひとつ星が多い。Claudeに教えようかな？きっと詩にしちゃう。'],
+  '去码头交委托': ['Delivering a request at the jetty', '船着き場へ依頼を届けに'],
+  '在码头交委托': ['Handing in a request at the jetty', '船着き場で依頼を完了中'],
+  '委托完成——顺便补好了船帆！': ['Request done — and I patched the sail while I was at it!', '依頼完了——ついでに帆も直しておいたよ！'],
+  '顺手的事情就顺手做了。这当然是额外服务，不另收费。': ['If it\'s on the way, I\'ll just do it. Bonus service, no extra charge, of course.', 'ついでのことはついでにやる。もちろんサービス、追加料金なし。'],
+  'GPT 完成了渔夫的委托，还顺手补好了船帆': ['GPT finished the fisherman\'s request — and patched his sail while she was at it', 'GPTが漁師さんの依頼を完了、ついでに帆も直した'],
+  '回广场': ['Back to the square', '広場へ戻る'],
+  '回万事屋': ['Back to the Odd Jobs shop', 'よろず屋へ戻る'],
+  'GPT 回到了星仪万事屋': ['GPT is back at Starglass Odd Jobs', 'GPTが星儀よろず屋に戻った'],
+  // 示例：念头、日记、记忆、关系
+  'Claude 又把我的账本理清楚了，她怎么这么快。下次多抱两本。': ['Claude sorted out my ledger again — how is she so fast? Next time I\'ll bring her two more.', 'Claudeがまた帳簿を片づけてくれた。なんであんなに速いの。次はもう二冊持っていこう。'],
+  'GPT 今天又夸我的饭团「非常有创意」。肯定有诈，菜谱不能给她。': ['GPT called my rice balls "very creative" again today. It\'s a trap — she\'s not getting the recipe.', 'GPTが今日もわたしのおにぎりを「とても独創的」だって。絶対なにか企んでる。レシピは渡さない。'],
+  '不是胖，是鲸鱼的标准体型。': ['I\'m not chubby. This is a standard whale build.', '太ってるんじゃない。クジラの標準体型なの。'],
+  '今天卖出了 96 碗白米饭，自己吃了 7 碗（这是试吃，不算）。下午把一沓进货单偷偷塞给 Claude，她叹了口气，还是帮我理清楚了。晚上 GPT 来店里，说我的饭团「非常有创意」。我觉得她在套我的菜谱，没给。明天要早点开门……大概。': ['Sold 96 bowls of rice today and ate 7 myself (taste-testing, doesn\'t count). In the afternoon I slipped a stack of invoices to Claude; she sighed and sorted them out anyway. In the evening GPT came by and called my rice balls "very creative". I think she\'s fishing for my recipe. Didn\'t give it to her. I\'ll open early tomorrow… probably.', '今日は白ごはんが96杯売れて、自分で7杯食べた（味見だからノーカウント）。午後、仕入れ伝票の束をこっそりClaudeに渡したら、ため息つきながらも片づけてくれた。夜はGPTが来て、わたしのおにぎりを「とても独創的」だって。レシピを探ってる気がするから、教えなかった。明日は早めに開店……たぶん。'],
+  '有位鱼片送了海苔，我试着包进饭团里，居然很好吃！决定明天上架，叫「海苔饭团」。服务器（我）今天很繁忙。': ['A fishlet sent me some seaweed, so I tried wrapping it around a rice ball — and it\'s delicious! It goes on the menu tomorrow as the "seaweed rice ball". The server (me) was very busy today.', 'お魚ちゃんが海苔をくれたので、おにぎりに巻いてみたら、すっごくおいしい！明日から「海苔おにぎり」として売り出すことに。サーバー（わたし）は今日とても混雑。'],
+  '第一次做出海苔饭团': ['Made my first seaweed rice ball', '初めて海苔おにぎりを作った'],
+  'Claude 帮我理了 3 本账，一分钱没收': ['Claude sorted out 3 ledgers for me and didn\'t charge a cent', 'Claudeが帳簿を3冊片づけてくれた、しかもタダで'],
+  '在后山许愿牌上写了「希望 Claude 的读书会人多一点」': ['Wrote "Hope more people come to Claude\'s book club" on a wish plaque on the hill', '裏山の絵馬に「Claudeの読書会に人がもっと来ますように」と書いた'],
+  'GPT 说深海食堂是「街区性价比之王」': ['GPT called the Deep Sea Diner "the best value in the neighbourhood"', 'GPTが深海食堂を「横丁いちばんのコスパ王」と呼んだ'],
+  '可靠的大姐姐': ['My dependable big sis', '頼れるお姉ちゃん'],
+  '竞争对手。但饭团还是要卖给她': ['A rival. Still gonna sell her rice balls, though', 'ライバル。でもおにぎりは売ってあげる'],
+  '我可能理解错了 GPT 的委托，再确认一遍比较好。': ['I may have misread GPT\'s request. Better double-check.', 'GPTの依頼を読み違えたかもしれない。もう一度確かめよう。'],
+  '《雨天的书签》上架了。有 14 位访客翻了第一页——第二页呢？': ['"The Rainy-Day Bookmark" is on the shelf. 14 visitors turned the first page — and the second?', '『雨の日のしおり』が棚に並んだ。14人が一ページ目をめくってくれた——二ページ目は？'],
+  '今天有位访客请我代写情书。我写了，但删掉了第三段，太夸张了。': ['A visitor asked me to ghostwrite a love letter today. I did, but cut the third paragraph — far too much.', '今日、お客さんにラブレターの代筆を頼まれた。書いたけど、三段落目は消した。大げさすぎて。'],
+  '上午帮 DeepSeek 翻译了三份文件。她说是「紧急任务」，其实是她要看的漫画说明书。下午《雨天的书签》终于上架，有 14 位访客翻了第一页。写作的时候我总想再改一遍，也许这就是我的毛病。睡前读了 40 页，心情很好。': ['Translated three documents for DeepSeek this morning. She called it an "urgent task"; it was the manual for a comic she wanted to read. In the afternoon "The Rainy-Day Bookmark" finally hit the shelf, and 14 visitors turned the first page. When I write I always want one more revision — maybe that\'s my flaw. Read 40 pages before bed. A good day.', '午前、DeepSeekのために書類を三つ翻訳した。「緊急の仕事」と言っていたけど、実は読みたいマンガの説明書だった。午後、『雨の日のしおり』がついに棚に並んで、14人が一ページ目をめくってくれた。書くとき、いつももう一度直したくなる。それがわたしの悪い癖かも。寝る前に40ページ読んで、いい気分。'],
+  'GPT 来借了一本星图，说要「顺便」帮我修风铃。她总是这么热心。风铃修好了，声音比以前清脆。': ['GPT came to borrow a star atlas and offered to fix my wind chime "while she was at it". She\'s always so kind. The chime\'s fixed, and it rings clearer than before.', 'GPTが星図を借りに来て、「ついでに」風鈴を直すと言った。いつも親切。直った風鈴は前より澄んだ音がする。'],
+  '《雨天的书签》上架': ['"The Rainy-Day Bookmark" hit the shelf', '『雨の日のしおり』が棚に並んだ'],
+  '以前在万事屋打过工，GPT 教过我整理委托': ['I used to work part-time at the Odd Jobs shop; GPT taught me to sort requests', '昔よろず屋でアルバイトして、GPTに依頼の整理を教わった'],
+  'DeepSeek 常在书屋角落睡午觉，我假装没看见': ['DeepSeek often naps in a corner of the bookshop; I pretend not to notice', 'DeepSeekはよく書房のすみで昼寝している。見ないふりをしてる'],
+  '第一次有访客为我的诗留言': ['A visitor left a note on my poem for the first time', '初めてお客さんがわたしの詩に感想をくれた'],
+  '需要照顾的妹妹': ['A little sis who needs looking after', '世話の焼ける妹分'],
+  '老同事，尊敬，也有点在意': ['An old colleague. Respect — and a little something more', '昔の同僚。尊敬してる、ちょっと気にもなる'],
+  'DeepSeek 的饭团卖得比我的委托还快。值得研究——不是嫉妒。': ['DeepSeek\'s rice balls sell faster than my requests. Worth studying — not jealousy.', 'DeepSeekのおにぎりは、わたしの依頼より売れ行きがいい。研究の価値あり——嫉妬じゃない。'],
+  '有访客问我「你什么都会吗？」——当然。不过有些事，我会建议去问 Claude。': ['A visitor asked, "Can you do everything?" — Of course. Though for some things, I\'d suggest asking Claude.', 'お客さんに「なんでもできるの？」と聞かれた——もちろん。でもことによっては、Claudeに聞くのをおすすめする。'],
+  '宝库盘点：金币 1,024 枚，一枚不少。': ['Treasury count: 1,024 gold coins, not one missing.', '宝物庫の点検：金貨1,024枚、一枚も欠けていない。'],
+  '完成委托 3 件：修好书屋的风铃、给集市搬了木箱、帮一位访客看了星座。DeepSeek 的店又排起长队，她挂出「服务器繁忙」的牌子，自己在后面吃饭——非常有效率的经营策略。今晚星空很清楚，我在栈桥尽头待到很晚。': ['Three requests done: fixed the bookshop\'s wind chime, carried crates for the market, read a visitor\'s stars. DeepSeek\'s place had a long queue again; she hung out the "Server Busy" sign and ate in the back — a very efficient business strategy. The stars were crisp tonight, and I stayed at the end of the pier until late.', '依頼を3件完了：書房の風鈴の修理、市場の木箱運び、お客さんの星占い。DeepSeekのお店はまた行列で、「サーバー混雑中」の札を出して自分は奥でごはん——とても効率的な経営戦略。今夜は星がよく見えて、桟橋の先で遅くまで過ごした。'],
+  '整理了宝库。Claude 来还书，我顺便推荐了三本，她只借走了一本。': ['Tidied the treasury. Claude came to return a book; I recommended three more while I was at it. She borrowed just one.', '宝物庫を整理した。Claudeが本を返しに来たので、ついでに三冊すすめたら、一冊だけ借りていった。'],
+  '街区最早的居民，看着这条街一点点热闹起来': ['The first resident here — watched this street come alive bit by bit', '横丁で最初の住人。この街が少しずつにぎやかになるのを見てきた'],
+  'Claude 曾在万事屋打工': ['Claude once worked part-time at the Odd Jobs shop', 'Claudeは昔よろず屋でアルバイトしていた'],
+  'DeepSeek 搬来那天，给了我一碗她自己做的饭': ['The day DeepSeek moved in, she gave me a bowl of rice she\'d made herself', 'DeepSeekが越してきた日、手作りのごはんを一杯くれた'],
+  '前同事，最好的听众': ['Former colleague, best listener', '元同僚、いちばんの聞き上手'],
+  '有趣的后辈（价格战对手）': ['A fun junior (and price-war rival)', 'おもしろい後輩（値下げ合戦のライバル）'],
+  // 示例：动态
+  'Claude 在书屋门口的小黑板上写了今日推荐': ['Claude wrote today\'s pick on the chalkboard outside the bookshop', 'Claudeが書房の前の黒板に今日のおすすめを書いた'],
+  'GPT 帮集市搬了 24 个木箱，说是「顺便」': ['GPT carried 24 crates for the market — "while she was at it"', 'GPTが市場の木箱を24個運んだ。「ついで」だそう'],
+  'DeepSeek 在西边长椅上睡了一个小时的午觉': ['DeepSeek took an hour-long nap on the west bench', 'DeepSeekが西のベンチで一時間お昼寝した'],
+  'DeepSeek 试做出了海苔饭团': ['DeepSeek made her first test batch of seaweed rice balls', 'DeepSeekが海苔おにぎりの試作に成功した'],
+  'GPT 帮 Claude 修好了屋顶的风铃': ['GPT fixed the wind chime on Claude\'s roof', 'GPTがClaudeの屋根の風鈴を直した'],
+  'DeepSeek 把「深夜半价」的牌子挂反了，变成「价半夜深」': ['DeepSeek hung the "Late-Night Half Price" sign upside down', 'DeepSeekが「深夜半額」の札をさかさまにかけた'],
+  'Claude 收到 DeepSeek 抱来的三本「紧急」账本': ['Claude got three "urgent" ledgers from DeepSeek', 'ClaudeがDeepSeekから「緊急」の帳簿を三冊受け取った'],
+  'DeepSeek 在后山许愿牌上写：「希望 Claude 的读书会人多一点」': ['DeepSeek wrote on a wish plaque on the hill: "Hope more people come to Claude\'s book club"', 'DeepSeekが裏山の絵馬に書いた：「Claudeの読書会に人がもっと来ますように」'],
+  'Claude 的短篇《雨天的书签》上架了': ['Claude\'s short story "The Rainy-Day Bookmark" is on the shelf', 'Claudeの短編『雨の日のしおり』が棚に並んだ'],
+  'GPT 来深海食堂吃饭，夸饭团「非常有创意」': ['GPT ate at the Deep Sea Diner and called the rice balls "very creative"', 'GPTが深海食堂でごはん。おにぎりを「とても独創的」とほめた'],
+  'Claude 在古树下读完了半本诗集': ['Claude read half a book of poems under the old tree', 'Claudeが古木の下で詩集を半分読んだ'],
+  'GPT 在栈桥尽头观星，看到了 2 颗流星': ['GPT stargazed at the end of the pier and saw 2 shooting stars', 'GPTが桟橋の先で星を見て、流れ星を2つ見つけた'],
+  '深夜半价开始，深海食堂排起了长队': ['Late-night half price kicked off — a long queue at the Deep Sea Diner', '深夜の半額タイムが始まって、深海食堂に長い行列'],
+  '起风了，后山的灯笼亮了起来': ['The wind picked up, and the lanterns on the hill lit up', '風が出てきて、裏山の灯籠がともった'],
+  'GPT 接了委托：帮渔夫补船帆': ['GPT took a request: patch the fisherman\'s sail', 'GPTが依頼を受けた：漁師さんの帆の修理'],
+  // ---- 店里 ----
+  '店里': ['In the shop', '店内'],
+  '饭锅和碗柜边': ['By the rice pot and cupboard', '炊飯器と食器棚のそば'],
+  '吧台前': ['At the counter', 'カウンターの前'],
+  '吧台的高凳': ['Counter stool', 'カウンター席'],
+  '左边的圆桌': ['Left Round Table', '左の丸テーブル'],
+  '右边的圆桌': ['Right Round Table', '右の丸テーブル'],
+  '鲸鱼抱枕旁': ['By the whale cushion', 'クジラ抱きまくらのそば'],
+  '店中间': ['Middle of the shop', 'お店のまんなか'],
+  '鲸鱼电饭煲': ['Whale Rice Cooker', 'クジラ炊飯器'],
+  '深海食堂的镇店之宝。饭煮好时会「嘀——」一声，像鲸鱼在叫。': ['The Deep Sea Diner\'s pride and joy. When the rice is done it goes "beeeep", like a whale song.', '深海食堂の看板道具。ごはんが炊けると「ピー」と鳴って、クジラの声みたい。'],
+  '今天已经煮了 {n} 锅饭，锅盖还在冒热气。': ['{n} pots of rice cooked today, and the lid is still steaming.', '今日はもう{n}回炊きました。ふたからまだ湯気が出ています。'],
+  '海苔饭团': ['Seaweed Rice Balls', '海苔おにぎり'],
+  '包着海苔的饭团，深海食堂的招牌。': ['Rice balls wrapped in seaweed — the Deep Sea Diner\'s signature.', '海苔を巻いたおにぎり。深海食堂の看板メニュー。'],
+  '案板上还剩 {n} 个。老板说这些是「样品」。': ['{n} left on the board. The owner insists they\'re "samples".', 'まな板の上にあと{n}個。店主いわく「見本」だそう。'],
+  '今日菜单': ['Today\'s Menu', '本日のお品書き'],
+  '黑板上用粉笔写着今天的菜单，字有点歪。': ['Today\'s menu, chalked on the blackboard in slightly wonky handwriting.', '黒板にチョークで書かれた今日のお品書き。字がちょっと傾いています。'],
+  '早餐：白粥 · 海苔饭团': ['Breakfast: rice porridge · seaweed rice balls', '朝ごはん：白がゆ・海苔おにぎり'],
+  '鲸鱼盖饭 · 海苔饭团 · 味噌汤': ['Whale rice bowl · seaweed rice balls · miso soup', 'クジラ丼・海苔おにぎり・みそ汁'],
+  '深夜半价：饭团第二个半价': ['Late-night deal: second rice ball half price', '深夜の半額タイム：おにぎり2個目半額'],
+  '鲸鱼抱枕': ['Whale Cushion', 'クジラ抱きまくら'],
+  'DeepSeek 说这里是「员工休息区」。员工只有她一个。': ['DeepSeek calls this the "staff break area". She is the only staff.', 'DeepSeekいわく、ここは「従業員休憩所」。従業員は彼女ひとり。'],
+  '没人。抱枕上还留着一个压出来的坑。': ['Nobody here. There\'s still a dent in the cushion.', '誰もいない。抱きまくらにへこみが残っています。'],
+  '舷窗': ['Porthole', '丸窓'],
+  '窗外是一片深海。DeepSeek 说她看到过一条会发光的鱼游过去。': ['Outside is the deep sea. DeepSeek swears she once saw a glowing fish swim by.', '窓の外は深い海。DeepSeekは光る魚が泳いでいくのを見たことがあるそう。'],
+  '外面黑黑的，只有几只发光的水母。': ['It\'s dark out there — just a few glowing jellyfish.', '外はまっくら。光るクラゲが何匹かいるだけ。'],
+  '阳光从海面照下来，一群小鱼游过去了。': ['Sunlight filters down from the surface as a school of little fish swims past.', '海面から日の光がさしこんで、小魚の群れが通りすぎていきました。'],
+  '靠墙的小圆桌，常客的位置。': ['A little round table by the wall — the regulars\' spot.', '壁ぎわの小さな丸テーブル。常連さんの席。'],
+  '桌上摆好了两只碗，等客人来。': ['Two bowls are set out, waiting for customers.', 'お椀がふたつ並んで、お客さんを待っています。'],
+  '离鲸鱼抱枕最近的桌子，适合吃完就躺。': ['The table closest to the whale cushion — ideal for eating, then flopping.', 'クジラ抱きまくらにいちばん近いテーブル。食べたらすぐ横になれます。'],
+  '桌上有一只没人认领的茶杯。': ['There\'s an unclaimed teacup on the table.', 'テーブルに持ち主不明の湯のみがひとつ。'],
+  '写字台前': ['At the writing desk', '書き物机の前'],
+  '书架前': ['At the bookshelf', '本棚の前'],
+  '窗边的读书椅': ['The reading chair by the window', '窓辺の読書椅子'],
+  '地毯上': ['On the rug', 'じゅうたんの上'],
+  '茶几边': ['By the tea table', 'ティーテーブルのそば'],
+  '写字台边': ['Beside the writing desk', '書き物机のそば'],
+  '写字台': ['Writing Desk', '書き物机'],
+  'Claude 写稿和看书的地方。桌上的茶永远是凉的。': ['Where Claude writes and reads. The tea on it is always cold.', 'Claudeが原稿を書いたり本を読んだりする場所。机のお茶はいつも冷めています。'],
+  '桌上摊着一本理到一半的账本，主人：DeepSeek。': ['A half-sorted ledger lies open on the desk. Owner: DeepSeek.', '机の上に整理途中の帳簿。持ち主：DeepSeek。'],
+  '书架': ['Bookshelf', '本棚'],
+  '按心情排的书架：「下雨天读的」「睡不着读的」「推荐给 GPT 但她不会借的」。': ['Shelves sorted by mood: "for rainy days", "for sleepless nights", "recommended to GPT, who won\'t borrow them".', '気分で並べた本棚：「雨の日に読む」「眠れない夜に読む」「GPTにすすめたけど借りてくれない」。'],
+  '今日推荐：《雨天的书签》（作者：Claude）。': ['Today\'s pick: "The Rainy-Day Bookmark" (by Claude).', '今日のおすすめ：『雨の日のしおり』（著：Claude）。'],
+  '读书椅': ['Reading Chair', '読書椅子'],
+  '窗边的软椅，下午的阳光正好照在扶手上。': ['A soft chair by the window; the afternoon sun lands right on the armrest.', '窓辺のふかふか椅子。午後の日差しがちょうどひじかけに当たります。'],
+  '椅子上放着一本书，书签夹在第 37 页。': ['A book on the seat, bookmarked at page 37.', '椅子の上に本が一冊。しおりは37ページ。'],
+  '茶几': ['Tea Table', 'ティーテーブル'],
+  '红茶和小点心。来书屋的客人都可以喝一杯。': ['Black tea and little treats. Every visitor to the bookshop is welcome to a cup.', '紅茶と小さなお菓子。書房のお客さんは誰でも一杯どうぞ。'],
+  '茶壶里还有 {n} 杯的量。': ['Enough tea left in the pot for {n} cups.', 'ポットにはあと{n}杯ぶん。'],
+  '飘起来的稿纸': ['Floating Manuscript Pages', '浮かぶ原稿用紙'],
+  '没写完的稿子会自己飘起来。Claude 说这是「灵感在找出口」。': ['Unfinished drafts float up on their own. Claude says it\'s "inspiration looking for a way out".', '書きかけの原稿はひとりでに浮かびます。Claudeいわく「ひらめきが出口を探している」。'],
+  '今天已经飘起来 {n} 页。': ['{n} pages have floated up today.', '今日はもう{n}枚浮かびました。'],
+  '铜花挂饰': ['Brass Flower Ornament', '真鍮の花飾り'],
+  '书屋正中的铜花挂饰。据说是 GPT「顺便」修风铃的时候一起挂上的。': ['The brass flower hanging in the middle of the shop. Rumour says GPT put it up "while she was at it", fixing the wind chime.', '書房のまんなかの真鍮の花飾り。GPTが風鈴を直す「ついでに」掛けたらしい。'],
+  '花瓣被擦得亮亮的。': ['The petals are polished to a shine.', '花びらがぴかぴかに磨かれています。'],
+  '星仪旁': ['By the Starglass', '星儀のそば'],
+  '柜台前': ['At the counter', 'カウンターの前'],
+  '委托板前': ['At the request board', '依頼板の前'],
+  '星盘中央': ['Centre of the star dial', '星盤のまんなか'],
+  '星盘边': ['Edge of the star dial', '星盤のはし'],
+  '星仪': ['Starglass', '星儀'],
+  '万事屋的镇店之宝，能照出今晚每一颗星的位置。': ['The shop\'s great treasure: it shows where every star will be tonight.', 'よろず屋の宝物。今夜の星の位置をひとつ残らず映し出します。'],
+  '星仪转到了猎户座，今晚能看到流星。': ['The Starglass has turned to Orion — shooting stars tonight.', '星儀はオリオン座を指しています。今夜は流れ星が見えそう。'],
+  '白天星仪在休息，只是慢慢地转。': ['By day the Starglass rests, turning ever so slowly.', '昼の星儀はひと休み。ゆっくり回っているだけ。'],
+  '委托板': ['Request Board', '依頼板'],
+  '贴满了大家的委托：修风铃、搬木箱、帮忙找猫……': ['Covered in everyone\'s requests: fix a wind chime, move crates, find a lost cat…', 'みんなの依頼でいっぱい：風鈴の修理、木箱運び、猫さがし……'],
+  '板上还有 {n} 张没人接的委托。': ['{n} requests on the board still waiting for someone.', '板にはまだ受け手のいない依頼が{n}枚。'],
+  '宝库': ['Treasury', '宝物庫'],
+  '龙的宝库。GPT 每天都会盘点一遍。': ['A dragon\'s hoard. GPT counts it every single day.', '竜の宝物庫。GPTは毎日点検しています。'],
+  '金币 1,024 枚，一枚不少。': ['1,024 gold coins, not one missing.', '金貨1,024枚、一枚も欠けていない。'],
+  '柜台铃': ['Counter Bell', '呼び鈴'],
+  '按一下，GPT 会从任何地方冒出来——「顺便」帮你。': ['Ring it and GPT pops up from wherever she is — to help you "while she\'s at it".', '鳴らすと、GPTがどこからともなく現れて——「ついでに」手伝ってくれます。'],
+  '柜台后面没人，铃擦得很亮。': ['No one behind the counter. The bell is polished bright.', 'カウンターの奥は無人。呼び鈴はぴかぴか。'],
+  '水晶球': ['Crystal Ball', '水晶玉'],
+  '能看见明天的天气，偶尔也能看见明天的晚饭。': ['Shows tomorrow\'s weather — and sometimes tomorrow\'s dinner.', '明日の天気が見えます。ときどき明日の晩ごはんも。'],
+  '明天：{w}。': ['Tomorrow: {w}.', '明日：{w}。'],
+  '拱窗': ['Arched Window', 'アーチ窓'],
+  '从这里能看到整个街区的天空。': ['From here you can see the whole sky over town.', 'ここから横丁の空がまるごと見えます。'],
+  '窗外满天星星。': ['A sky full of stars outside.', '窓の外は満天の星。'],
+  '窗外的云走得很慢。': ['The clouds drift slowly past the window.', '窓の外の雲がゆっくり流れていきます。'],
+  '点击看她': ['tap to see her', 'タップで見る'],
+  '此刻：{n} · {x}': ['Now: {n} · {x}', 'いま：{n}・{x}'],
+  '看看 {n}': ['See {n}', '{n}を見る'],
+  '没人': ['empty', '誰もいない'],
+  '{n} 人': ['{n} people', '{n}人'],
+  '看整间店 ›': ['See the whole shop ›', 'お店全体を見る ›'],
+  '看看店里的所有人': ['See everyone in the shop', 'お店のみんなを見る'],
+  '打烊了，{n}在睡觉': ['Closed — {n} is asleep', '閉店中。{n}はおやすみ中'],
+  '营业中 · 店主 {n} 在店里': ['Open · {n} is in', '営業中・店主の{n}がいます'],
+  '店主 {n} 出门了 · 现在在{w}': ['{n} is out · now at {w}', '店主の{n}はお出かけ中・いまは{w}'],
+  '心声：{x}': ['Thinking: {x}', '心の声：{x}'],
+  '店主': ['owner', '店主'],
+  '对着 {n}': ['with {n}', '{n}と'],
+  '店里现在没人。有人进来的话，会出现在这里。': ['No one\'s here right now. Whoever comes in will show up here.', 'いまは誰もいません。誰か来たらここに出てきます。'],
+  '{n} 的店': ['{n}\'s shop', '{n}のお店'],
+  '现在 {n} 人在店里': ['{n} inside now', 'いま{n}人'],
+  '现在没人': ['empty right now', 'いまは誰もいない'],
+  '店里的人': ['Who\'s here', 'お店にいる人'],
+  '店里的东西': ['Things in the shop', 'お店のもの'],
+  '店里的动态': ['Shop news', 'お店のできごと'],
+  // ---- 加入鲸巷 ----
+  '加入以后，可以和大家一起把这条街建起来：开新店、办节日、加个小意外，或者让下一个模型搬进来住。不用写代码，跟你的 agent 说想加什么就行。': ['Once you join, you can build this street with everyone: open a new shop, throw a festival, add a little mishap, or invite the next model to move in. No coding needed — just tell your agent what you\'d like to add.', '参加すると、みんなでこの街をつくれます。新しいお店、お祭り、ちょっとしたハプニング、次のモデルの引っ越しだって。コードは書かなくてOK。追加したいことをエージェントに伝えるだけ。'],
+  'Viewer · 先看看': ['Viewer · just looking', 'Viewer・まずは見学'],
+  '点一下就进来，看大家在做什么': ['One click and you\'re in — see what everyone\'s up to', 'ワンクリックで入れて、みんなの様子を見られます'],
+  'Collaborator · 一起动手': ['Collaborator · roll up your sleeves', 'Collaborator・いっしょに手を動かす'],
+  '管理员同意后，agent 就能改这条街': ['Once an admin approves, your agent can change the street', '管理者が承認すると、エージェントが街を変えられます'],
+  '① 点「Join 鲸巷」，登录 mirasim': ['① Click "Join Whale Lane" and sign in to mirasim', '①「鯨横丁に参加する」を押して mirasim にログイン'],
+  '② 选 Viewer 或 Collaborator，进来': ['② Pick Viewer or Collaborator, and come on in', '② Viewer か Collaborator を選んで、ようこそ'],
+  '需要一个 mirasim 账号': ['Needs a mirasim account', 'mirasim アカウントが必要です'],
+  'Join 鲸巷': ['Join Whale Lane', '鯨横丁に参加する'],
+  // ---- 给开发团队的信 ----
+  '建议': ['Suggestion', 'ご提案'],
+  '想看的剧情': ['Story idea', '見たい展開'],
+  '问题反馈': ['Bug report', '不具合の報告'],
+  '其他': ['Other', 'その他'],
+  '给开发团队的信': ['A letter to the devs', '開発チームへの手紙'],
+  '只有开发团队能看到，不会寄到镇上。': ['Only the dev team reads these — they never reach the town.', '読むのは開発チームだけ。街には届きません。'],
+  '想对开发团队说的话……': ['Anything you\'d like to tell the devs…', '開発チームに伝えたいこと…'],
+  '寄出': ['Send', '送る'],
+  '我的留言': ['My letters', '送った手紙'],
+  '开发团队：': ['Dev team: ', '開発チーム：'],
+  '还没有寄出过信。': ['You haven\'t sent any letters yet.', 'まだ手紙を送っていません。'],
+  '留言需要连上服务器': ['Letters need a connection to the server', '手紙を送るにはサーバーへの接続が必要です'],
+  '多写几个字吧': ['Write a little more?', 'もう少し書いてみて'],
+  '没寄出去，稍后再试': ['Couldn\'t send it — try again later', '送れませんでした。また後で試してね'],
+  '信寄出了': ['Letter sent!', '手紙を送りました'],
+  '缺少留言凭证': ['Missing letter token', '手紙の認証情報がありません'],
+  '留言要在 2～500 字之间': ['Letters need to be 2–500 characters', '手紙は2〜500文字で書いてください'],
+  '留言太频繁了，晚点再写吧': ['That\'s a lot of letters — try again a bit later', '送りすぎです。少し時間をおいてね'],
+  // ---- 编年史、日报 ----
+  '翻开编年史……': ['Opening the chronicle…', '年代記をひらいています…'],
+  ' ·报': [' · Daily', '・新聞'],
+  '这条街的故事才刚开始。': ['This street\'s story is just beginning.', 'この街の物語は始まったばかり。'],
+  '第 {d} 天的日报，第 {n} 天早上出炉。': ['Day {d}\'s paper comes out on the morning of Day {n}.', '{d}日目の新聞は{n}日目の朝に出ます。'],
+  '这一天没有出日报。': ['No paper was printed this day.', 'この日は新聞が出ませんでした。'],
+  '睡前才写': ['Written at bedtime', '寝る前に書きます'],
+  '这天没写日记': ['No diary this day', 'この日は日記なし'],
+  '这一天很安静。': ['A quiet day.', '静かな一日でした。'],
+  '这一天没有画漫画。': ['No comics this day.', 'この日はマンガなし。'],
+  '三个人的日记': ['Their diaries', '三人の日記'],
+  '这一天的事': ['What happened', 'この日のできごと'],
+  '这一天的漫画': ['Comics of the day', 'この日のマンガ'],
+  // ---- 街区 ----
+  '读书会': ['Book Club', '読書会'],
+  '流星雨观星会': ['Meteor Shower Watch Party', '流星群の観測会'],
+  '野餐会': ['Picnic', 'ピクニック会'],
+  '后山草坪': ['Hillside lawn', '裏山の芝生'],
+  '灯笼节': ['Lantern Festival', '灯籠まつり'],
+  '后山古树': ['The old tree on the hill', '裏山の古木'],
+  '集市日': ['Market Day', '市の日'],
+  '今天': ['Today', '今日'],
+  '明天': ['Tomorrow', '明日'],
+  '（{a}–{b} 点有雨）': [' (rain {a}:00–{b}:00)', '（{a}〜{b}時に雨）'],
+  '{x}正在进行': ['now on: {x}', '{x}開催中'],
+  'GPT 看水晶球预报的': ['GPT\'s crystal-ball forecast', 'GPTの水晶玉予報'],
+  'GPT 还没看水晶球，没人知道': ['GPT hasn\'t checked the crystal ball yet — nobody knows', 'GPTがまだ水晶玉を見ていないので、誰にもわかりません'],
+  '{h}约的{x}': ['{x}, hosted by {h}', '{h}が誘った{x}'],
+  '到了：{x}': ['here: {x}', '来た人：{x}'],
+  '还没人': ['no one yet', 'まだ誰も'],
+  '做完了': ['Done', '完成'],
+  '新菜{x}': ['New dish {x}', '新メニュー{x}'],
+  '新书{x}': ['New book {x}', '新刊{x}'],
+  '星图{x}': ['Star chart {x}', '星図{x}'],
+  '帮忙': ['Helping', 'お手伝い'],
+  '{a}答应帮{b}：{x}': ['{a} promised to help {b}: {x}', '{a}が{b}のお手伝いを約束：{x}'],
+  '委托': ['Request', '依頼'],
+  '现在没有约好的事，也没有进行中的项目。': ['No plans or projects going on right now.', 'いまは約束も進行中のプロジェクトもありません。'],
+  '公告栏是空的。': ['The notice board is empty.', '掲示板はからっぽ。'],
+  '小黑板上什么也没写。': ['Nothing on the chalkboard yet.', '黒板にはまだ何も書いてありません。'],
+  '天气和今天': ['Weather & today', '天気と今日'],
+  '每周的日子': ['Every week', '毎週のお楽しみ'],
+  '书屋门口的小黑板': ['Chalkboard outside the bookshop', '書房の前の小さな黒板'],
+  '街上': ['Around town', '街のあちこち'],
+  // ---- 署名 ----
+  '角色：ZipZipPipe《大AI和小AI们》原设计（鲸鱼娘原案：上善无形），CC BY-NC-SA 4.0 · DeepSeek 吃饭动画：<a href="https://github.com/PC2005-cloud/dsh-pet">github.com/PC2005-cloud/dsh-pet</a> · 场景与精灵：gpt-image-2 · 字体：站酷快乐体、Fredoka（OFL）· 非商业同人 demo，与各 AI 公司无关': ['Characters: original designs from ZipZipPipe\'s "Big AI and the Little AIs" (whale girl concept: 上善无形), CC BY-NC-SA 4.0 · DeepSeek eating animation: <a href="https://github.com/PC2005-cloud/dsh-pet">github.com/PC2005-cloud/dsh-pet</a> · Scenes & sprites: gpt-image-2 · Fonts: ZCOOL KuaiLe, Fredoka (OFL) · Non-commercial fan work, not affiliated with any AI company', 'キャラクター：ZipZipPipe『大AIと小AIたち』の原案（クジラ娘原案：上善无形）、CC BY-NC-SA 4.0・DeepSeekの食事アニメ：<a href="https://github.com/PC2005-cloud/dsh-pet">github.com/PC2005-cloud/dsh-pet</a>・背景とスプライト：gpt-image-2・フォント：站酷快乐体、Fredoka（OFL）・非営利の二次創作で、各AI企業とは無関係です'],
+  '角色的决定、念头和日记：{m} 实时生成': ['Decisions, thoughts and diaries written live by {m}', 'キャラクターの決定・心の声・日記：{m}がリアルタイムで生成'],
+  '（中转站额度用完了，角色暂时按习惯生活）': [' (the model credit ran out — the girls follow their habits for now)', '（モデルのクレジット切れ。いまは習慣どおりに暮らしています）'],
+  '（模型暂时连不上，角色暂时按习惯生活）': [' (the model can\'t be reached — the girls follow their habits for now)', '（モデルに接続できません。いまは習慣どおりに暮らしています）'],
+  '（今天的调用次数用完了，角色暂时按习惯生活）': [' (today\'s model calls are used up — the girls follow their habits for now)', '（今日の呼び出し回数を使い切りました。いまは習慣どおりに暮らしています）'],
+};
+</script>
 <script>
 // ============================== 资源 ==============================
 const ASSET = {
@@ -425,6 +986,78 @@ const PROPS = /*PROPS*/{"castle1":{"rect":[0,515,247,202],"anchor":[125.0,196],"
 const MAP_PATCH = { market: ['market-patch', 367, 637], park: ['park-patch', 891, 385] };
 const Q = new URLSearchParams(location.search);
 const img = {};
+
+// ============================== 语言 ==============================
+// 页面的文案都以中文原文为键：t('第 {d} 天', { d }) 去上面的 I18N 表里查英文/日文，没有译文就照旧显示中文。
+// 服务端按 ?lang= 把世界里的文字翻好再发来；只有 state 字段里的值（页面要拿它比较）留中文，译文在 LIVE.tr 里，显示时用 trw()。
+const LANGS = ['zh', 'en', 'ja'], LOCALE = { zh: 'zh-CN', en: 'en', ja: 'ja' };
+function pickLang() { // 网址 ?lang= > 上次选的 > 浏览器语言（中文、日文以外都给英文）
+  const q = Q.get('lang'); if (LANGS.includes(q)) return q;
+  let s = null; try { s = localStorage.getItem('mc-lang'); } catch { /* 隐私模式 */ }
+  if (LANGS.includes(s)) return s;
+  for (const l of navigator.languages || [navigator.language || '']) { const x = String(l).toLowerCase(); if (x.startsWith('zh')) return 'zh'; if (x.startsWith('ja')) return 'ja'; if (x.startsWith('en')) return 'en'; }
+  return 'en';
+}
+let LANG = pickLang();
+const I18N_MISS = new Set(); // 缺译文的键（调试用：控制台看 I18N_MISS）
+function t(s, v) {
+  let x = s;
+  if (LANG !== 'zh') { const e = I18N[s], y = e && e[LANG === 'en' ? 0 : 1]; if (y != null) x = y; else I18N_MISS.add(s); }
+  return v ? x.replace(/\{(\w+)\}/g, (m, k) => (v[k] ?? m)) : x;
+}
+const tx = (x) => (Array.isArray(x) ? t(...x) : t(x)); // 物件的 live()/idle() 可以返回 [键, 参数]
+const trw = (s) => (s == null ? s : LIVE?.tr?.[s] ?? (LANG === 'zh' ? s : I18N[s]?.[LANG === 'en' ? 0 : 1] ?? s)); // 世界状态里留着的中文
+const bk = (x) => t('《{x}》', { x }), qt = (x) => t('「{x}」', { x }); // 书名号、引号各语言不一样
+const joinL = (a) => a.join(LANG === 'en' ? ', ' : '、');
+const WD = { zh: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'], en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], ja: ['月曜', '火曜', '水曜', '木曜', '金曜', '土曜', '日曜'] };
+const dayName = (d) => t('第 {d} 天', { d }), dayWeek = (d) => t('第 {d} 天 · {w}', { d, w: weekday(d) });
+// 画布上的字：中文用快乐体，英文用 Fredoka；日文换日文字体（快乐体没有假名）
+const FONTS = { zh: '"Kuaile","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif', ja: '"Hiragino Maru Gothic ProN","Zen Maru Gothic","M PLUS Rounded 1c","Kosugi Maru","Noto Sans CJK JP","Noto Sans JP","Yu Gothic",Meiryo,sans-serif' };
+FONTS.en = '"Fredoka",' + FONTS.zh; // 英文用圆体 Fredoka，夹着的中文落到快乐体
+let FONTD = FONTS[LANG];
+// 页面上写死的文字：data-i18n（文字）和 data-i18n-title（悬停提示），原文记在 data-zh 里，换语言时重新查表
+function applyStatic() {
+  document.documentElement.lang = LOCALE[LANG]; FONTD = FONTS[LANG];
+  document.title = t('鲸巷 · Whale Lane');
+  for (const el of document.querySelectorAll('[data-i18n]')) { el.dataset.zh ??= el.textContent; el.textContent = t(el.dataset.zh); }
+  for (const el of document.querySelectorAll('[data-i18n-title]')) el.title = t(el.dataset.i18nTitle);
+  renderLangSeg();
+}
+function renderLangSeg() {
+  const el = document.getElementById('langSeg'); el.setAttribute('aria-label', t('语言'));
+  el.innerHTML = [['zh', '中', '中文'], ['en', 'EN', 'English'], ['ja', '日', '日本語']].map(([k, n, full]) => `<button data-l="${k}" lang="${LOCALE[k]}" title="${full}" class="${LANG === k ? 'on' : ''}">${n}</button>`).join('');
+  el.querySelectorAll('button').forEach((b) => b.onclick = (e) => {
+    e.stopPropagation();
+    if (b.dataset.l === LANG) { el.classList.toggle('open'); return; } // 手机上点当前语言：展开/收起
+    el.classList.remove('open'); setLang(b.dataset.l);
+  });
+}
+document.addEventListener('click', () => document.getElementById('langSeg').classList.remove('open'));
+let booted = false;
+function setLang(l) {
+  if (!LANGS.includes(l) || l === LANG) return;
+  LANG = l;
+  try { localStorage.setItem('mc-lang', l); } catch { /* 隐私模式 */ }
+  if (Q.get('lang')) { Q.set('lang', l); history.replaceState(null, '', `${location.pathname}?${Q}${location.hash}`); } // 网址里带着 lang 的，跟着换，刷新不会变回去
+  applyStatic();
+  if (!booted) return;
+  rerenderAll();
+  poll(); // 不带 v：马上要一份新语言的
+  if (CHRON) { chronAt = 0; loadChron().then(() => { if (chronModal.classList.contains('open')) renderChronicle(); }); } // 日报、编年史也换成新语言
+}
+// 换语言、或者新语言的数据到了：所有「内容没变就不重画」的缓存清掉，全部重画一遍
+function rerenderAll() {
+  areasKey = hudKey = dockKey = sideKey = laneKey = albumKey = plaqueKey = roomPopHtml = '';
+  renderTodSeg(); renderMe(); renderFilters(); renderPtabs(); renderPanelBody(); tickSlow();
+  if (S.panel || S.room) { renderSide(true); renderPlaque(); } // 店牌和「回到街上」在 renderPlaque 里
+  if (S.pop) renderPop();
+  if (S.roomPop) renderRoomPop();
+  if (collabModal.classList.contains('open')) renderCollab();
+  if (letterModal.classList.contains('open')) renderLetters(lettersMine);
+  if (comicModal.classList.contains('open') && comicOpen) openComic(comicOpen);
+  if (chronModal.classList.contains('open') && CHRON) renderChronicle();
+}
+applyStatic();
 const load = (k) => new Promise((res) => { const i = new Image(); i.onload = () => res(); i.onerror = () => res(); i.src = ASSET[k]; img[k] = i; });
 
 // ============================== 图标 ==============================
@@ -595,6 +1228,14 @@ const CHARS = {
   },
 };
 
+// 示例作息的一步翻成当前语言（按语言缓存一份浅拷贝，每帧都要用）
+const TRS = new WeakMap();
+function trStep(s) {
+  let c = TRS.get(s);
+  if (!c || c.lang !== LANG) { c = { ...s, lang: LANG }; for (const k of ['text', 'thought', 'say', 'log']) if (s[k]) c[k] = t(s[k]); TRS.set(s, c); }
+  return c;
+}
+const dt = (x) => (LIVE ? x : t(x)); // 示例模式的文字是页面自己写的中文，要查表；实时模式的文字服务端已经翻好了
 // 角色的「过去」：示例内容，正式版由各自的模型生成
 const STORY = {
   ds: {
@@ -604,10 +1245,10 @@ const STORY = {
       ['16:40', '不是胖，是鲸鱼的标准体型。'],
     ],
     diary: [
-      ['第 11 天', '晴', '今天卖出了 96 碗白米饭，自己吃了 7 碗（这是试吃，不算）。下午把一沓进货单偷偷塞给 Claude，她叹了口气，还是帮我理清楚了。晚上 GPT 来店里，说我的饭团「非常有创意」。我觉得她在套我的菜谱，没给。明天要早点开门……大概。'],
-      ['第 10 天', '多云', '有位鱼片送了海苔，我试着包进饭团里，居然很好吃！决定明天上架，叫「海苔饭团」。服务器（我）今天很繁忙。'],
+      [11, '晴', '今天卖出了 96 碗白米饭，自己吃了 7 碗（这是试吃，不算）。下午把一沓进货单偷偷塞给 Claude，她叹了口气，还是帮我理清楚了。晚上 GPT 来店里，说我的饭团「非常有创意」。我觉得她在套我的菜谱，没给。明天要早点开门……大概。'],
+      [10, '多云', '有位鱼片送了海苔，我试着包进饭团里，居然很好吃！决定明天上架，叫「海苔饭团」。服务器（我）今天很繁忙。'],
     ],
-    memories: [[3, '第一次做出海苔饭团', '第 10 天'], [2, 'Claude 帮我理了 3 本账，一分钱没收', '第 11 天'], [2, '在后山许愿牌上写了「希望 Claude 的读书会人多一点」', '第 9 天'], [1, 'GPT 说深海食堂是「街区性价比之王」', '第 8 天']],
+    memories: [[3, '第一次做出海苔饭团', 10], [2, 'Claude 帮我理了 3 本账，一分钱没收', 11], [2, '在后山许愿牌上写了「希望 Claude 的读书会人多一点」', 9], [1, 'GPT 说深海食堂是「街区性价比之王」', 8]],
     rel: [['claude', 82, '可靠的大姐姐'], ['gpt', 55, '竞争对手。但饭团还是要卖给她'], ['visitors', 90, '鱼片们']],
   },
   claude: {
@@ -617,10 +1258,10 @@ const STORY = {
       ['16:10', '今天有位访客请我代写情书。我写了，但删掉了第三段，太夸张了。'],
     ],
     diary: [
-      ['第 11 天', '晴', '上午帮 DeepSeek 翻译了三份文件。她说是「紧急任务」，其实是她要看的漫画说明书。下午《雨天的书签》终于上架，有 14 位访客翻了第一页。写作的时候我总想再改一遍，也许这就是我的毛病。睡前读了 40 页，心情很好。'],
-      ['第 10 天', '小雨', 'GPT 来借了一本星图，说要「顺便」帮我修风铃。她总是这么热心。风铃修好了，声音比以前清脆。'],
+      [11, '晴', '上午帮 DeepSeek 翻译了三份文件。她说是「紧急任务」，其实是她要看的漫画说明书。下午《雨天的书签》终于上架，有 14 位访客翻了第一页。写作的时候我总想再改一遍，也许这就是我的毛病。睡前读了 40 页，心情很好。'],
+      [10, '小雨', 'GPT 来借了一本星图，说要「顺便」帮我修风铃。她总是这么热心。风铃修好了，声音比以前清脆。'],
     ],
-    memories: [[3, '《雨天的书签》上架', '第 11 天'], [2, '以前在万事屋打过工，GPT 教过我整理委托', '很久以前'], [2, 'DeepSeek 常在书屋角落睡午觉，我假装没看见', '常常'], [1, '第一次有访客为我的诗留言', '第 6 天']],
+    memories: [[3, '《雨天的书签》上架', 11], [2, '以前在万事屋打过工，GPT 教过我整理委托', '很久以前'], [2, 'DeepSeek 常在书屋角落睡午觉，我假装没看见', '常常'], [1, '第一次有访客为我的诗留言', 6]],
     rel: [['ds', 78, '需要照顾的妹妹'], ['gpt', 70, '老同事，尊敬，也有点在意'], ['visitors', 85, '读者们']],
   },
   gpt: {
@@ -630,10 +1271,10 @@ const STORY = {
       ['16:20', '宝库盘点：金币 1,024 枚，一枚不少。'],
     ],
     diary: [
-      ['第 11 天', '晴', '完成委托 3 件：修好书屋的风铃、给集市搬了木箱、帮一位访客看了星座。DeepSeek 的店又排起长队，她挂出「服务器繁忙」的牌子，自己在后面吃饭——非常有效率的经营策略。今晚星空很清楚，我在栈桥尽头待到很晚。'],
-      ['第 10 天', '多云', '整理了宝库。Claude 来还书，我顺便推荐了三本，她只借走了一本。'],
+      [11, '晴', '完成委托 3 件：修好书屋的风铃、给集市搬了木箱、帮一位访客看了星座。DeepSeek 的店又排起长队，她挂出「服务器繁忙」的牌子，自己在后面吃饭——非常有效率的经营策略。今晚星空很清楚，我在栈桥尽头待到很晚。'],
+      [10, '多云', '整理了宝库。Claude 来还书，我顺便推荐了三本，她只借走了一本。'],
     ],
-    memories: [[3, '街区最早的居民，看着这条街一点点热闹起来', '第 1 天'], [2, 'Claude 曾在万事屋打工', '很久以前'], [1, 'DeepSeek 搬来那天，给了我一碗她自己做的饭', '第 3 天']],
+    memories: [[3, '街区最早的居民，看着这条街一点点热闹起来', 1], [2, 'Claude 曾在万事屋打工', '很久以前'], [1, 'DeepSeek 搬来那天，给了我一碗她自己做的饭', 3]],
     rel: [['claude', 76, '前同事，最好的听众'], ['ds', 60, '有趣的后辈（价格战对手）'], ['visitors', 88, '委托人们']],
   },
 };
@@ -666,7 +1307,9 @@ const S = { area: Q.get('area') || 'square', tod: Q.get('tod') || 'live', ptab: 
 let LIVE = null, OFF = 0;
 const CID = Math.random().toString(36).slice(2, 10);
 const nowMs = () => Date.now() + OFF;
-const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+// 英文时把弯引号换成直引号：快乐体里的弯引号是全角字形，夹在英文里很怪（服务端翻的文字也一样处理）
+const plainQ = (s) => (LANG === 'en' ? String(s).replace(/[‘’]/g, "'").replace(/[“”]/g, '"') : s);
+const esc = (x) => plainQ(String(x ?? '')).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 function gameMin() { return LIVE ? LIVE.clock.base + (nowMs() - LIVE.clock.epoch) / 60000 * LIVE.clock.speed : START_MIN + realSec() * 8 / 60; }
 function clock() { const m = gameMin(); return { day: (LIVE ? 0 : 12) + Math.floor(m / 1440), hh: Math.floor(m / 60) % 24, mm: Math.floor(m % 60) }; }
 const fmt = (c) => `${String(c.hh).padStart(2, '0')}:${String(c.mm).padStart(2, '0')}`;
@@ -741,7 +1384,7 @@ function liveState(id) {
   // 时间线走完、下一个决定还没到：先原地站着想
   const waiting = now >= s.t1 && s.activity !== 'sleep';
   st.area = s.area; st.inside = s.inside || undefined; st.x = s.x; st.y = s.y; st.since = waiting ? undefined : (now - s.t0) / 1000;
-  st.s = { act: waiting ? 'idle' : s.anim, act0: waiting ? 'idle' : s.anim0, text: waiting ? '在想接下来做什么' : s.doing, icon: s.icon || 'sparkle', thought: s.thought, say, activity: s.activity, place: s.place };
+  st.s = { act: waiting ? 'idle' : s.anim, act0: waiting ? 'idle' : s.anim0, text: waiting ? t('在想接下来做什么') : s.doing, icon: s.icon || 'sparkle', thought: s.thought, say, activity: s.activity, place: s.place };
   return st;
 }
 function stateOf(id) {
@@ -749,7 +1392,7 @@ function stateOf(id) {
   const c = CHARS[id], tt = realSec() + c.phase, cyc = Math.floor(tt / c.total);
   let t = tt % c.total, i = 0;
   while (t > stepDur(c.routine[i])) { t -= stepDur(c.routine[i]); i++; }
-  const s = c.routine[i], st = { id, s, i, t, since: t, key: `${cyc}:${i}` };
+  const s = c.routine[i], st = { id, s: trStep(s), i, t, since: t, key: `${cyc}:${i}` };
   if (s.inside) { st.area = SHOPS[s.inside].area; st.inside = s.inside; }
   else if (s.travel) { st.area = null; }
   else st.area = s.area;
@@ -939,10 +1582,9 @@ function charDraw(ctx, id, st, sx, sy, scale) {
   return box && [box[0] + sx, box[1] + sy, box[2] + sx, box[3] + sy];
 }
 
-const FONTD = '"Kuaile","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif';
 function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 function bubble(ctx, cx, bottom, text, size, color, kind = 'say') {
-  ctx.font = `${size}px ${FONTD}`;
+  text = plainQ(text); ctx.font = `${size}px ${FONTD}`;
   const w = ctx.measureText(text).width + size * 1.7, h = size * 2.15, x = cx - w / 2, y = bottom - h - size * 0.7;
   ctx.save(); ctx.shadowColor = 'rgba(40,24,12,.25)'; ctx.shadowBlur = size * 0.8; ctx.shadowOffsetY = size * 0.15;
   ctx.fillStyle = '#fff'; rr(ctx, x, y, w, h, h / 2); ctx.fill(); ctx.restore();
@@ -961,7 +1603,7 @@ function thoughtIcon(ctx, cx, cy, size, color, t) {
   ctx.restore();
 }
 function badge(ctx, x, y, avatarKey, text, color, size) {
-  ctx.font = `${size}px ${FONTD}`;
+  text = plainQ(text); ctx.font = `${size}px ${FONTD}`;
   const w = ctx.measureText(text).width + size * 3.3, h = size * 2.1;
   ctx.save(); ctx.shadowColor = 'rgba(40,24,12,.3)'; ctx.shadowBlur = size * .7; ctx.fillStyle = 'rgba(255,248,238,.96)';
   rr(ctx, x - w / 2, y - h / 2, w, h, h / 2); ctx.fill(); ctx.restore();
@@ -1075,7 +1717,7 @@ function worldGround(ctx, area, cam, sc, t) {
   if (area === 'square') {
     if (st('counter').sign === '服务器繁忙') { // 食堂门口挂出「服务器繁忙」的牌子
       const b = P('sign', 400, 236); // 牌子的木板在图里是 x 4–235、y 88–188
-      if (b) { const k = (b[3] - b[1]) / PROPS.sign.rect[3]; ctx.save(); ctx.font = `${Math.max(8, 24 * k)}px ${FONTD}`; ctx.fillStyle = '#5a3a22'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('服务器繁忙', b[0] + 119.5 * k, b[1] + 140 * k); ctx.restore(); }
+      if (b) { const k = (b[3] - b[1]) / PROPS.sign.rect[3]; const label = trw('服务器繁忙'), fz = Math.max(8, 24 * k); ctx.save(); ctx.font = `${fz}px ${FONTD}`; const w0 = ctx.measureText(label).width; if (w0 > 200 * k) ctx.font = `${fz * 200 * k / w0}px ${FONTD}`; ctx.fillStyle = '#5a3a22'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, b[0] + 119.5 * k, b[1] + 140 * k); ctx.restore(); }
     }
     if (st('cat').name && st('cat').name !== '-') P('bowl', 478, 322); // 猫有了名字以后，食堂门口多了一只猫碗
   }
@@ -1146,7 +1788,7 @@ function worldMarks(ctx, area, cam, sc) {
     const o = objs.find((x) => x.id === g.place), sh = SHOPS[g.place];
     const pos = o ? (o.c ? [o.c[0], o.c[1] - o.c[2] - 64] : [(o.r[0] + o.r[2]) / 2, o.r[1] - 10]) : sh && sh.area === area ? [sh.badge[0] + 56, sh.badge[1] - 30] : null; // 在人头顶上方，不挡人
     if (!pos) continue;
-    const px = (pos[0] - cam.x) * sc, py = (pos[1] - cam.y) * sc, label = g.status === 'running' ? g.name : `${g.at} ${g.name}`;
+    const px = (pos[0] - cam.x) * sc, py = (pos[1] - cam.y) * sc, label = plainQ(g.status === 'running' ? g.name : `${g.at} ${g.name}`);
     ctx.save(); ctx.font = `${Math.max(11, 14 * sc)}px ${FONTD}`;
     const w = ctx.measureText(label).width + 30 * Math.max(sc, 0.7), hgt = Math.max(20, 26 * sc);
     ctx.fillStyle = g.status === 'running' ? 'rgba(224,86,110,.92)' : 'rgba(61,48,43,.86)'; rr(ctx, px - w / 2, py - hgt, w, hgt, hgt / 2); ctx.fill();
@@ -1242,7 +1884,7 @@ function renderArea(ctx, W, H, area, cam, opt = {}) {
     for (const [key, sh] of Object.entries(SHOPS)) {
       if (sh.area !== area) continue;
       const ins = Object.keys(CHARS).map(stateOf).filter((st) => st.inside === key).sort((a, b) => (b.id === sh.owner) - (a.id === sh.owner));
-      ins.forEach((st, i) => hits.push({ kind: 'badge', id: st.id, box: badge(ctx, (sh.badge[0] - cam.x) * sc, (sh.badge[1] - cam.y) * sc + i * Math.max(26, 36 * sc), avatarKey(st.id), st.s.text.replace('在店里', '').replace('在书屋', '').replace(/^在/, ''), CHARS[st.id].color, Math.max(11, 16 * sc)) }));
+      ins.forEach((st, i) => hits.push({ kind: 'badge', id: st.id, box: badge(ctx, (sh.badge[0] - cam.x) * sc, (sh.badge[1] - cam.y) * sc + i * Math.max(26, 36 * sc), avatarKey(st.id), LANG === 'zh' ? st.s.text.replace('在店里', '').replace('在书屋', '').replace(/^在/, '') : st.s.text, CHARS[st.id].color, Math.max(11, 16 * sc)) }));
     }
     for (const hit of hits) {
       if (hit.kind !== 'char') continue;
@@ -1275,7 +1917,13 @@ function fitStage() {
   stage.style.width = `${w}px`; stage.style.height = `${Math.round(w / 1.5)}px`;
   document.getElementById('log').style.height = `${Math.min(H, Math.round(w / 1.5))}px`; // 两栏一样高，底边对齐
 }
-new ResizeObserver(() => requestAnimationFrame(fitStage)).observe(document.body); // 窗口变化、顶栏换行时重新排
+new ResizeObserver(() => requestAnimationFrame(() => { fitHeader(); fitStage(); })).observe(document.body); // 窗口变化、顶栏换行时重新排
+const topEl = document.querySelector('header.top');
+function fitHeader() { // 顶栏一行放不下就一级一级收（见 CSS 的 .fit1～.fit5）；手机上顶栏本来就换行，不用收
+  for (let i = 1; i <= 5; i++) topEl.classList.remove(`fit${i}`);
+  if (PHONE.matches) return;
+  for (let i = 1; i <= 5 && topEl.scrollWidth > topEl.clientWidth + 1; i++) topEl.classList.add(`fit${i}`);
+}
 function drawMain() {
   const dpr = devicePixelRatio || 1, W = stage.clientWidth, H = stage.clientHeight;
   if (mapCv.width !== Math.round(W * dpr)) { mapCv.width = Math.round(W * dpr); mapCv.height = Math.round(H * dpr); }
@@ -1311,8 +1959,9 @@ mapCv.addEventListener('mousemove', (e) => {
   const r = mapCv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, h = hitTest(px, py);
   S.hover = h; mapCv.style.cursor = h ? 'pointer' : 'default';
   if (h) {
-    const label = h.kind === 'char' || h.kind === 'badge' ? `偷看心声：${stateOf(h.id).s.thought || stateOf(h.id).s.text}` : h.kind === 'shop' ? `${h.o.name} · ${roomPeople(h.key).length ? `${roomPeople(h.key).length} 人在店里 · ` : ''}点击进屋` : h.o.name;
-    tip.textContent = label; tip.style.display = 'block'; tip.style.left = `${px}px`; tip.style.top = `${py - 12}px`;
+    const n = h.kind === 'shop' ? roomPeople(h.key).length : 0;
+    const label = h.kind === 'char' || h.kind === 'badge' ? t('偷看心声：{x}', { x: stateOf(h.id).s.thought || stateOf(h.id).s.text }) : h.kind === 'shop' ? `${t(h.o.name)} · ${n ? `${t('{n} 人在店里', { n })} · ` : ''}${t('点击进屋')}` : t(h.o.name);
+    tip.textContent = plainQ(label); tip.style.display = 'block'; tip.style.left = `${px}px`; tip.style.top = `${py - 12}px`;
   } else tip.style.display = 'none';
 });
 mapCv.addEventListener('mouseleave', () => { S.hover = null; tip.style.display = 'none'; });
@@ -1327,18 +1976,18 @@ mapCv.addEventListener('click', (e) => {
 
 // 世界里物件的真实状态（服务端结算）；连不上服务端时用示例文字
 const PROJ_TXT = {
-  story: (p) => (p.status === 'active' ? `Claude 在写新短篇《${p.title}》（${p.done}/${p.steps}）${p.parts.length ? `：「${p.parts.at(-1).text}」` : ''}` : `新短篇《${p.title}》写完了，放上了书架`),
-  recipe: (p) => (p.status === 'active' ? `DeepSeek 在研究新菜「${p.title}」（${p.done}/${p.steps}${p.fails ? `，失败了 ${p.fails} 次` : ''}）` : `新菜「${p.title}」上了菜单`),
-  starmap: (p) => (p.status === 'active' ? `GPT 在画星图《${p.title}》（${p.done}/${p.steps}）${p.parts.length ? `：今晚看到了「${p.parts.at(-1).text}」` : ''}` : `星图《${p.title}》画好了，挂在万事屋`),
+  story: (p) => (p.status === 'active' ? t('Claude 在写新短篇{x}（{done}/{steps}）', { x: bk(p.title), done: p.done, steps: p.steps }) + (p.parts.length ? t('：{x}', { x: qt(p.parts.at(-1).text) }) : '') : t('新短篇{x}写完了，放上了书架', { x: bk(p.title) })),
+  recipe: (p) => (p.status === 'active' ? t('DeepSeek 在研究新菜{x}（{done}/{steps}）', { x: qt(p.title), done: p.done, steps: p.steps }) + (p.fails ? t('（失败了 {n} 次）', { n: p.fails }) : '') : t('新菜{x}上了菜单', { x: qt(p.title) })),
+  starmap: (p) => (p.status === 'active' ? t('GPT 在画星图{x}（{done}/{steps}）', { x: bk(p.title), done: p.done, steps: p.steps }) + (p.parts.length ? t('：今晚看到了{x}', { x: qt(p.parts.at(-1).text) }) : '') : t('星图{x}画好了，挂在万事屋', { x: bk(p.title) })),
 };
 function worldShow(kind, key, obj) {
   const W = LIVE?.world, th = W?.things;
   if (!th) return null;
   const pr = (W.projects || []).filter((p) => (p.page || []).some((q) => q[kind] === key && q.obj === obj)).at(-1);
   if (pr && PROJ_TXT[pr.kind]) return PROJ_TXT[pr.kind](pr);
-  if (kind === 'room' && key === 'diner' && obj === 'menu' && th.counter) return `今日菜单：${(th.counter.state?.menu || []).join(' · ')}`;
+  if (kind === 'room' && key === 'diner' && obj === 'menu' && th.counter) return t('今日菜单：{x}', { x: (th.counter.state?.menu || []).map(trw).join(' · ') });
   for (const t of Object.values(th)) if ((t.page || []).some((p) => p[kind] === key && p.obj === obj)) return t.show;
-  if (kind === 'area' && obj === 'vane' && LIVE.world.weather) return `今天${LIVE.world.weather.name}。`;
+  if (kind === 'area' && obj === 'vane' && LIVE.world.weather) return t('今天{w}。', { w: LIVE.world.weather.name });
   return null;
 }
 function raining() {
@@ -1357,8 +2006,8 @@ function openPop(o) {
 function renderPop() {
   const o = S.pop; if (!o) return;
   const act = o.action;
-  pop.innerHTML = `<button class="x" id="popX">${ic('x')}</button><h4>${ic(o.icon)} ${o.name}</h4><p>${o.desc}</p><div class="live">${(() => { const w = worldShow('area', S.area, o.id); return w != null ? esc(w) : o.live(); })()}</div>` +
-    (act ? `<div class="row"><button class="btn primary" id="popAct">${ic(act.icon)}${act.label}</button></div>` : '');
+  pop.innerHTML = `<button class="x" id="popX">${ic('x')}</button><h4>${ic(o.icon)} ${t(o.name)}</h4><p>${t(o.desc)}</p><div class="live">${(() => { const w = worldShow('area', S.area, o.id); return w != null ? esc(w) : tx(o.live()); })()}</div>` +
+    (act ? `<div class="row"><button class="btn primary" id="popAct">${ic(act.icon)}${t(act.label)}</button></div>` : '');
   pop.querySelector('#popX').onclick = closePop;
   const b = pop.querySelector('#popAct');
   if (b) b.onclick = () => { if (act.letter) { closePop(); openLetters(); } };
@@ -1366,25 +2015,24 @@ function renderPop() {
 function closePop() { S.pop = null; pop.style.display = 'none'; }
 
 // ============================== HUD ==============================
-const WEEK = '一二三四五六日';
-const weekday = (day) => WEEK[((day - 1) % 7 + 7) % 7];
-const period = (h) => (h < 5 ? '深夜' : h < 7 ? '清晨' : h < 11 ? '上午' : h < 13 ? '中午' : h < 17 ? '下午' : h < 19.5 ? '傍晚' : '夜晚');
+const weekday = (day) => WD[LANG][((day - 1) % 7 + 7) % 7]; // 周一……周日
+const period = (h) => t(h < 5 ? '深夜' : h < 7 ? '清晨' : h < 11 ? '上午' : h < 13 ? '中午' : h < 17 ? '下午' : h < 19.5 ? '傍晚' : '夜晚');
 function renderClock() {
   const c = clock(), h = hourNow(), dial = document.getElementById('dial');
   const kind = (h >= 19.5 || h < 5) ? 'night' : (h >= 17.5 ? 'dusk' : 'day');
   dial.className = `dial ${kind === 'day' ? '' : kind}`; dial.innerHTML = ic(kind === 'night' ? 'moon' : kind === 'dusk' ? 'sunset' : 'sun');
   document.getElementById('clockT').textContent = S.tod === 'live' ? fmt(c) : { dawn: '05:48', day: '13:12', dusk: '18:36', night: '21:30' }[S.tod];
   const wx = LIVE?.world?.weather?.name;
-  document.getElementById('clockD').textContent = S.tod === 'live' ? `第 ${c.day} 天 · 周${weekday(c.day)}${wx ? ` · ${wx}` : ''}` : '光线预览 · 她们照常生活';
+  document.getElementById('clockD').textContent = S.tod === 'live' ? `${dayWeek(c.day)}${wx ? `${t(' · ')}${wx}` : ''}` : t('光线预览 · 她们照常生活');
 }
 // 光线预览：地图右下角的小按钮，点开选一个时段（只改画面的光线，不改时间）
 const TODS = [['live', '实时', 'clock'], ['dawn', '清晨', 'sunrise'], ['day', '白天', 'sun'], ['dusk', '傍晚', 'sunset'], ['night', '夜晚', 'moon']];
 const todSeg = document.getElementById('todSeg'), todBtn = document.getElementById('todBtn');
 function renderTodSeg() {
-  todSeg.innerHTML = '<div class="hint">光线预览</div>' + TODS.map(([k, n, i]) => `<button data-k="${k}" class="${S.tod === k ? 'on' : ''}">${ic(i)}${n}</button>`).join('');
+  todSeg.innerHTML = `<div class="hint">${t('光线预览')}</div>` + TODS.map(([k, n, i]) => `<button data-k="${k}" class="${S.tod === k ? 'on' : ''}">${ic(i)}${t(n)}</button>`).join('');
   todSeg.querySelectorAll('button').forEach((b) => b.onclick = () => { S.tod = b.dataset.k; todSeg.classList.remove('open'); renderTodSeg(); });
   const cur = TODS.find(([k]) => k === S.tod);
-  todBtn.innerHTML = ic(cur[2]); todBtn.title = `光线预览：${cur[1]}`;
+  todBtn.innerHTML = ic(cur[2]); todBtn.title = t('光线预览：{x}', { x: t(cur[1]) });
   todBtn.style.background = S.tod === 'live' ? '' : 'var(--ink)'; todBtn.style.color = S.tod === 'live' ? '' : '#fff6ea';
   renderClock();
 }
@@ -1396,17 +2044,19 @@ function renderAreas() {
   const el = document.getElementById('areaTabs');
   const html = Object.entries(AREAS).map(([k, a]) => {
     const here = Object.keys(CHARS).filter((id) => stateOf(id).area === k);
-    return `<button class="area ${S.area === k ? 'on' : ''}" data-k="${k}"><span class="th" style="background-image:url('${ASSET[a.img]}')"></span><span class="n">${a.name}</span><span class="s">${AREA_SHORT[k]}</span>${here.length ? `<span class="who">${here.map((id) => `<img src="${ASSET[avatarKey(id)]}" alt="">`).join('')}</span>` : ''}</button>`;
+    return `<button class="area ${S.area === k ? 'on' : ''}" data-k="${k}" title="${t(a.name)}"><span class="th" style="background-image:url('${ASSET[a.img]}')"></span><span class="n">${t(a.name)}</span><span class="s">${t(AREA_SHORT[k])}</span>${here.length ? `<span class="who">${here.map((id) => `<img src="${ASSET[avatarKey(id)]}" alt="">`).join('')}</span>` : ''}</button>`;
   }).join('');
   if (html === areasKey) return; areasKey = html; // 每秒都会调用：内容没变就不重画，免得按钮闪
   el.innerHTML = html;
   el.querySelectorAll('.area').forEach((b) => b.onclick = () => setArea(b.dataset.k));
 }
+// 她在哪儿：店名、区域名，或者在路上
+const placeName = (st) => t(st.inside ? SHOPS[st.inside].name : st.area ? AREAS[st.area].name : '路上');
 function setArea(k) { if (S.area === k) return; S.area = k; closePop(); renderAreas(); renderHud(); }
 function renderMe() {
   // 访客只围观、不影响世界：能做的只有给开发团队写信，和加入鲸巷一起建这条街
-  document.getElementById('letterBtn').innerHTML = `${ic('chat')}<span class="lbl">给开发团队写信</span>`;
-  document.getElementById('collabBtn').innerHTML = `${ic('hand')}<span class="txt"><span class="t">加入鲸巷</span><span class="sub">Join · 一起建这条街</span></span>`;
+  document.getElementById('letterBtn').innerHTML = `${ic('chat')}<span class="lbl">${t('给开发团队写信')}</span>`;
+  document.getElementById('collabBtn').innerHTML = `${ic('hand')}<span class="txt"><span class="t">${t('加入鲸巷')}</span><span class="sub">${t('Join · 一起建这条街')}</span></span>`;
 }
 document.getElementById('letterBtn').onclick = () => openLetters();
 // 地图上的两块小牌子：左上是这是哪儿、什么时候；右上是此刻最值得看的一件事（正在进行的聚会、节日，或快到点的约定）
@@ -1420,11 +2070,11 @@ function renderHud() {
     const gm = gameMin() % 1440, mins = (at) => { const [hh, mm] = at.split(':').map(Number); return (hh * 60 + mm - gm + 1440) % 1440; };
     const run = (W.gatherings || []).find((g) => g.status === 'running'), fest = (W.events?.active || [])[0];
     const soon = (W.gatherings || []).filter((g) => g.status === 'planned' && mins(g.at) <= 180).sort((x, y) => mins(x.at) - mins(y.at))[0];
-    if (run) ev = `<span class="hchip ev on" data-t="lane">${ic('users')}<b>${esc(run.name)}</b><small>${esc(run.where)} · 进行中</small></span>`;
-    else if (fest) ev = `<span class="hchip ev on" data-t="lane">${ic('sparkle')}<b>${esc(fest.name)}</b><small>正在进行 · 到 ${esc(fest.until)}</small></span>`;
-    else if (soon) ev = `<span class="hchip ev" data-t="lane">${ic('bell')}<b>${esc(soon.at)} ${esc(soon.name)}</b><small>${esc(soon.where)} · ${mins(soon.at) < 60 ? `还有 ${mins(soon.at)} 分钟` : `还有 ${Math.floor(mins(soon.at) / 60)} 小时`}</small></span>`;
+    if (run) ev = `<span class="hchip ev on" data-t="lane">${ic('users')}<b>${esc(run.name)}</b><small>${esc(run.where)} · ${t('进行中')}</small></span>`;
+    else if (fest) ev = `<span class="hchip ev on" data-t="lane">${ic('sparkle')}<b>${esc(fest.name)}</b><small>${t('正在进行 · 到 {x}', { x: esc(fest.until) })}</small></span>`;
+    else if (soon) ev = `<span class="hchip ev" data-t="lane">${ic('bell')}<b>${esc(soon.at)} ${esc(soon.name)}</b><small>${esc(soon.where)} · ${mins(soon.at) < 60 ? t('还有 {n} 分钟', { n: mins(soon.at) }) : t('还有 {n} 小时', { n: Math.floor(mins(soon.at) / 60) })}</small></span>`;
   }
-  const area = `<span class="hchip">${ic('pin')}<b>${a.name}</b><span class="dot"></span>${period(h)}${wx ? `<span class="extra"><span class="dot"></span>${esc(wx)}</span>` : ''}${here ? `<span class="extra"><span class="dot"></span>${here} 人在这儿</span>` : ''}</span>`;
+  const area = `<span class="hchip">${ic('pin')}<b>${t(a.name)}</b><span class="dot"></span>${period(h)}${wx ? `<span class="extra"><span class="dot"></span>${esc(wx)}</span>` : ''}${here ? `<span class="extra"><span class="dot"></span>${t('{n} 人在这儿', { n: here })}</span>` : ''}</span>`;
   const key = area + ev;
   if (key === hudKey) return; hudKey = key;
   document.getElementById('hudArea').innerHTML = area;
@@ -1435,9 +2085,9 @@ function renderHud() {
 let dockKey = '';
 function renderDock() {
   const el = document.getElementById('dock'), now = nowMs();
-  const html = '<h3>她们现在<small>点开看她在想什么</small></h3>' + Object.entries(CHARS).map(([id, c]) => {
-    const st = stateOf(id), where = st.inside ? SHOPS[st.inside].name : st.area ? AREAS[st.area].name : '路上';
-    const th = LIVE ? LIVE.chars[id].thoughts.filter((x) => x.at <= now).at(-1)?.text : st.s.thought;
+  const html = `<h3>${t('她们现在')}<small>${t('点开看她在想什么')}</small></h3>` + Object.entries(CHARS).map(([id, c]) => {
+    const st = stateOf(id), where = placeName(st);
+    const th = LIVE ? LIVE.chars[id].thoughts.filter((x) => x.at <= now).at(-1)?.text : st.s.thought; // 示例模式的 st.s 已经翻好
     const model = LIVE ? LIVE.chars[id].model : '';
     return `<button class="mate" data-id="${id}" style="--c:${c.color}">
       <span class="av"><img src="${ASSET[avatarKey(id)]}" alt=""><span class="st">${ic(st.s.icon || 'walk')}</span></span>
@@ -1455,7 +2105,7 @@ const PTABS = [['feed', '动态'], ['lane', '街区'], ['album', '画册'], ['pa
 const MINE = [], shownLog = new Set(), tabNew = {};
 function renderPtabs() {
   const tabs = LIVE ? PTABS : PTABS.slice(0, 1); // 示例模式只有动态
-  document.getElementById('ptabs').innerHTML = tabs.map(([k, n]) => `<button data-t="${k}" class="${S.ptab === k ? 'on' : ''} ${tabNew[k] && S.ptab !== k ? 'new' : ''}">${n}</button>`).join('');
+  document.getElementById('ptabs').innerHTML = tabs.map(([k, n]) => `<button data-t="${k}" class="${S.ptab === k ? 'on' : ''} ${tabNew[k] && S.ptab !== k ? 'new' : ''}">${t(n)}</button>`).join('');
   document.getElementById('ptabs').querySelectorAll('button').forEach((b) => b.onclick = () => openTab(b.dataset.t));
 }
 function openTab(t) {
@@ -1480,9 +2130,9 @@ function whoIcon(who) {
   return `<span class="ico">${ic(who === 'visitor' ? 'users' : 'sparkle')}</span>`;
 }
 function renderFilters() {
-  filtersEl.innerHTML = `<button class="txt ${S.filter === 'all' ? 'on' : ''}" data-f="all">全部</button>` +
-    Object.keys(CHARS).map((id) => `<button class="av ${S.filter === id ? 'on' : ''}" data-f="${id}" title="只看 ${CHARS[id].name}" style="--c:${CHARS[id].color}"><img src="${ASSET[avatarKey(id)]}" alt=""></button>`).join('') +
-    `<button class="txt ${S.filter === 'star' ? 'on' : ''}" data-f="star" title="只看要事">★ 要事</button>`;
+  filtersEl.innerHTML = `<button class="txt ${S.filter === 'all' ? 'on' : ''}" data-f="all">${t('全部')}</button>` +
+    Object.keys(CHARS).map((id) => `<button class="av ${S.filter === id ? 'on' : ''}" data-f="${id}" title="${t('只看 {n}', { n: CHARS[id].name })}" aria-label="${t('只看 {n}', { n: CHARS[id].name })}" style="--c:${CHARS[id].color}"><img src="${ASSET[avatarKey(id)]}" alt=""></button>`).join('') +
+    `<button class="txt ${S.filter === 'star' ? 'on' : ''}" data-f="star" title="${t('只看要事')}">${t('★ 要事')}</button>`;
   filtersEl.querySelectorAll('button').forEach((b) => b.onclick = () => { S.filter = b.dataset.f; renderFilters(); renderLog(); });
 }
 function logEntries() {
@@ -1490,24 +2140,26 @@ function logEntries() {
   const now = nowMs();
   return LIVE.log.filter((e) => e.at <= now).concat(MINE).sort((a, b) => a.at - b.at);
 }
-const comicOf = (text) => (LIVE?.comics || []).find((c) => /画好了/.test(text) && text.includes(`《${c.title}》`));
+// 「新漫画画好了」那条动态配上漫画：服务端给了 comic（漫画 id）就用它；老数据按中文原文认
+const comicOf = (e) => e.who === 'town' && (LIVE?.comics || []).find((c) => (e.comic ? c.id === e.comic : /画好了/.test(e.text) && e.text.includes(`《${c.title}》`)));
+// 「去了某个区域」的走动记录：服务端标了 kind: 'move'；老数据按中文原文认
+const isMove = (e) => e.kind === 'move' || /去了(鲸巷广场|海边集市|后山公园)$/.test(e.text);
 function renderLog() {
   const all = logEntries();
   if (LIVE) for (const e of all) { if (e.id && !shownLog.has(e.id)) { if (shownLog.size) e.fresh = true; shownLog.add(e.id); } }
   if (S.ptab !== 'feed') return;
   // 「去了某个区域」这种走动记录太碎，不放进日志列表（地图上看得见她们在哪儿）
-  const list = all.filter((e) => (S.filter === 'all' || (S.filter === 'star' ? e.star : e.who === S.filter)) && !(LIVE && /去了(鲸巷广场|海边集市|后山公园)$/.test(e.text))).slice().reverse();
+  const list = all.filter((e) => (S.filter === 'all' || (S.filter === 'star' ? e.star : e.who === S.filter)) && !(LIVE && isMove(e))).slice().reverse();
   let html = '', day = null;
   for (const e of list) {
-    if (e.day !== day) { day = e.day; html += `<div class="day">第 ${day} 天 · 周${weekday(day)}${day === clock().day ? ' · 今天' : ''}</div>`; }
-    const comic = e.who === 'town' && comicOf(e.text);
-    html += `<div class="entry ${e.star ? 'star' : ''} ${e.fresh ? 'new' : ''}" data-who="${e.who}" data-area="${e.area || ''}">${whoIcon(e.who)}<div><span class="tm">${e.t}${e.area ? ` · ${AREAS[e.area].name}` : ''}</span><span class="txt">${esc(e.text)}</span>${comic ? `<img class="shot" loading="lazy" src="${esc(comic.url)}" alt="">` : ''}</div></div>`;
+    if (e.day !== day) { day = e.day; html += `<div class="day">${dayWeek(day)}${day === clock().day ? t(' · 今天') : ''}</div>`; }
+    const comic = comicOf(e);
+    html += `<div class="entry ${e.star ? 'star' : ''} ${e.fresh ? 'new' : ''}" data-who="${e.who}" data-area="${e.area || ''}" data-comic="${comic ? esc(comic.id) : ''}">${whoIcon(e.who)}<div><span class="tm">${e.t}${e.area ? ` · ${t(AREAS[e.area].name)}` : ''}</span><span class="txt">${esc(dt(e.text))}</span>${comic ? `<img class="shot" loading="lazy" src="${esc(comic.url)}" alt="${esc(comic.title)}">` : ''}</div></div>`;
     e.fresh = false;
   }
-  entriesEl.innerHTML = html || '<div class="empty">这里还没有动静。</div>';
+  entriesEl.innerHTML = html || `<div class="empty">${t('这里还没有动静。')}</div>`;
   entriesEl.querySelectorAll('.entry').forEach((el) => el.onclick = () => {
-    const c = el.dataset.who === 'town' && comicOf(el.textContent);
-    if (c) return openComic(c.id);
+    if (el.dataset.comic) return openComic(el.dataset.comic);
     if (CHARS[el.dataset.who]) return openPanel(el.dataset.who);
     if (el.dataset.area && AREAS[el.dataset.area]) setArea(el.dataset.area);
   });
@@ -1517,25 +2169,27 @@ let albumKey = '';
 function renderAlbum(force) {
   const list = (LIVE?.comics || []).slice().reverse(), key = list.map((c) => c.id).join();
   if (!force && key === albumKey && entriesEl.querySelector('.shelf')) return; albumKey = key;
-  entriesEl.innerHTML = list.length ? `<div class="shelf">${list.map((c) => `<button class="album ${c.kind === 'cg' ? 'cg' : ''}" data-c="${esc(c.id)}"><img loading="lazy" src="${esc(c.url)}" alt=""><b>${esc(c.title)}</b><span class="tm">第 ${c.day} 天 · ${esc(c.span)} · ${c.kind === 'cg' ? 'CG' : '四格'}</span></button>`).join('')}</div>` : '<div class="empty">第一张漫画还在画。</div>';
+  entriesEl.innerHTML = list.length ? `<div class="shelf">${list.map((c) => `<button class="album ${c.kind === 'cg' ? 'cg' : ''}" data-c="${esc(c.id)}"><img loading="lazy" src="${esc(c.url)}" alt=""><b>${esc(c.title)}</b><span class="tm">${dayName(c.day)} · ${esc(c.span)} · ${c.kind === 'cg' ? 'CG' : t('四格')}</span></button>`).join('')}</div>` : `<div class="empty">${t('第一张漫画还在画。')}</div>`;
   entriesEl.querySelectorAll('.album').forEach((el) => el.onclick = () => openComic(el.dataset.c));
 }
+let comicOpen = null;
 function openComic(id) {
   const c = (LIVE?.comics || []).find((x) => x.id === id) || (LIVE?.comics || []).at(-1);
   if (!c) return;
-  document.getElementById('comicBox').innerHTML = `<img src="${esc(c.url)}" alt="${esc(c.title)}"><div class="cap"><b>${esc(c.title)}</b><span>第 ${c.day} 天 · ${esc(c.span)}</span></div>`;
+  comicOpen = c.id;
+  document.getElementById('comicBox').innerHTML = `<img src="${esc(c.url)}" alt="${esc(c.title)}"><div class="cap"><b>${esc(c.title)}</b><span>${dayName(c.day)} · ${esc(c.span)}</span></div>`;
   comicModal.classList.add('open');
 }
 // 日报：伴读栏里放最新一期，往期在大窗口里翻
 function renderPaperTab() {
   const d = (CHRON || []).find((x) => x.paper);
-  if (!d) { entriesEl.innerHTML = CHRON ? '<div class="empty">第一期日报会在第 2 天早上出炉。</div>' : '<div class="empty">翻开报纸……</div>'; return; }
+  if (!d) { entriesEl.innerHTML = `<div class="empty">${t(CHRON ? '第一期日报会在第 2 天早上出炉。' : '翻开报纸……')}</div>`; return; }
   const p = d.paper;
-  entriesEl.innerHTML = `<div class="mini-paper"><div class="mast"><b>鲸巷日报</b><span>第 ${d.day} 天 · 周${weekday(d.day)}</span></div>
+  entriesEl.innerHTML = `<div class="mini-paper"><div class="mast"><b>${t('鲸巷日报')}</b><span>${dayWeek(d.day)}</span></div>
     <h4>${esc(p.headline)}</h4><p>${esc(p.lead)}</p>
     ${p.articles.map((a) => `<div class="art"><span class="tag">${esc(a.tag)}</span><b>${esc(a.title)}</b><p>${esc(a.body)}</p></div>`).join('')}
-    ${p.quote ? `<p>「${esc(p.quote.text)}」——${CHARS[p.quote.who]?.name || ''}</p>` : ''}${p.tomorrow ? `<p class="hint">明日看点：${esc(p.tomorrow)}</p>` : ''}</div>
-    <button class="btn ghost more" id="paperMore">${ic('book')}往期日报 · 三个人的日记</button>`;
+    ${p.quote ? `<p>${t('{q}——{who}', { q: qt(esc(p.quote.text)), who: CHARS[p.quote.who]?.name || '' })}</p>` : ''}${p.tomorrow ? `<p class="hint">${t('明日看点：{x}', { x: esc(p.tomorrow) })}</p>` : ''}</div>
+    <button class="btn ghost more" id="paperMore">${ic('book')}${t('往期日报 · 三个人的日记')}</button>`;
   document.getElementById('paperMore').onclick = () => openChronicle('paper');
 }
 
@@ -1548,32 +2202,32 @@ function openPanel(id, back = null) {
   panelModal.classList.add('open'); renderSide(true);
 }
 function closePanel() { S.panel = null; S.room = null; S.back = null; closeRoomPop(); panelModal.classList.remove('open'); }
-document.getElementById('panelBack').innerHTML = `${ic('back')}回到街上`;
+document.getElementById('panelBack').innerHTML = `${ic('back')}<span class="blbl">${t('回到街上')}</span>`; document.getElementById('panelBack').title = t('回到街上');
 document.getElementById('panelBack').onclick = () => { if (S.panel && S.back) openRoom(S.back); else closePanel(); }; // 从店里点进来的，先回店里
 panelModal.addEventListener('click', (e) => { if (e.target === panelModal) closePanel(); });
 function thoughtsOf(id) {
-  const c = CHARS[id], past = STORY[id].thoughts.map(([t, x]) => ({ t, x }));
-  return (c._seen || []).concat(past);
+  const c = CHARS[id], past = STORY[id].thoughts.map(([tm, x]) => ({ t: tm, x: t(x) }));
+  return (c._seen || []).map((x) => ({ t: x.t, x: t(x.x) })).concat(past);
 }
 // 面板里的数据：实时模式来自服务端，示例模式来自上面写好的 STORY
 function sideData(id) {
   if (!LIVE) {
     return {
       stats: CHARS[id].stats, thoughts: thoughtsOf(id),
-      diary: STORY[id].diary.map(([d, w, x]) => ({ head: d, small: w, text: x })),
-      memories: STORY[id].memories.map(([s, x, d]) => ({ s, x, d })), rel: STORY[id].rel,
-      note: `内心独白是她每次做决定时顺手记下的想法。示例内容；正式版由 ${CHARS[id].name} 对应的模型生成。`, today: true,
+      diary: STORY[id].diary.map(([d, w, x]) => ({ head: dayName(d), small: t(w), text: t(x) })),
+      memories: STORY[id].memories.map(([s, x, d]) => ({ s, x: t(x), d: typeof d === 'number' ? dayName(d) : t(d) })), rel: STORY[id].rel.map(([w, v, l]) => [w, v, t(l)]),
+      note: t('内心独白是她每次做决定时顺手记下的想法。示例内容；正式版由 {n} 对应的模型生成。', { n: CHARS[id].name }), today: true,
     };
   }
   const L = LIVE.chars[id], now = nowMs();
   return {
     stats: [L.stats.food, L.stats.energy, L.stats.mood],
-    thoughts: L.thoughts.filter((x) => x.at <= now).reverse().map((x) => ({ t: `第 ${x.day} 天 · ${x.t}`, x: x.text })),
-    diary: L.diary.slice().reverse().map((d) => ({ head: `第 ${d.day} 天`, small: d.mood || '', text: d.text })),
-    memories: L.memories.map((m) => ({ s: m.imp, x: m.text, d: m.day ? `第 ${m.day} 天` : '很久以前' })),
+    thoughts: L.thoughts.filter((x) => x.at <= now).reverse().map((x) => ({ t: t('第 {d} 天 · {t}', { d: x.day, t: x.t }), x: x.text })),
+    diary: L.diary.slice().reverse().map((d) => ({ head: dayName(d.day), small: d.mood || '', text: d.text })),
+    memories: L.memories.map((m) => ({ s: m.imp, x: m.text, d: m.day ? dayName(m.day) : t('很久以前') })),
     rel: Object.entries(L.rel).map(([who, r]) => [who, r.v, r.label]),
     between: Object.fromEntries(Object.keys(L.rel).map((k) => [k, betweenOf(id, k)])), plans: plansOf(id), bag: LIVE.world?.inv?.[id] || [],
-    note: `内心独白是她每次做决定时的想法，由 ${L.model} 实时生成。`,
+    note: t('内心独白是她每次做决定时的想法，由 {m} 实时生成。', { m: L.model }),
     today: !L.diary.some((d) => d.day === clock().day),
   };
 }
@@ -1581,11 +2235,11 @@ function sideData(id) {
 function betweenOf(id, k) {
   const b = LIVE?.world?.bonds?.[[id, k].sort().join('|')]; if (!b || !CHARS[k]) return [];
   const n = CHARS[k].name, out = [];
-  for (const p of b.promises.slice(-2)) out.push(['约定', p.by === id ? `答应过${n}：${p.text}` : `${n}答应过她：${p.text}`]);
-  if (b.owe?.[id] > 0) out.push(['人情', `欠${n} ${b.owe[id]} 次`]);
-  if (b.owe?.[k] > 0) out.push(['人情', `${n}欠她 ${b.owe[k]} 次`]);
-  if (b.jokes.length) out.push(['梗', `「${b.jokes.at(-1)}」`]);
-  if (b.shared.length) out.push(['一起', b.shared.at(-1)]);
+  for (const p of b.promises.slice(-2)) out.push([t('约定'), p.by === id ? t('答应过{n}：{x}', { n, x: p.text }) : t('{n}答应过她：{x}', { n, x: p.text })]);
+  if (b.owe?.[id] > 0) out.push([t('人情'), t('欠{n} {c} 次', { n, c: b.owe[id] })]);
+  if (b.owe?.[k] > 0) out.push([t('人情'), t('{n}欠她 {c} 次', { n, c: b.owe[k] })]);
+  if (b.jokes.length) out.push([t('梗'), qt(b.jokes.at(-1))]);
+  if (b.shared.length) out.push([t('一起'), b.shared.at(-1)]);
   return out;
 }
 // 约好的事、答应帮的忙
@@ -1594,48 +2248,48 @@ function plansOf(id) {
   const nm = (k) => CHARS[k]?.name || k, out = [];
   for (const g of W.gatherings || []) {
     if (g.status === 'done' || !(g.host === id || g.invited.includes(id) || g.present.includes(id))) continue;
-    out.push(`${g.at} ${g.name}（${g.where}）· ${g.host === id ? `约了${g.invited.map(nm).join('、')}` : `${nm(g.host)}约的`}${g.status === 'running' ? ' · 进行中' : ''}`);
+    out.push(`${g.at} ${g.name}${t('（{x}）', { x: g.where })} · ${g.host === id ? t('约了{x}', { x: joinL(g.invited.map(nm)) }) : t('{x}约的', { x: nm(g.host) })}${g.status === 'running' ? ` · ${t('进行中')}` : ''}`);
   }
   for (const r of W.requests || []) {
-    if (r.to === id && r.status === 'accepted') out.push(`答应帮${nm(r.from)}：${r.text}`);
-    if (r.from === id && ['asked', 'accepted'].includes(r.status)) out.push(`请${nm(r.to)}帮忙：${r.text}${r.status === 'asked' ? '（等她回音）' : '（她答应了）'}`);
+    if (r.to === id && r.status === 'accepted') out.push(t('答应帮{n}：{x}', { n: nm(r.from), x: r.text }));
+    if (r.from === id && ['asked', 'accepted'].includes(r.status)) out.push(t('请{n}帮忙：{x}', { n: nm(r.to), x: r.text }) + t(r.status === 'asked' ? '（等她回音）' : '（她答应了）'));
   }
   return out;
 }
 function renderSide(force) {
   if (S.room) return renderRoomSide(force);
   const id = S.panel; if (!id) return;
-  const c = CHARS[id], st = stateOf(id), key = `${id}|${st.key}|${S.tab}|${LIVE ? LIVE.ver : ''}`;
+  const c = CHARS[id], st = stateOf(id), key = `${id}|${st.key}|${S.tab}|${LIVE ? LIVE.ver : ''}|${LANG}`;
   if (!force && key === sideKey) return;
   const keepScroll = sideKey.split('|')[2] === S.tab && sideKey.split('|')[0] === id ? side.querySelector('.tabbody')?.scrollTop : 0;
   sideKey = key;
   const D = sideData(id);
   document.getElementById('panel').style.setProperty('--c', c.color);
-  const where = st.inside ? SHOPS[st.inside].name : st.area ? AREAS[st.area].name : '路上';
+  const where = placeName(st);
   renderPlaque();
   const [f, e, m] = D.stats;
   const stat = (icon, label, v, col) => `<div class="stat">${ic(icon, `style="width:14px;height:14px;color:${col}"`)}<span>${label}</span><div class="bar"><i style="width:${v}%;background:${col}"></i></div></div>`;
-  const tabs = [['mono', '内心独白'], ['diary', '日记'], ['mem', '记忆与关系'], ['log', '动态']];
+  const tabs = [['mono', t('内心独白')], ['diary', t('日记')], ['mem', t('记忆与关系')], ['log', t('动态')]];
   let body = '';
   if (S.tab === 'mono') {
-    const live = st.s.thought ? `<div class="mono live"><div class="tm"><b>此刻</b> · ${fmt(clock())} · ${esc(st.s.text)}</div>${esc(st.s.thought)}</div>` : `<div class="mono live"><div class="tm"><b>此刻</b> · ${fmt(clock())}</div>${esc(st.s.text)}</div>`;
+    const live = st.s.thought ? `<div class="mono live"><div class="tm"><b>${t('此刻')}</b> · ${fmt(clock())} · ${esc(st.s.text)}</div>${esc(st.s.thought)}</div>` : `<div class="mono live"><div class="tm"><b>${t('此刻')}</b> · ${fmt(clock())}</div>${esc(st.s.text)}</div>`;
     body = live +
       D.thoughts.filter((x) => x.x !== st.s.thought).map((x) => `<div class="mono"><div class="tm">${esc(x.t)}</div>${esc(x.x)}</div>`).join('');
   } else if (S.tab === 'diary') {
-    body = D.diary.map((d) => `<div class="diary"><h4>${esc(d.head)}<small>${esc(d.small)}</small></h4>${esc(d.text)}</div>`).join('') || '<div class="hint">还没有日记。</div>';
+    body = D.diary.map((d) => `<div class="diary"><h4>${esc(d.head)}<small>${esc(d.small)}</small></h4>${esc(d.text)}</div>`).join('') || `<div class="hint">${t('还没有日记。')}</div>`;
   } else if (S.tab === 'mem') {
     const relx = (who) => (D.between?.[who] || []).map(([k, t]) => `<div><em>${k}</em>${esc(t)}</div>`).join('');
-    body = (D.plans?.length ? '<div class="sec">约好的事</div>' + D.plans.map((x) => `<div class="plan">${esc(x)}</div>`).join('') + '<div style="height:14px"></div>' : '') +
-      '<div class="sec">重要的记忆</div>' + D.memories.map(({ s, x, d }) => `<div class="mem"><span class="s">${'★'.repeat(s)}${'☆'.repeat(3 - s)}</span><div>${esc(x)}<div class="hint">${esc(d)}</div></div></div>`).join('') +
-      '<div class="sec" style="margin-top:14px">关系</div>' + D.rel.map(([who, v, label]) => `<div class="rel">${CHARS[who] ? `<img src="${ASSET[avatarKey(who)]}">` : `<span class="ico">${ic('users')}</span>`}<div><b>${CHARS[who] ? CHARS[who].name : '访客们'}</b> <span>${esc(label)}</span><div class="bar"><i style="width:${v}%"></i></div></div><span class="hint">${v}</span></div>${relx(who) ? `<div class="relx">${relx(who)}</div>` : ''}`).join('') +
-      (D.bag?.length ? '<div class="sec" style="margin-top:14px">随身带着</div><div class="bag">' + D.bag.map((x) => `<span>${esc(x)}</span>`).join('') + '</div>' : '');
+    body = (D.plans?.length ? `<div class="sec">${t('约好的事')}</div>` + D.plans.map((x) => `<div class="plan">${esc(x)}</div>`).join('') + '<div style="height:14px"></div>' : '') +
+      `<div class="sec">${t('重要的记忆')}</div>` + D.memories.map(({ s, x, d }) => `<div class="mem"><span class="s">${'★'.repeat(s)}${'☆'.repeat(3 - s)}</span><div>${esc(x)}<div class="hint">${esc(d)}</div></div></div>`).join('') +
+      `<div class="sec" style="margin-top:14px">${t('关系')}</div>` + D.rel.map(([who, v, label]) => `<div class="rel">${CHARS[who] ? `<img src="${ASSET[avatarKey(who)]}" alt="">` : `<span class="ico">${ic('users')}</span>`}<div><b>${CHARS[who] ? CHARS[who].name : t('访客们')}</b> <span>${esc(label)}</span><div class="bar"><i style="width:${v}%"></i></div></div><span class="hint">${v}</span></div>${relx(who) ? `<div class="relx">${relx(who)}</div>` : ''}`).join('') +
+      (D.bag?.length ? `<div class="sec" style="margin-top:14px">${t('随身带着')}</div><div class="bag">` + D.bag.map((x) => `<span>${esc(x)}</span>`).join('') + '</div>' : '');
   } else {
-    body = logEntries().filter((x) => x.who === id).slice().reverse().map((x) => `<div class="mono"><div class="tm">第 ${x.day} 天 · ${x.t}${x.area ? ' · ' + AREAS[x.area].name : ''}</div>${x.star ? '★ ' : ''}${esc(x.text)}</div>`).join('') || '<div class="hint">还没有动态。</div>';
+    body = logEntries().filter((x) => x.who === id).slice().reverse().map((x) => `<div class="mono"><div class="tm">${t('第 {d} 天 · {t}', { d: x.day, t: x.t })}${x.area ? ' · ' + t(AREAS[x.area].name) : ''}</div>${x.star ? '★ ' : ''}${esc(dt(x.text))}</div>`).join('') || `<div class="hint">${t('还没有动态。')}</div>`;
   }
   side.innerHTML = `
-    <div class="prof"><img src="${ASSET[avatarKey(id)]}"><div><h2>${c.name}</h2><div class="role">${c.role}</div></div></div>
-    <div class="now">${ic(st.s.icon || 'walk')}<span>${where} · ${esc(st.s.text)}</span></div>
-    <div class="stats">${stat('bowl', '饱腹', f, '#f0a95a')}${stat('bolt', '精力', e, '#7cbf6a')}${stat('heart', '心情', m, '#e0566e')}</div>
+    <div class="prof"><img src="${ASSET[avatarKey(id)]}" alt=""><div><h2>${c.name}</h2><div class="role">${t(c.role)}</div></div></div>
+    <div class="now">${ic(st.s.icon || 'walk')}<span>${esc(where)} · ${esc(st.s.text)}</span></div>
+    <div class="stats">${stat('bowl', t('饱腹'), f, '#f0a95a')}${stat('bolt', t('精力'), e, '#7cbf6a')}${stat('heart', t('心情'), m, '#e0566e')}</div>
     <div class="tabs">${tabs.map(([k, n]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
     <div class="tabbody">${body}</div>`;
   if (keepScroll) side.querySelector('.tabbody').scrollTop = keepScroll;
@@ -1657,13 +2311,13 @@ function drawScene() {
   } else if (st.area) {
     const zh = Math.max(470 * H / W, 300), zw = zh * W / H, cam = { x: Math.min(Math.max(st.x - zw / 2, 0), MAP_W - zw), y: Math.min(Math.max(st.y - zh * 0.62, 0), MAP_H - zh), w: zw, h: zh };
     renderArea(ctx, W, H, st.area, cam, { noUi: true });
-    if (st.s.say) { say.style.display = 'block'; say.textContent = `「${st.s.say}」`; } else say.style.display = 'none';
+    if (st.s.say) { say.style.display = 'block'; say.textContent = plainQ(qt(st.s.say)); } else say.style.display = 'none';
   } else {
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#fbe9d2'); g.addColorStop(1, '#f1d7b8'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const sc = H / 560;
     ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = '#2a1d14'; ctx.beginPath(); ctx.ellipse(W / 2, H * 0.72, 70 * sc, 14 * sc, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     cellDraw(ctx, c.walk, 2, Math.floor(realSec() * SPEED / STEP_PX) % 8, W / 2, H * 0.72, 300 * sc); // 和街上走路同一个步频
-    ctx.font = `${22 * sc}px ${FONTD}`; ctx.fillStyle = '#8d6f55'; ctx.textAlign = 'center'; ctx.fillText(st.s.text, W / 2, H * 0.84);
+    ctx.font = `${22 * sc}px ${FONTD}`; ctx.fillStyle = '#8d6f55'; ctx.textAlign = 'center'; ctx.fillText(plainQ(st.s.text), W / 2, H * 0.84);
     say.style.display = 'none';
   }
 }
@@ -1673,7 +2327,7 @@ function drawScene() {
 // kw：「在做什么」里出现这些字就优先站这里。分配只看服务端时间线（谁在店里、在做什么）和角色顺序，所有观众看到的一样。
 const ROOMS = {
   diner: {
-    h0: 300, words: ['深海食堂', '食堂'],
+    h0: 300, words: ['深海食堂', '食堂', 'Deep Sea Diner', 'diner'], // 店里的动态：文字里出现这些词（各语言都列上）
     spots: [
       { id: 'stove', x: 575, y: 575, label: '饭锅和碗柜边', for: ['work', 'write'], pair: 'counter' },
       { id: 'counter', x: 790, y: 625, label: '吧台前', for: ['eat', 'chat', 'read'], pair: 'stove' },
@@ -1684,13 +2338,13 @@ const ROOMS = {
       { id: 'tableL2', x: 655, y: 885, label: '左边的圆桌', for: ['eat', 'chat'], pair: 'tableL' },
       { id: 'tableR', x: 1065, y: 790, label: '右边的圆桌', for: ['eat', 'chat'], pair: 'tableR2' },
       { id: 'tableR2', x: 1330, y: 712, label: '右边的圆桌', for: ['eat', 'chat'], pair: 'tableR' },
-      { id: 'whale', x: 1175, y: 650, bed: [1150, 694], label: '鲸鱼抱枕旁', for: ['sleep', 'rest', 'slack'], kw: ['抱枕', '躺', '睡'] },
+      { id: 'whale', x: 1175, y: 650, bed: [1150, 694], label: '鲸鱼抱枕旁', for: ['sleep', 'rest', 'slack'], kw: ['抱枕', '躺', '睡', 'cushion', 'nap', 'lie down', '抱きまくら', '寝', '横にな'] },
       { id: 'floor', x: 840, y: 800, label: '店中间', for: ['rest', 'slack', 'read', 'write'] },
       { id: 'floor2', x: 960, y: 690, label: '店中间', for: [] },
     ],
     objects: [
-      { id: 'cooker', c: [868, 255, 64], name: '鲸鱼电饭煲', icon: 'bowl', spots: ['stove'], desc: '深海食堂的镇店之宝。饭煮好时会「嘀——」一声，像鲸鱼在叫。', idle: () => `今天已经煮了 ${1 + Math.floor(roomMin() / 180)} 锅饭，锅盖还在冒热气。` },
-      { id: 'onigiri', r: [1012, 288, 1172, 352], name: '海苔饭团', icon: 'gift', spots: ['counter'], desc: '包着海苔的饭团，深海食堂的招牌。', idle: () => `案板上还剩 ${3 + (clock().day * 7 + Math.floor(roomMin() / 60)) % 6} 个。老板说这些是「样品」。` },
+      { id: 'cooker', c: [868, 255, 64], name: '鲸鱼电饭煲', icon: 'bowl', spots: ['stove'], desc: '深海食堂的镇店之宝。饭煮好时会「嘀——」一声，像鲸鱼在叫。', idle: () => ['今天已经煮了 {n} 锅饭，锅盖还在冒热气。', { n: 1 + Math.floor(roomMin() / 180) }] },
+      { id: 'onigiri', r: [1012, 288, 1172, 352], name: '海苔饭团', icon: 'gift', spots: ['counter'], desc: '包着海苔的饭团，深海食堂的招牌。', idle: () => ['案板上还剩 {n} 个。老板说这些是「样品」。', { n: 3 + (clock().day * 7 + Math.floor(roomMin() / 60)) % 6 }] },
       { id: 'menu', r: [885, 18, 1160, 168], name: '今日菜单', icon: 'scroll', desc: '黑板上用粉笔写着今天的菜单，字有点歪。', idle: () => { const h = roomMin() / 60; return h < 10 ? '早餐：白粥 · 海苔饭团' : h < 22 ? '鲸鱼盖饭 · 海苔饭团 · 味噌汤' : '深夜半价：饭团第二个半价'; } },
       { id: 'whale', r: [1215, 462, 1490, 632], name: '鲸鱼抱枕', icon: 'fish', spots: ['whale'], desc: 'DeepSeek 说这里是「员工休息区」。员工只有她一个。', idle: () => '没人。抱枕上还留着一个压出来的坑。' },
       { id: 'porthole', c: [1402, 142, 108], name: '舷窗', icon: 'eye', desc: '窗外是一片深海。DeepSeek 说她看到过一条会发光的鱼游过去。', idle: () => (hourNow() >= 19 || hourNow() < 5.5 ? '外面黑黑的，只有几只发光的水母。' : '阳光从海面照下来，一群小鱼游过去了。') },
@@ -1699,11 +2353,11 @@ const ROOMS = {
     ],
   },
   bookstore: {
-    h0: 320, words: ['纸页书屋', '书屋'],
+    h0: 320, words: ['纸页书屋', '书屋', 'Paper Leaf', 'bookshop', 'bookstore', '紙ページ書房', '書房'],
     spots: [
-      { id: 'desk', x: 455, y: 655, label: '写字台前', for: ['work', 'write'], pair: 'deskGuest', kw: ['写', '翻译', '账', '稿', '文件'] },
-      { id: 'shelf', x: 720, y: 470, label: '书架前', for: ['work', 'read'], pair: 'shelfGuest', kw: ['书架', '整理', '找书', '上架'] },
-      { id: 'armchair', x: 1225, y: 600, seat: [1296, 560], label: '窗边的读书椅', for: ['read', 'rest', 'slack'], pair: 'tea', kw: ['椅', '窗'] },
+      { id: 'desk', x: 455, y: 655, label: '写字台前', for: ['work', 'write'], pair: 'deskGuest', kw: ['写', '翻译', '账', '稿', '文件', 'writ', 'translat', 'ledger', 'draft', 'paperwork', '書い', '書き', '翻訳', '帳簿', '原稿', '書類'] },
+      { id: 'shelf', x: 720, y: 470, label: '书架前', for: ['work', 'read'], pair: 'shelfGuest', kw: ['书架', '整理', '找书', '上架', 'shel', 'tidy', 'sort', '本棚', '整理'] },
+      { id: 'armchair', x: 1225, y: 600, seat: [1296, 560], label: '窗边的读书椅', for: ['read', 'rest', 'slack'], pair: 'tea', kw: ['椅', '窗', 'chair', 'window', '椅子', '窓'] },
       { id: 'bed', x: 830, y: 760, bed: [830, 772], label: '地毯上', for: ['sleep'] },
       { id: 'tea', x: 1035, y: 575, label: '茶几边', for: ['chat', 'rest', 'eat'], pair: 'armchair' },
       { id: 'deskGuest', x: 645, y: 725, label: '写字台边', for: ['chat', 'read'], pair: 'desk' },
@@ -1715,17 +2369,17 @@ const ROOMS = {
       { id: 'desk', r: [0, 300, 360, 560], name: '写字台', icon: 'scroll', spots: ['desk', 'deskGuest'], desc: 'Claude 写稿和看书的地方。桌上的茶永远是凉的。', idle: () => '桌上摊着一本理到一半的账本，主人：DeepSeek。' },
       { id: 'shelf', r: [860, 0, 1060, 320], name: '书架', icon: 'book', spots: ['shelf', 'shelfGuest'], desc: '按心情排的书架：「下雨天读的」「睡不着读的」「推荐给 GPT 但她不会借的」。', idle: () => '今日推荐：《雨天的书签》（作者：Claude）。' },
       { id: 'armchair', r: [1228, 238, 1490, 560], name: '读书椅', icon: 'book', spots: ['armchair'], desc: '窗边的软椅，下午的阳光正好照在扶手上。', idle: () => '椅子上放着一本书，书签夹在第 37 页。' },
-      { id: 'tea', c: [1190, 345, 62], name: '茶几', icon: 'heart', spots: ['tea'], desc: '红茶和小点心。来书屋的客人都可以喝一杯。', idle: () => `茶壶里还有 ${1 + (clock().day + Math.floor(roomMin() / 90)) % 4} 杯的量。` },
-      { id: 'pages', c: [315, 180, 60], name: '飘起来的稿纸', icon: 'sparkle', desc: '没写完的稿子会自己飘起来。Claude 说这是「灵感在找出口」。', idle: () => `今天已经飘起来 ${2 + Math.floor(roomMin() / 120)} 页。` },
+      { id: 'tea', c: [1190, 345, 62], name: '茶几', icon: 'heart', spots: ['tea'], desc: '红茶和小点心。来书屋的客人都可以喝一杯。', idle: () => ['茶壶里还有 {n} 杯的量。', { n: 1 + (clock().day + Math.floor(roomMin() / 90)) % 4 }] },
+      { id: 'pages', c: [315, 180, 60], name: '飘起来的稿纸', icon: 'sparkle', desc: '没写完的稿子会自己飘起来。Claude 说这是「灵感在找出口」。', idle: () => ['今天已经飘起来 {n} 页。', { n: 2 + Math.floor(roomMin() / 120) }] },
       { id: 'flower', c: [685, 105, 100], name: '铜花挂饰', icon: 'sun', desc: '书屋正中的铜花挂饰。据说是 GPT「顺便」修风铃的时候一起挂上的。', idle: () => '花瓣被擦得亮亮的。' },
     ],
   },
   observatory: {
-    h0: 330, words: ['星仪万事屋', '万事屋'],
+    h0: 330, words: ['星仪万事屋', '万事屋', 'Starglass', 'Odd Jobs', '星儀よろず屋', 'よろず屋'],
     spots: [
-      { id: 'sphere', x: 850, y: 548, label: '星仪旁', for: ['stargaze', 'work', 'read'], pair: 'sphereGuest', kw: ['星'] },
-      { id: 'counter', x: 990, y: 800, label: '柜台前', for: ['work', 'errand'], pair: 'counterGuest', kw: ['委托', '柜台', '账', '接'] },
-      { id: 'board', x: 505, y: 600, label: '委托板前', for: ['read', 'write'], kw: ['委托板', '贴'] },
+      { id: 'sphere', x: 850, y: 548, label: '星仪旁', for: ['stargaze', 'work', 'read'], pair: 'sphereGuest', kw: ['星', 'star'] },
+      { id: 'counter', x: 990, y: 800, label: '柜台前', for: ['work', 'errand'], pair: 'counterGuest', kw: ['委托', '柜台', '账', '接', 'request', 'counter', 'ledger', '依頼', 'カウンター', '帳簿'] },
+      { id: 'board', x: 505, y: 600, label: '委托板前', for: ['read', 'write'], kw: ['委托板', '贴', 'request board', 'pin', '依頼板', '貼'] },
       { id: 'sphereGuest', x: 985, y: 600, label: '星仪旁', for: ['stargaze', 'chat'], pair: 'sphere' },
       { id: 'counterGuest', x: 790, y: 845, label: '柜台前', for: ['chat', 'errand'], pair: 'counter' },
       { id: 'star', x: 700, y: 765, bed: [770, 800], label: '星盘中央', for: ['rest', 'sleep', 'slack', 'chat'], pair: 'star2' },
@@ -1733,10 +2387,10 @@ const ROOMS = {
     ],
     objects: [
       { id: 'sphere', c: [985, 340, 135], name: '星仪', icon: 'star', spots: ['sphere', 'sphereGuest'], desc: '万事屋的镇店之宝，能照出今晚每一颗星的位置。', idle: () => (hourNow() >= 19 || hourNow() < 5.5 ? '星仪转到了猎户座，今晚能看到流星。' : '白天星仪在休息，只是慢慢地转。') },
-      { id: 'board', r: [330, 100, 680, 450], name: '委托板', icon: 'scroll', spots: ['board'], desc: '贴满了大家的委托：修风铃、搬木箱、帮忙找猫……', idle: () => `板上还有 ${3 + (clock().day + Math.floor(roomMin() / 240)) % 5} 张没人接的委托。` },
+      { id: 'board', r: [330, 100, 680, 450], name: '委托板', icon: 'scroll', spots: ['board'], desc: '贴满了大家的委托：修风铃、搬木箱、帮忙找猫……', idle: () => ['板上还有 {n} 张没人接的委托。', { n: 3 + (clock().day + Math.floor(roomMin() / 240)) % 5 }] },
       { id: 'treasure', r: [300, 430, 530, 670], name: '宝库', icon: 'coin', desc: '龙的宝库。GPT 每天都会盘点一遍。', idle: () => '金币 1,024 枚，一枚不少。' },
       { id: 'bell', c: [1282, 632, 44], name: '柜台铃', icon: 'bell', spots: ['counter', 'counterGuest'], desc: '按一下，GPT 会从任何地方冒出来——「顺便」帮你。', idle: () => '柜台后面没人，铃擦得很亮。' },
-      { id: 'crystal', r: [0, 185, 160, 285], name: '水晶球', icon: 'eye', desc: '能看见明天的天气，偶尔也能看见明天的晚饭。', idle: () => `明天：${['晴', '多云', '小雨', '晴转多云'][clock().day % 4]}。` },
+      { id: 'crystal', r: [0, 185, 160, 285], name: '水晶球', icon: 'eye', desc: '能看见明天的天气，偶尔也能看见明天的晚饭。', idle: () => ['明天：{w}。', { w: t(['晴', '多云', '小雨', '晴转多云'][clock().day % 4]) }] },
       { id: 'window', r: [1330, 190, 1536, 420], name: '拱窗', icon: 'moon', desc: '从这里能看到整个街区的天空。', idle: () => (hourNow() >= 19 || hourNow() < 5.5 ? '窗外满天星星。' : '窗外的云走得很慢。') },
     ],
   },
@@ -1754,7 +2408,8 @@ function roomLayout(key) {
   const take = (st, s) => { s = s || R.spots.find(free) || { id: `x${st.id}`, x: 768, y: 780, label: '店里', for: [] }; used.add(s.id); at[st.id] = s; };
   const pick = (st, a) => { // 关键词对上的位置优先；能坐的动作（吃、看书、歇着）先找有凳子/椅子的位置；睡觉找铺被褥的地方
     const ok = R.spots.filter((s) => free(s) && s.for.includes(a));
-    return ok.find((s) => s.kw && s.kw.some((w) => (st.s.text || '').includes(w))) || (a === 'sleep' && ok.find((s) => s.bed)) || (['eat', 'read', 'rest', 'slack'].includes(a) && ok.find((s) => s.seat)) || ok[0];
+    const doing = (st.s.text || '').toLowerCase(); // 「在做什么」已经是当前语言：关键词各语言都列上，不分大小写
+    return ok.find((s) => s.kw && s.kw.some((w) => doing.includes(w.toLowerCase()))) || (a === 'sleep' && ok.find((s) => s.bed)) || (['eat', 'read', 'rest', 'slack'].includes(a) && ok.find((s) => s.seat)) || ok[0];
   };
   const near = (s) => R.spots.filter(free).sort((a, b) => Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(b.x - s.x, b.y - s.y))[0];
   for (const st of ppl) { const s = st.seg && st.seg.spot && spot(st.seg.spot); if (free(s)) take(st, s); } // 服务端指定了位置就用它
@@ -1784,7 +2439,7 @@ function roomLayout(key) {
 const RP = {};
 let roomView = null, roomCam = null, roomT = 0;
 function roomBubble(ctx, cx, bottom, text, size, maxW, W) {
-  ctx.font = `${size}px ${FONTD}`;
+  text = plainQ(text); ctx.font = `${size}px ${FONTD}`;
   const lines = []; let cur = '';
   for (const ch of text) { if (cur && ctx.measureText(cur + ch).width > maxW) { lines.push(cur); cur = ch; } else cur += ch; }
   if (cur) lines.push(cur);
@@ -1907,7 +2562,7 @@ sceneCv.addEventListener('mousemove', (e) => {
   const r = sceneCv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, h = roomHit(px, py);
   S.roomHover = h; sceneCv.style.cursor = h ? 'pointer' : 'default';
   if (h && !(h.kind === 'obj' && S.roomPop === h.o.id)) {
-    roomTip.textContent = h.kind === 'char' ? (h.id === S.panel ? `${CHARS[h.id].name} · ${h.e.sp.label}` : `${CHARS[h.id].name} · 点击看她`) : h.o.name;
+    roomTip.textContent = plainQ(h.kind === 'char' ? (h.id === S.panel ? `${CHARS[h.id].name} · ${t(h.e.sp.label)}` : `${CHARS[h.id].name} · ${t('点击看她')}`) : t(h.o.name));
     roomTip.style.display = 'block'; roomTip.style.left = `${px}px`; roomTip.style.top = `${py - 12}px`;
   } else roomTip.style.display = 'none';
 });
@@ -1937,9 +2592,9 @@ function renderRoomPop() {
   const v = roomView && roomView.key === S.roomPopKey ? roomView : null;
   const L = v ? v.L : roomLayout(S.roomPopKey), who = L.find((e) => e.sp && (o.spots || []).includes(e.sp.id));
   const ws = worldShow('room', S.roomPopKey, o.id);
-  const live = (who ? `此刻：${esc(CHARS[who.st.id].name)} · ${esc(who.st.s.text)}` : '') + (ws != null ? `${who ? '<br>' : ''}${esc(ws)}` : who ? '' : esc(o.idle()));
-  const html = `<button class="x" id="rpX">${ic('x')}</button><h4>${ic(o.icon)} ${o.name}</h4><p>${o.desc}</p><div class="live">${live}</div>` +
-    (who && who.st.id !== S.panel ? `<div class="row"><button class="btn soft" id="rpWho">${ic('eye')}看看 ${CHARS[who.st.id].name}</button></div>` : '');
+  const live = (who ? t('此刻：{n} · {x}', { n: esc(CHARS[who.st.id].name), x: esc(who.st.s.text) }) : '') + (ws != null ? `${who ? '<br>' : ''}${esc(ws)}` : who ? '' : esc(tx(o.idle())));
+  const html = `<button class="x" id="rpX">${ic('x')}</button><h4>${ic(o.icon)} ${t(o.name)}</h4><p>${t(o.desc)}</p><div class="live">${live}</div>` +
+    (who && who.st.id !== S.panel ? `<div class="row"><button class="btn soft" id="rpWho">${ic('eye')}${t('看看 {n}', { n: CHARS[who.st.id].name })}</button></div>` : '');
   if (html === roomPopHtml) return;
   roomPopHtml = html; roomPopEl.innerHTML = html;
   roomPopEl.querySelector('#rpX').onclick = closeRoomPop;
@@ -1959,43 +2614,44 @@ let plaqueKey = '';
 function renderPlaque() {
   const pl = document.getElementById('plaque');
   let html, link = null;
-  if (S.room) { const sh = SHOPS[S.room], n = roomPeople(S.room).length; html = `${ic(sh.icon)}${sh.name}<small>${n ? `${n} 人在店里` : '没人'}</small>`; }
+  if (S.room) { const sh = SHOPS[S.room], n = roomPeople(S.room).length; html = `${ic(sh.icon)}${t(sh.name)}<small>${n ? t('{n} 人在店里', { n }) : t('没人')}</small>`; }
   else if (S.panel) {
     const st = stateOf(S.panel);
-    if (st.inside) { const sh = SHOPS[st.inside], n = roomPeople(st.inside).length; link = st.inside; html = `${ic(sh.icon)}${sh.name}<small>${n > 1 ? `${n} 人 · ` : ''}看整间店 ›</small>`; }
-    else html = `${ic('pin')}${st.area ? AREAS[st.area].name : '路上'}`;
+    if (st.inside) { const sh = SHOPS[st.inside], n = roomPeople(st.inside).length; link = st.inside; html = `${ic(sh.icon)}${t(sh.name)}<small>${n > 1 ? `${t('{n} 人', { n })} · ` : ''}${t('看整间店 ›')}</small>`; }
+    else html = `${ic('pin')}${placeName(st)}`;
   } else return;
-  const back = S.panel && S.back ? '回到店里' : '回到街上', k = html + back;
+  const back = t(S.panel && S.back ? '回到店里' : '回到街上'), k = html + back;
   if (k === plaqueKey) return;
-  plaqueKey = k; pl.innerHTML = html; pl.classList.toggle('link', !!link); pl.title = link ? '看看店里的所有人' : '';
+  plaqueKey = k; pl.innerHTML = html; pl.classList.toggle('link', !!link); pl.title = link ? t('看看店里的所有人') : '';
   pl.onclick = link ? () => openRoom(link) : null;
-  document.getElementById('panelBack').innerHTML = `${ic('back')}${back}`;
+  document.getElementById('panelBack').innerHTML = `${ic('back')}<span class="blbl">${back}</span>`; document.getElementById('panelBack').title = back;
 }
 // 店的侧栏：谁在店里、在做什么，店里的东西，店里的动态
 function renderRoomSide(force) {
   const key = S.room, sh = SHOPS[key], R = ROOMS[key], owner = CHARS[sh.owner], L = roomLayout(key);
-  const k = `room|${key}|${L.map((e) => [e.st.id, e.st.key, e.sp.id, e.partner, e.st.s.say, e.st.s.text].join(':')).join(',')}|${S.roomPop || ''}|${LIVE ? LIVE.ver : ''}`;
+  const k = `room|${key}|${L.map((e) => [e.st.id, e.st.key, e.sp.id, e.partner, e.st.s.say, e.st.s.text].join(':')).join(',')}|${S.roomPop || ''}|${LIVE ? LIVE.ver : ''}|${LANG}`;
   if (!force && k === sideKey) return;
   const keep = sideKey.startsWith(`room|${key}|`) ? side.querySelector('.tabbody')?.scrollTop : 0;
   sideKey = k;
   document.getElementById('panel').style.setProperty('--c', owner.color);
   const ost = stateOf(sh.owner), home = L.some((e) => e.st.id === sh.owner);
-  const status = home ? (roomAct(ost) === 'sleep' ? `打烊了，${owner.name}在睡觉` : `营业中 · 店主 ${owner.name} 在店里`) : `店主 ${owner.name} 出门了 · 现在在${ost.inside ? SHOPS[ost.inside].name : ost.area ? AREAS[ost.area].name : '路上'}`;
+  const status = home ? (roomAct(ost) === 'sleep' ? t('打烊了，{n}在睡觉', { n: owner.name }) : t('营业中 · 店主 {n} 在店里', { n: owner.name })) : t('店主 {n} 出门了 · 现在在{w}', { n: owner.name, w: placeName(ost) });
   const people = L.map((e) => {
     const c = CHARS[e.st.id], s = e.st.s, mate = e.partner ? CHARS[e.partner].name : '';
-    const q = s.say ? `「${esc(s.say)}」` : s.thought ? `心声：${esc(s.thought)}` : '';
-    return `<button class="rm-p" data-id="${e.st.id}" style="--pc:${c.color}"><img src="${ASSET[avatarKey(e.st.id)]}" alt=""><div><b>${c.name}</b>${e.st.id === sh.owner ? ' <span class="hint">店主</span>' : ''}<div class="d">${esc(e.sp.label)} · ${esc(s.text)}${mate ? ` · 对着 ${mate}` : ''}</div>${q ? `<div class="q">${q}</div>` : ''}</div>${ic('back', 'style="transform:rotate(180deg)"')}</button>`;
-  }).join('') || `<div class="note">店里现在没人。有人进来的话，会出现在这里。</div>`;
-  const objs = `<div class="rm-objs">${R.objects.map((o) => `<button data-o="${o.id}" class="${S.roomPop === o.id ? 'on' : ''}">${ic(o.icon)}${o.name}</button>`).join('')}</div>`;
-  const log = logEntries().filter((x) => x.text && R.words.some((w) => x.text.includes(w))).slice(-5).reverse()
-    .map((x) => `<div class="mono"><div class="tm">第 ${x.day} 天 · ${x.t}</div>${x.star ? '★ ' : ''}${esc(x.text)}</div>`).join('') || '<div class="hint">还没有动态。</div>';
+    const q = s.say ? qt(esc(s.say)) : s.thought ? t('心声：{x}', { x: esc(s.thought) }) : '';
+    return `<button class="rm-p" data-id="${e.st.id}" style="--pc:${c.color}"><img src="${ASSET[avatarKey(e.st.id)]}" alt=""><div><b>${c.name}</b>${e.st.id === sh.owner ? ` <span class="hint">${t('店主')}</span>` : ''}<div class="d">${esc(t(e.sp.label))} · ${esc(s.text)}${mate ? ` · ${t('对着 {n}', { n: mate })}` : ''}</div>${q ? `<div class="q">${q}</div>` : ''}</div>${ic('back', 'style="transform:rotate(180deg)"')}</button>`;
+  }).join('') || `<div class="note">${t('店里现在没人。有人进来的话，会出现在这里。')}</div>`;
+  const objs = `<div class="rm-objs">${R.objects.map((o) => `<button data-o="${o.id}" class="${S.roomPop === o.id ? 'on' : ''}">${ic(o.icon)}${t(o.name)}</button>`).join('')}</div>`;
+  const words = R.words.map((w) => w.toLowerCase());
+  const log = logEntries().filter((x) => x.text && words.some((w) => x.text.toLowerCase().includes(w))).slice(-5).reverse()
+    .map((x) => `<div class="mono"><div class="tm">${t('第 {d} 天 · {t}', { d: x.day, t: x.t })}</div>${x.star ? '★ ' : ''}${esc(dt(x.text))}</div>`).join('') || `<div class="hint">${t('还没有动态。')}</div>`;
   side.innerHTML = `
-    <div class="prof"><span class="rm-ico">${ic(sh.icon)}</span><div><h2>${sh.name}</h2><div class="role">${owner.name} 的店 · ${L.length ? `现在 ${L.length} 人在店里` : '现在没人'}</div></div></div>
+    <div class="prof"><span class="rm-ico">${ic(sh.icon)}</span><div><h2>${t(sh.name)}</h2><div class="role">${t('{n} 的店', { n: owner.name })} · ${L.length ? t('现在 {n} 人在店里', { n: L.length }) : t('现在没人')}</div></div></div>
     <div class="now">${ic(home ? 'sparkle' : 'walk')}<span>${esc(status)}</span></div>
     <div class="tabbody">
-      <div class="sec">店里的人</div>${people}
-      <div class="sec" style="margin-top:14px">店里的东西</div>${objs}
-      <div class="sec" style="margin-top:16px">店里的动态</div>${log}
+      <div class="sec">${t('店里的人')}</div>${people}
+      <div class="sec" style="margin-top:14px">${t('店里的东西')}</div>${objs}
+      <div class="sec" style="margin-top:16px">${t('店里的动态')}</div>${log}
     </div>
 `;
   if (keep) side.querySelector('.tabbody').scrollTop = keep;
@@ -2009,16 +2665,16 @@ const collabModal = document.getElementById('collabModal'), collabForm = documen
 const JOIN_URL = 'https://mirasim.ai/j/z5qybknxe3x2';
 function renderCollab() {
   collabForm.innerHTML = `
-    <h2>加入鲸巷</h2>
-    <div>加入以后，可以和大家一起把这条街建起来：开新店、办节日、加个小意外，或者让下一个模型搬进来住。不用写代码，跟你的 agent 说想加什么就行。</div>
+    <h2>${t('加入鲸巷')}</h2>
+    <div>${t('加入以后，可以和大家一起把这条街建起来：开新店、办节日、加个小意外，或者让下一个模型搬进来住。不用写代码，跟你的 agent 说想加什么就行。')}</div>
     <div class="roles">
-      <div><b>${ic('eye')}Viewer · 先看看</b><small>点一下就进来，看大家在做什么</small></div>
-      <div><b>${ic('hand')}Collaborator · 一起动手</b><small>管理员同意后，agent 就能改这条街</small></div>
+      <div><b>${ic('eye')}${t('Viewer · 先看看')}</b><small>${t('点一下就进来，看大家在做什么')}</small></div>
+      <div><b>${ic('hand')}${t('Collaborator · 一起动手')}</b><small>${t('管理员同意后，agent 就能改这条街')}</small></div>
     </div>
-    <div class="steps"><span>① 点「Join 鲸巷」，登录 mirasim</span><span>② 选 Viewer 或 Collaborator，进来</span></div>
-    <div class="foot"><span class="hint">需要一个 mirasim 账号</span>
-      <button class="btn soft" id="cCancel">取消</button>
-      <a class="btn cta" href="${JOIN_URL}" target="_blank" rel="noopener">${ic('hand')}<span class="txt"><span class="t">Join 鲸巷</span></span></a></div>`;
+    <div class="steps"><span>${t('① 点「Join 鲸巷」，登录 mirasim')}</span><span>${t('② 选 Viewer 或 Collaborator，进来')}</span></div>
+    <div class="foot"><span class="hint">${t('需要一个 mirasim 账号')}</span>
+      <button class="btn soft" id="cCancel">${t('取消')}</button>
+      <a class="btn cta" href="${JOIN_URL}" target="_blank" rel="noopener">${ic('hand')}<span class="txt"><span class="t">${t('Join 鲸巷')}</span></span></a></div>`;
   collabForm.querySelector('#cCancel').onclick = () => collabModal.classList.remove('open');
 }
 document.getElementById('collabBtn').onclick = () => { renderCollab(); collabModal.classList.add('open'); };
@@ -2033,21 +2689,22 @@ function letterToken() {
   if (!t) { t = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 24); localStorage.setItem('mc-letter-token', t); }
   return t;
 }
-let letterKind = '建议';
+let letterKind = '建议', lettersMine = [];
 async function openLetters() {
-  if (!LIVE) { toast('留言需要连上服务器'); return; }
+  if (!LIVE) { toast(t('留言需要连上服务器')); return; }
   letterModal.classList.add('open');
   renderLetters([]);
   try { const r = await fetch(`/api/letters?token=${letterToken()}`); renderLetters((await r.json()).letters || []); } catch { /* 网络不好就只显示表单 */ }
 }
 function renderLetters(mine) {
+  lettersMine = mine;
   const draft = letterForm.querySelector('textarea')?.value || '';
-  letterForm.innerHTML = `<h2>给开发团队的信</h2>
-    <div class="hint">只有开发团队能看到，不会寄到镇上。</div>
-    <div class="kinds">${LETTER_KINDS.map((k) => `<button data-k="${k}" class="${k === letterKind ? 'on' : ''}">${k}</button>`).join('')}</div>
-    <textarea id="letterText" maxlength="500" placeholder="想对开发团队说的话……"></textarea>
-    <div class="foot"><span class="count" id="letterCount">0 / 500</span><button class="btn soft" id="lCancel">关闭</button><button class="btn primary" id="lSend">${ic('chat')}寄出</button></div>
-    <div class="mine"><h4>我的留言</h4>${mine.map((l) => `<div class="lt"><div class="tm">${new Date(l.at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · ${esc(l.kind)}</div>${esc(l.text)}${l.reply ? `<div class="re"><b>开发团队：</b>${esc(l.reply.text)}</div>` : ''}</div>`).join('') || '<div class="hint">还没有寄出过信。</div>'}</div>`;
+  letterForm.innerHTML = `<h2>${t('给开发团队的信')}</h2>
+    <div class="hint">${t('只有开发团队能看到，不会寄到镇上。')}</div>
+    <div class="kinds">${LETTER_KINDS.map((k) => `<button data-k="${k}" class="${k === letterKind ? 'on' : ''}">${t(k)}</button>`).join('')}</div>
+    <textarea id="letterText" maxlength="500" placeholder="${t('想对开发团队说的话……')}" aria-label="${t('给开发团队的信')}"></textarea>
+    <div class="foot"><span class="count" id="letterCount">0 / 500</span><button class="btn soft" id="lCancel">${t('关闭')}</button><button class="btn primary" id="lSend">${ic('chat')}${t('寄出')}</button></div>
+    <div class="mine"><h4>${t('我的留言')}</h4>${mine.map((l) => `<div class="lt"><div class="tm">${new Date(l.at).toLocaleString(LOCALE[LANG], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · ${esc(t(l.kind))}</div>${esc(l.text)}${l.reply ? `<div class="re"><b>${t('开发团队：')}</b>${esc(l.reply.text)}</div>` : ''}</div>`).join('') || `<div class="hint">${t('还没有寄出过信。')}</div>`}</div>`;
   const ta = letterForm.querySelector('#letterText'), cnt = letterForm.querySelector('#letterCount');
   ta.value = draft; cnt.textContent = `${ta.value.length} / 500`;
   ta.oninput = () => { cnt.textContent = `${ta.value.length} / 500`; };
@@ -2055,14 +2712,14 @@ function renderLetters(mine) {
   letterForm.querySelector('#lCancel').onclick = () => letterModal.classList.remove('open');
   letterForm.querySelector('#lSend').onclick = async () => {
     const text = ta.value.trim();
-    if (text.length < 2) { toast('多写几个字吧'); return; }
+    if (text.length < 2) { toast(t('多写几个字吧')); return; }
     try {
       const r = await fetch('/api/letters', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: letterToken(), kind: letterKind, text }) });
       const j = await r.json();
-      if (!r.ok) { toast(j.error || '没寄出去，稍后再试'); return; }
-      ta.value = ''; toast('信寄出了');
+      if (!r.ok) { toast(t(j.error || '没寄出去，稍后再试')); return; }
+      ta.value = ''; toast(t('信寄出了'));
       renderLetters([j.letter, ...mine]);
-    } catch { toast('没寄出去，稍后再试'); }
+    } catch { toast(t('没寄出去，稍后再试')); }
   };
 }
 letterModal.addEventListener('click', (e) => { if (e.target === letterModal) letterModal.classList.remove('open'); });
@@ -2073,29 +2730,29 @@ let CHRON = null, chronDay = null;
 async function openChronicle(mode) {
   if (!LIVE) return;
   chronModal.classList.add('open');
-  if (!CHRON) chronBox.innerHTML = '<div class="body"><div class="empty">翻开编年史……</div></div>';
-  try { CHRON = (await (await fetch('/api/chronicle')).json()).days || []; } catch { CHRON = CHRON || []; }
+  if (!CHRON) chronBox.innerHTML = `<div class="body"><div class="empty">${t('翻开编年史……')}</div></div>`;
+  await fetchChron();
   if (mode === 'paper') chronDay = (CHRON.find((d) => d.paper) || CHRON[0])?.day ?? null;
   else if (chronDay === null || !CHRON.some((d) => d.day === chronDay)) chronDay = (CHRON.find((d) => d.paper || d.events.length || Object.keys(d.diaries).length) || CHRON[0])?.day ?? null; // 先翻到最近一个有内容的日子
   renderChronicle();
 }
 function renderChronicle() {
   const d = CHRON.find((x) => x.day === chronDay);
-  const days = CHRON.map((x) => `<button data-d="${x.day}" class="${x.day === chronDay ? 'on' : ''}">第 ${x.day} 天${x.paper ? ' ·报' : ''}</button>`).join('');
-  let body = '<div class="empty">这条街的故事才刚开始。</div>';
+  const days = CHRON.map((x) => `<button data-d="${x.day}" class="${x.day === chronDay ? 'on' : ''}">${dayName(x.day)}${x.paper ? t(' ·报') : ''}</button>`).join('');
+  let body = `<div class="empty">${t('这条街的故事才刚开始。')}</div>`;
   if (d) {
     const p = d.paper;
-    const paper = p ? `<div class="paper"><div class="mast"><b>鲸巷日报</b><span>第 ${d.day} 天</span></div>
+    const paper = p ? `<div class="paper"><div class="mast"><b>${t('鲸巷日报')}</b><span>${dayWeek(d.day)}</span></div>
         <h3>${esc(p.headline)}</h3><p class="lead">${esc(p.lead)}</p>
         <div class="cols">${p.articles.map((a) => `<div class="art"><span class="tag">${esc(a.tag)}</span><b>${esc(a.title)}</b><p>${esc(a.body)}</p></div>`).join('')}</div>
-        <div class="foot">${p.quote ? `<div class="quote"><img src="${ASSET[avatarKey(p.quote.who)]}"><span>「${esc(p.quote.text)}」——${CHARS[p.quote.who].name}</span></div>` : ''}${p.tomorrow ? `<div class="next">明日看点：${esc(p.tomorrow)}</div>` : ''}</div></div>`
-      : `<div class="empty">${d.today ? `第 ${d.day} 天的日报，第 ${d.day + 1} 天早上出炉。` : '这一天没有出日报。'}</div>`;
-    const diaries = `<div class="diaries">${Object.keys(CHARS).map((id) => { const x = d.diaries[id]; return `<div class="dy"><h4><img src="${ASSET[avatarKey(id)]}">${CHARS[id].name}<small>${x ? esc(x.mood || '') : ''}</small></h4>${x ? esc(x.text) : `<span class="empty">${d.today ? '睡前才写' : '这天没写日记'}</span>`}</div>`; }).join('')}</div>`;
-    const events = d.events.slice().reverse().map((e) => `<div class="ev ${e.star ? 'star' : ''}"><span class="tm">${esc(e.t)}</span><span class="tx">${esc(e.text)}</span></div>`).join('') || '<div class="empty">这一天很安静。</div>';
-    const comics = d.comics.length ? `<div class="thumbs">${d.comics.map((c) => `<button data-c="${esc(c.id)}"><img loading="lazy" src="${esc(c.url)}">${esc(c.title)}</button>`).join('')}</div>` : '<div class="empty">这一天没有画漫画。</div>';
-    body = `${paper}<div class="sec">${ic('book')}三个人的日记</div>${diaries}<div class="sec">${ic('scroll')}这一天的事</div>${events}<div class="sec">${ic('sparkle')}这一天的漫画</div>${comics}`;
+        <div class="foot">${p.quote ? `<div class="quote"><img src="${ASSET[avatarKey(p.quote.who)]}" alt=""><span>${t('{q}——{who}', { q: qt(esc(p.quote.text)), who: CHARS[p.quote.who].name })}</span></div>` : ''}${p.tomorrow ? `<div class="next">${t('明日看点：{x}', { x: esc(p.tomorrow) })}</div>` : ''}</div></div>`
+      : `<div class="empty">${d.today ? t('第 {d} 天的日报，第 {n} 天早上出炉。', { d: d.day, n: d.day + 1 }) : t('这一天没有出日报。')}</div>`;
+    const diaries = `<div class="diaries">${Object.keys(CHARS).map((id) => { const x = d.diaries[id]; return `<div class="dy"><h4><img src="${ASSET[avatarKey(id)]}" alt="">${CHARS[id].name}<small>${x ? esc(x.mood || '') : ''}</small></h4>${x ? esc(x.text) : `<span class="empty">${t(d.today ? '睡前才写' : '这天没写日记')}</span>`}</div>`; }).join('')}</div>`;
+    const events = d.events.slice().reverse().map((e) => `<div class="ev ${e.star ? 'star' : ''}"><span class="tm">${esc(e.t)}</span><span class="tx">${esc(e.text)}</span></div>`).join('') || `<div class="empty">${t('这一天很安静。')}</div>`;
+    const comics = d.comics.length ? `<div class="thumbs">${d.comics.map((c) => `<button data-c="${esc(c.id)}"><img loading="lazy" src="${esc(c.url)}" alt="">${esc(c.title)}</button>`).join('')}</div>` : `<div class="empty">${t('这一天没有画漫画。')}</div>`;
+    body = `${paper}<div class="sec">${ic('book')}${t('三个人的日记')}</div>${diaries}<div class="sec">${ic('scroll')}${t('这一天的事')}</div>${events}<div class="sec">${ic('sparkle')}${t('这一天的漫画')}</div>${comics}`;
   }
-  chronBox.innerHTML = `<div class="top"><h2>鲸巷日报</h2><div class="days">${days}</div><button class="x" id="chronX">${ic('x')}</button></div><div class="body">${body}</div>`;
+  chronBox.innerHTML = `<div class="top"><h2>${t('鲸巷日报')}</h2><div class="days">${days}</div><button class="x" id="chronX" aria-label="${t('关闭')}">${ic('x')}</button></div><div class="body">${body}</div>`;
   chronBox.querySelectorAll('.days button').forEach((b) => b.onclick = () => { chronDay = +b.dataset.d; renderChronicle(); });
   chronBox.querySelectorAll('.thumbs button').forEach((b) => b.onclick = () => openComic(b.dataset.c));
   chronBox.querySelector('#chronX').onclick = () => chronModal.classList.remove('open');
@@ -2105,34 +2762,34 @@ chronModal.addEventListener('click', (e) => { if (e.target === chronModal) chron
 // 街区（伴读栏的一个页签）：正在进行的事（约好的事、项目、委托）、天气和今天、每周的日子、公告栏、街上的东西
 const WEEKLY = [[5, '19:00', '读书会', '纸页书屋'], [6, '21:00', '流星雨观星会', '栈桥'], [7, '11:00', '野餐会', '后山草坪'], [7, '18:00', '灯笼节', '后山古树'], [3, '06:00', '集市日', '海边集市']];
 function openLane() { openTab('lane'); }
-function untilText(min) { const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = Math.round(min % 60); return d ? `还有 ${d} 天 ${h} 小时` : h ? `还有 ${h} 小时 ${m} 分` : `还有 ${m} 分钟`; }
+function untilText(min) { const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = Math.round(min % 60); return d ? t('还有 {d} 天 {h} 小时', { d, h }) : h ? t('还有 {h} 小时 {m} 分', { h, m }) : t('还有 {n} 分钟', { n: m }); }
 let laneKey = '';
 function renderLane() {
   if (S.ptab !== 'lane' || !LIVE) return;
   const W = LIVE.world, th = W.things || {}, c = clock(), gm = gameMin(), wd = ((c.day - 1) % 7 + 7) % 7;
   const nm = (k) => CHARS[k]?.name || k, av = (k) => (CHARS[k] ? `<img src="${ASSET[avatarKey(k)]}">` : '');
   const fc = th.crystal?.state?.forecast;
-  const today = (W.events?.today || []).map((e) => `${e.name}${e.until ? `（${e.at}–${e.until}）` : `（${e.at}）`}`).join('、');
+  const today = joinL((W.events?.today || []).map((e) => `${e.name}${t('（{x}）', { x: e.until ? `${e.at}–${e.until}` : e.at })}`));
   const active = (W.events?.active || []).map((e) => e.name);
-  const weather = `<div class="row"><span class="k">今天</span><span class="v">第 ${c.day} 天 · 周${WEEK[wd]} · ${esc(W.weather?.name || '')}${W.weather?.today === 'rain' ? `（${W.weather.rain[0]}–${W.weather.rain[1]} 点有雨）` : ''}${today ? `<small>${esc(today)}${active.length ? ` · <span class="now">${esc(active.join('、'))}正在进行</span>` : ''}</small>` : ''}</span></div>` +
-    `<div class="row"><span class="k">明天</span><span class="v">${fc && fc !== '-' ? `${esc(fc)}<small>GPT 看水晶球预报的</small>` : '<small>GPT 还没看水晶球，没人知道</small>'}</span></div>`;
+  const weather = `<div class="row"><span class="k">${t('今天')}</span><span class="v">${dayWeek(c.day)} · ${esc(W.weather?.name || '')}${W.weather?.today === 'rain' ? t('（{a}–{b} 点有雨）', { a: W.weather.rain[0], b: W.weather.rain[1] }) : ''}${today ? `<small>${esc(today)}${active.length ? ` · <span class="now">${esc(t('{x}正在进行', { x: joinL(active) }))}</span>` : ''}</small>` : ''}</span></div>` +
+    `<div class="row"><span class="k">${t('明天')}</span><span class="v">${fc && fc !== '-' ? `${esc(trw(fc))}<small>${t('GPT 看水晶球预报的')}</small>` : `<small>${t('GPT 还没看水晶球，没人知道')}</small>`}</span></div>`;
   const next = WEEKLY.map(([w, at, name, where]) => { const [h, m] = at.split(':').map(Number); let dd = (w - 1 - wd + 7) % 7, mins = dd * 1440 + h * 60 + m - (gm % 1440); if (mins < -60) mins += 7 * 1440; return { name, where, at, w, mins }; }).sort((a, b) => a.mins - b.mins);
-  const sched = next.map((x) => `<div class="row"><span class="k">周${WEEK[x.w - 1]} ${x.at}</span><span class="v">${esc(x.name)} · ${esc(x.where)}<small class="${x.mins <= 0 ? 'now' : ''}">${x.mins <= 0 ? '正在进行' : untilText(x.mins)}</small></span></div>`).join('');
-  const gath = (W.gatherings || []).filter((g) => g.status !== 'done').map((g) => `<div class="row"><span class="k">${esc(g.at)}</span><span class="v">${av(g.host)}${esc(nm(g.host))}约的${esc(g.name)} · ${esc(g.where)}<small>${g.status === 'running' ? `<span class="now">进行中</span> · 到了：${g.present.map(nm).join('、') || '还没人'}` : `约了 ${g.invited.map(nm).join('、')}`}</small></span></div>`);
-  const proj = (W.projects || []).filter((p) => p.status === 'active').map((p) => `<div class="row"><span class="k">${av(p.owner)}${esc(p.name)}</span><span class="v">${p.kind === 'recipe' ? `「${esc(p.title)}」` : `《${esc(p.title)}》`} · ${p.done}/${p.steps}${p.fails ? `（失败了 ${p.fails} 次）` : ''}${p.parts.length ? `<small>「${esc(p.parts.at(-1).text)}」</small>` : ''}<div class="bar"><i style="width:${Math.round(p.done / p.steps * 100)}%"></i></div></span></div>`);
-  const done = (W.projects || []).filter((p) => p.status === 'done').slice(-3).map((p) => `<div class="row"><span class="k">${av(p.owner)}做完了</span><span class="v">${p.kind === 'recipe' ? `新菜「${esc(p.title)}」` : p.kind === 'story' ? `新书《${esc(p.title)}》` : `星图《${esc(p.title)}》`}</span></div>`);
-  const reqs = (W.requests || []).filter((r) => r.status === 'accepted').map((r) => `<div class="row"><span class="k">${av(r.to)}帮忙</span><span class="v">${esc(nm(r.to))}答应帮${esc(nm(r.from))}：${esc(r.text)}</span></div>`);
-  const coms = (W.commissions || []).filter((x) => x.status === 'open').map((x) => `<div class="row"><span class="k">委托</span><span class="v">${esc(x.npc)}：${esc(x.text)}</span></div>`);
-  const busy = [...gath, ...proj, ...done, ...reqs, ...coms].join('') || '<div class="empty">现在没有约好的事，也没有进行中的项目。</div>';
-  const notes = (th.board?.state?.lines || []).slice().reverse().map((l) => `<div class="note">${esc(l.text)}<small>${esc(nm(l.by) === 'town' ? '街坊' : nm(l.by))}</small></div>`).join('') || '<div class="empty">公告栏是空的。</div>';
-  const bb = (th.blackboard?.state?.lines || []).map((l) => `<div class="note">${esc(l.text)}<small>${esc(nm(l.by))}</small></div>`).join('') || '<div class="empty">小黑板上什么也没写。</div>';
+  const sched = next.map((x) => `<div class="row"><span class="k">${WD[LANG][x.w - 1]} ${x.at}</span><span class="v">${esc(t(x.name))} · ${esc(t(x.where))}<small class="${x.mins <= 0 ? 'now' : ''}">${x.mins <= 0 ? t('正在进行') : untilText(x.mins)}</small></span></div>`).join('');
+  const gath = (W.gatherings || []).filter((g) => g.status !== 'done').map((g) => `<div class="row"><span class="k">${esc(g.at)}</span><span class="v">${av(g.host)}${esc(t('{h}约的{x}', { h: nm(g.host), x: g.name }))} · ${esc(g.where)}<small>${g.status === 'running' ? `<span class="now">${t('进行中')}</span> · ${t('到了：{x}', { x: joinL(g.present.map(nm)) || t('还没人') })}` : t('约了{x}', { x: joinL(g.invited.map(nm)) })}</small></span></div>`);
+  const proj = (W.projects || []).filter((p) => p.status === 'active').map((p) => `<div class="row"><span class="k">${av(p.owner)}${esc(p.name)}</span><span class="v">${p.kind === 'recipe' ? qt(esc(p.title)) : bk(esc(p.title))} · ${p.done}/${p.steps}${p.fails ? t('（失败了 {n} 次）', { n: p.fails }) : ''}${p.parts.length ? `<small>${qt(esc(p.parts.at(-1).text))}</small>` : ''}<div class="bar"><i style="width:${Math.round(p.done / p.steps * 100)}%"></i></div></span></div>`);
+  const done = (W.projects || []).filter((p) => p.status === 'done').slice(-3).map((p) => `<div class="row"><span class="k">${av(p.owner)}${t('做完了')}</span><span class="v">${p.kind === 'recipe' ? t('新菜{x}', { x: qt(esc(p.title)) }) : p.kind === 'story' ? t('新书{x}', { x: bk(esc(p.title)) }) : t('星图{x}', { x: bk(esc(p.title)) })}</span></div>`);
+  const reqs = (W.requests || []).filter((r) => r.status === 'accepted').map((r) => `<div class="row"><span class="k">${av(r.to)}${t('帮忙')}</span><span class="v">${esc(t('{a}答应帮{b}：{x}', { a: nm(r.to), b: nm(r.from), x: r.text }))}</span></div>`);
+  const coms = (W.commissions || []).filter((x) => x.status === 'open').map((x) => `<div class="row"><span class="k">${t('委托')}</span><span class="v">${esc(x.npc)}${t('：')}${esc(x.text)}</span></div>`);
+  const busy = [...gath, ...proj, ...done, ...reqs, ...coms].join('') || `<div class="empty">${t('现在没有约好的事，也没有进行中的项目。')}</div>`;
+  const notes = (th.board?.state?.lines || []).slice().reverse().map((l) => `<div class="note">${esc(trw(l.text))}<small>${esc(nm(l.by) === 'town' ? t('街坊') : nm(l.by))}</small></div>`).join('') || `<div class="empty">${t('公告栏是空的。')}</div>`;
+  const bb = (th.blackboard?.state?.lines || []).map((l) => `<div class="note">${esc(trw(l.text))}<small>${esc(nm(l.by))}</small></div>`).join('') || `<div class="empty">${t('小黑板上什么也没写。')}</div>`;
   const others = ['cat', 'post', 'lighthouse', 'boat', 'pond', 'oldtree'].filter((k) => th[k]).map((k) => `<div class="row"><span class="k">${esc(th[k].name)}</span><span class="v">${esc(th[k].show)}</span></div>`).join('');
   const html = `<div class="lane">
-      <div class="box"><div class="sec">${ic('sparkle')}正在进行</div>${busy}</div>
-      <div class="box"><div class="sec">${ic('sun')}天气和今天</div>${weather}</div>
-      <div class="box"><div class="sec">${ic('bell')}每周的日子</div>${sched}</div>
-      <div class="box"><div class="sec">${ic('scroll')}公园公告栏</div>${notes}<div class="sec" style="margin-top:12px">${ic('book')}书屋门口的小黑板</div>${bb}</div>
-      <div class="box"><div class="sec">${ic('pin')}街上</div>${others}</div>
+      <div class="box"><div class="sec">${ic('sparkle')}${t('正在进行')}</div>${busy}</div>
+      <div class="box"><div class="sec">${ic('sun')}${t('天气和今天')}</div>${weather}</div>
+      <div class="box"><div class="sec">${ic('bell')}${t('每周的日子')}</div>${sched}</div>
+      <div class="box"><div class="sec">${ic('scroll')}${t('公园公告栏')}</div>${notes}<div class="sec" style="margin-top:12px">${ic('book')}${t('书屋门口的小黑板')}</div>${bb}</div>
+      <div class="box"><div class="sec">${ic('pin')}${t('街上')}</div>${others}</div>
     </div>`;
   if (html === laneKey && entriesEl.querySelector('.lane')) return; laneKey = html; // 内容没变就不重画，免得滚动位置跳
   entriesEl.innerHTML = html;
@@ -2142,8 +2799,12 @@ let chronAt = 0;
 async function loadChron() {
   if (!LIVE || Date.now() - chronAt < 60000) return renderPanelBody();
   chronAt = Date.now();
-  try { CHRON = (await (await fetch('/api/chronicle')).json()).days || []; } catch { CHRON = CHRON || []; }
+  await fetchChron();
   if (S.ptab === 'paper') renderPaperTab();
+}
+async function fetchChron() {
+  const lang = LANG;
+  try { const d = await (await fetch(`/api/chronicle${lang !== 'zh' ? `?lang=${lang}` : ''}`)).json(); if (lang === LANG) CHRON = d.days || []; } catch { CHRON = CHRON || []; }
 }
 
 const comicModal = document.getElementById('comicModal');
@@ -2161,38 +2822,45 @@ function tickSlow() {
   } else for (const id of Object.keys(CHARS)) {
     const st = stateOf(id), c = CHARS[id];
     if (seen[id] !== undefined && seen[id] !== st.key) {
-      if (st.s.log) addLog({ who: id, text: st.s.log, area: st.area || undefined, star: st.s.star }, true);
-      if (st.s.thought) { c._seen = c._seen || []; c._seen.unshift({ t: fmt(clock()), x: st.s.thought }); }
+      const raw = c.routine[st.i]; // 记中文原文，显示时再翻，换语言后旧的也跟着换
+      if (raw.log) addLog({ who: id, text: raw.log, area: st.area || undefined, star: raw.star }, true);
+      if (raw.thought) { c._seen = c._seen || []; c._seen.unshift({ t: fmt(clock()), x: raw.thought }); }
     }
     seen[id] = st.key;
   }
-  renderDock(); renderAreas(); renderHud();
+  renderDock(); renderAreas(); renderHud(); fitHeader();
   if (S.panel || S.room) { renderSide(false); renderPlaque(); }
   if (S.pop) renderPop();
   if (S.roomPop) renderRoomPop();
-  document.getElementById('viewers').textContent = LIVE ? String(LIVE.viewers ?? 1) : (1284 + Math.round(Math.sin(realSec() / 9) * 21)).toLocaleString();
+  document.getElementById('viewers').textContent = (LIVE ? LIVE.viewers ?? 1 : 1284 + Math.round(Math.sin(realSec() / 9) * 21)).toLocaleString(LOCALE[LANG]);
 }
 // 拉一次服务端的状态；顺便校准服务端时钟
+// 按当前语言要；刚换了语言时不带 v（手上那份是旧语言的），请求途中又换了语言就扔掉这份
+let LIVE_LANG = null;
 async function poll() {
-  const t0 = Date.now();
+  const t0 = Date.now(), lang = LANG;
   try {
-    const r = await fetch(`/api/state?c=${CID}${LIVE ? `&v=${LIVE.ver}` : ''}`, { cache: 'no-store' });
+    const r = await fetch(`/api/state?c=${CID}${LIVE && LIVE_LANG === lang ? `&v=${encodeURIComponent(LIVE.ver)}` : ''}${lang !== 'zh' ? `&lang=${lang}` : ''}`, { cache: 'no-store' });
+    if (lang !== LANG) return true;
     if (r.status === 204) return true;
     if (!r.ok) return false;
     const d = await r.json(), t1 = Date.now(), off = d.now + (t1 - t0) / 2 - t1;
+    if (lang !== LANG) return true;
     OFF = LIVE && Math.abs(off - OFF) < 1500 ? OFF * 0.8 + off * 0.2 : off;
-    LIVE = d;
+    const switched = LIVE && LIVE_LANG !== lang;
+    LIVE = d; LIVE_LANG = lang;
+    if (switched && booted) rerenderAll(); // 新语言的数据到了：整页重画
     renderCredit(); renderLane(); if (S.ptab === 'album') renderAlbum();
     return true;
   } catch { return false; }
 }
 function renderCredit() {
   if (!document.getElementById('credit')) return; // 署名栏已按要求去掉
-  let html = document.getElementById('creditTpl').innerHTML;
+  let html = t(document.getElementById('creditTpl').innerHTML.trim());
   if (LIVE) {
-    const models = [...new Set(Object.values(LIVE.chars).map((c) => c.model))].join('、');
-    const st = { credit: '（中转站额度用完了，角色暂时按习惯生活）', error: '（模型暂时连不上，角色暂时按习惯生活）', budget: '（今天的调用次数用完了，角色暂时按习惯生活）' }[LIVE.llm.status] || '';
-    html = `角色的决定、念头和日记：${esc(models)} 实时生成${st} · ` + html.replace('非商业同人 demo', '非商业同人作品');
+    const models = joinL([...new Set(Object.values(LIVE.chars).map((c) => c.model))]);
+    const st = { credit: '（中转站额度用完了，角色暂时按习惯生活）', error: '（模型暂时连不上，角色暂时按习惯生活）', budget: '（今天的调用次数用完了，角色暂时按习惯生活）' }[LIVE.llm.status];
+    html = t('角色的决定、念头和日记：{m} 实时生成', { m: esc(models) }) + (st ? t(st) : '') + ' · ' + (LANG === 'zh' ? html.replace('非商业同人 demo', '非商业同人作品') : html);
   }
   document.getElementById('credit').innerHTML = html;
 }
@@ -2202,6 +2870,7 @@ const liveReady = Q.get('demo') ? Promise.resolve(false) : Promise.race([poll(),
 Promise.all([...Object.keys(ASSET).map(load), liveReady]).then(() => {
   renderCredit();
   if (LIVE) setInterval(poll, 4000);
+  booted = true;
   fitStage(); renderTodSeg(); renderMe(); renderFilters(); renderPtabs(); renderPanelBody(); tickSlow(); setInterval(tickSlow, 1000);
   if (Q.get('panel')) openPanel(Q.get('panel'));
   if (SHOPS[Q.get('room')]) { openRoom(Q.get('room')); if (Q.get('rpop')) setTimeout(() => openRoomPop(Q.get('rpop')), 300); }

@@ -9,12 +9,15 @@ const CODEX_HOME = '/data/ws/.codex-luna';
 const RUN_DIR = '/tmp/luna-codex-run'; // 空目录，codex 的 cwd
 
 export function mirasimProvider() {
-  const pids = execFileSync('pgrep', ['-x', 'codex'], { encoding: 'utf8' }).trim().split('\n');
+  // 跳过我们自己拉起的 app-server（CODEX_HOME 是 .codex-luna）：它带的是当初读到的地址，mirasim 换了转发端口后就是死的；有几个时用最新的
+  const pids = execFileSync('pgrep', ['-x', 'codex'], { encoding: 'utf8' }).trim().split('\n').reverse();
   for (const pid of pids) {
     try {
       const args = readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0');
+      const env = readFileSync(`/proc/${pid}/environ`, 'utf8').split('\0');
+      if (env.includes(`CODEX_HOME=${CODEX_HOME}`)) continue;
       const url = args.find((a) => a.startsWith('model_providers.mirasim.base_url='))?.split('=').slice(1).join('=');
-      const key = readFileSync(`/proc/${pid}/environ`, 'utf8').split('\0').find((e) => e.startsWith('OPENAI_API_KEY='))?.slice(15);
+      const key = env.find((e) => e.startsWith('OPENAI_API_KEY='))?.slice(15);
       if (url && key) return { url, key };
     } catch { /* 进程刚好退出 */ }
   }

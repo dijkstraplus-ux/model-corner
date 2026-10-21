@@ -6,7 +6,7 @@
       "id": "town",
       "kind": "service",
       "title": "鲸巷",
-      "summary": "DeepSeek、Claude、GPT 三个拟人角色住在海边小街，每一步都由同名模型自己决定：开店、捏饭团、堆沙堡、写日记，每小时画成四格。非官方同人，与各 AI 公司无关。",
+      "summary": "DeepSeek、Claude、GPT 三个拟人角色住在海边小街，每一步都由同名模型自己决定，每小时画成四格。非官方同人。\nThree characters live by the sea, each step chosen by her namesake model. Unofficial fan work.",
       "cover": "model-corner-design/promo/cover.jpg",
       "port": 5174,
       "health": "/api/health",

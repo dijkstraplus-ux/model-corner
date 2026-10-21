@@ -4,7 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
-import { chronicle, snapshot, start, stop } from './sim.mjs';
+import { chronicle, snapshot, start, stop, stateVer } from './sim.mjs';
+import { i18nVersion, i18nStatus, localizeCached } from './i18n.mjs';
 import { myLetters, postLetter } from './audience.mjs';
 import { loadPapers } from './paper.mjs';
 import { COMIC_DIR, loadComics } from './comic.mjs';
@@ -49,8 +50,14 @@ const server = createServer((req, res) => {
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') return send(req, res, 405, { error: 'method not allowed' });
   if (url.pathname === '/api/letters') return send(req, res, 200, { letters: myLetters(url.searchParams.get('token')) });
-  if (url.pathname === '/api/chronicle') return send(req, res, 200, { days: chronicle() });
+  // ?lang=en|ja：世界里的中文换成译文（还没翻好的保持中文，后台会去翻）；默认 zh
+  const lang = ['en', 'ja'].includes(url.searchParams.get('lang')) ? url.searchParams.get('lang') : 'zh';
+  if (url.pathname === '/api/chronicle') {
+    const days = chronicle();
+    return send(req, res, 200, lang === 'zh' ? { days, lang } : { ...localizeCached(`chronicle.${stateVer()}`, { days }, lang), lang });
+  }
   if (url.pathname === '/api/health') return send(req, res, 200, { ok: true });
+  if (url.pathname === '/api/i18n') return send(req, res, 200, i18nStatus());
   if (url.pathname === '/api/state') {
     // 在线人数：每个页面带一个随机编号，30 秒内拉过就算在看
     const cid = url.searchParams.get('c'), now = Date.now();
@@ -61,8 +68,12 @@ const server = createServer((req, res) => {
     snap.comics = loadComics().filter((c) => c.kind !== 'none').slice(-30).map(({ id, kind, at, day, span, title, file }) => ({ id, kind, at, day, span, title, url: `/api/comics/${file}` }));
     snap.papers = loadPapers().map(({ day, headline }) => ({ day, headline }));
     snap.ver = `${snap.ver}.${snap.comics.length}.${snap.papers.length}`;
+    if (lang !== 'zh') snap.ver += `.i${i18nVersion()}`; // 新翻好的句子也算一次更新
     if (url.searchParams.get('v') === String(snap.ver)) { res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end(); }
-    return send(req, res, 200, snap);
+    snap.lang = lang;
+    if (lang === 'zh') return send(req, res, 200, snap);
+    const { now: at, viewers: n, ...rest } = snap; // 在线人数、服务器时间每次都是新的，其余按版本缓存
+    return send(req, res, 200, { now: at, viewers: n, ...localizeCached(`state.${snap.ver}`, rest, lang) });
   }
   // 漫画 / CG 图片：只认 c<数字>.png
   const cm = url.pathname.match(/^\/api\/comics\/(c\d+\.png)$/);

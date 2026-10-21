@@ -18,5 +18,10 @@
   },
   "paper": {
     "enabled": true
+  },
+  "i18n": {
+    "enabled": true,
+    "model": "claude:claude-haiku-5-5",
+    "maxCallsPerHour": 60
   }
 }

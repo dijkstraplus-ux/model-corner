@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { chat, image, parseJson } from './llm.mjs';
 import { CHARS } from './personas.mjs';
 import { THINGS, showText, weatherName } from './worldstate.mjs';
+import { learn } from './i18n.mjs';
 
 const DATA = process.env.SIM_DATA || fileURLToPath(new URL('./data/', import.meta.url));
 export const COMIC_DIR = `${DATA}comics/`;
@@ -52,12 +53,13 @@ ${thoughts.map((x) => `- ${x.t} ${CHARS[x.who].name}：${x.text}`).join('\n') ||
 {"kind": "comic" | "cg" | "none",
  "reason": "为什么这样选（≤30字）",
  "title": "标题（≤12字）",
+ "en": {"title": "标题的英文版"}, "ja": {"title": "标题的日文版"},
  "uses": ["画到的事件簿编号，如 e12；没用事件簿就空数组"],
  "panels": [{"scene": "这一格的画面：地点、动作、表情（≤60字）", "who": ["ds", ...], "lines": [{"who": "ds", "text": "台词（≤14字）"}], "caption": "旁白（≤14字）或空字符串"}],
  "cg": {"scene": "这一刻的画面：地点、光线氛围、每个人的动作和表情（≤90字）", "who": ["ds", ...]}}
-kind 是 comic 时 panels 正好 4 个、每格台词最多 2 句；kind 是 cg 时只填 cg；kind 是 none 时只填 kind 和 reason。`;
+en、ja 只放标题的英文、日文版（画面里的字还是中文）；kind 是 comic 时 panels 正好 4 个、每格台词最多 2 句；kind 是 cg 时只填 cg；kind 是 none 时只填 kind 和 reason。`;
   const messages = [{ role: 'system', content: system }, { role: 'user', content: user }];
-  const r = await chat({ model: cfg.models?.ds || cfg.model, messages, maxTokens: 1200, temperature: 0.9, reasoning: cfg.reasoning, json: true });
+  const r = await chat({ model: cfg.models?.ds || cfg.model, messages, maxTokens: 1800, temperature: 0.9, reasoning: cfg.reasoning, json: true });
   appendFileSync(CALLS, JSON.stringify({ at: new Date().toISOString(), char: 'ds', kind: 'comic-script', ms: r.ms, usage: r.usage, messages, reply: r.text }) + '\n');
   const script = parseJson(r.text);
   const kind = ['comic', 'cg'].includes(script.kind) ? script.kind : 'none';
@@ -90,6 +92,7 @@ ${castText}
   writeFileSync(`${COMIC_DIR}${id}.png`, img.png);
   const uses = (Array.isArray(script.uses) ? script.uses : []).filter((u) => eps.some((e) => e.id === u));
   for (const e of eps) if (uses.includes(e.id)) e.drawn = true; // state 是运行中的 S 时，下次存盘就记住了
+  try { const t = String(script.title || '').slice(0, 20), tx = (o) => (o && typeof o === 'object' ? String(o.title || '').trim().replace(/^[《“"『]+|[》”"』]+$/g, '') : ''); learn(t, tx(script.en).slice(0, 50), tx(script.ja).slice(0, 26)); } catch { /* 不影响漫画 */ }
   const entry = { id, kind, at: to, from, day: day0, span: `${t0}–${t1}`, title: String(script.title || '').slice(0, 20), reason: String(script.reason || '').slice(0, 40), uses, panels, cg: kind === 'cg' ? script.cg : undefined, file: `${id}.png` };
   const list = loadComics();
   list.push(entry);

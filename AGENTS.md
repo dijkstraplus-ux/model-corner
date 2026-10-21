@@ -20,8 +20,10 @@ The space's main page (port 5173, `npm run dev`) is the model-corner town demo, 
   (`sim/vite-plugin.mjs`), listening on 127.0.0.1:5174 and reached only through the `/api` proxy. Each character
   decides her next activity with her namesake model: DeepSeek via the relay (`deepseek-v4.1-flash-1017`), Claude via
   mirasim's claude gateway (`claude:claude-haiku-5-5`, sim/claude.mjs), GPT via mirasim's codex provider
-  (`codex:gpt-6-luna`, sim/codex.mjs; needs a mirasim codex process running once after each sim start to read the
-  provider). Gateway credentials are read from running agent processes and kept in memory only — never write them
+  (`codex:gpt-6-luna`, sim/codex.mjs). That provider is a loopback forwarding address on the mirasim host whose port
+  changes; the sim reads it from a running mirasim codex process when there is one (never from its own app-server), else
+  uses the keyholder's copy, and restarts its app-server after a timeout. If the log says `channel 127.0.0.1:… is gone`,
+  any Codex turn in mirasim brings a fresh address and GPT picks it up on her next call. Gateway credentials are read from running agent processes and kept in memory only — never write them
   to disk. Models, call caps and an on/off switch are in `sim/config.json`. Hourly comics: sim/comic.mjs
   (`node sim/comic-now.mjs [minutes]` makes one by hand). Daily paper: sim/paper.mjs (written once a game day is over);
   chronicle: `chronicle()` in sim.mjs, served at /api/chronicle. Codex/claude gateway credentials are held by
@@ -42,6 +44,15 @@ The space's main page (port 5173, `npm run dev`) is the model-corner town demo, 
   `python3 -I tools/sync_atlas.py` to copy it into the page. Map props (sandcastle stages, parcels, umbrella, swing
   seat, lantern garland…) are `demo2/assets/props.webp` + the inline `PROPS` table; where seated poses sit, where
   futons go and how the swing hangs are `SEATS`, the `seat`/`bed` room spots and `SWING` in `demo2/index.html`.
+- Languages: zh / en / ja. Chinese stays the world's internal language (prompts, state, sim logic); only output is translated.
+  Every model call that writes visible text returns `en` and `ja` blocks next to the zh fields, and `learn()` in `sim/i18n.mjs`
+  stores them. Everything else (strings the code puts together, old data) is translated in batches by the translator in
+  `sim/i18n.mjs` (config `i18n` in `sim/config.json`, claude gateway by default, only when someone views en/ja) and cached in
+  `sim/data/i18n.json`. Names of places, things, items and events: `sim/content/glossary.json` (when you add content, add its
+  en/ja names there too). `/api/state` and `/api/chronicle` take `?lang=en|ja`; values under `state` keys stay zh and come
+  translated in the top-level `tr` map. The page's own text: the `I18N` table (`'zh': ['en', 'ja']`) above the main script in
+  `demo2/index.html`, used as `t('第 {d} 天', { d })`; fixed HTML uses `data-i18n`; `I18N_MISS` in the console lists missing keys.
+  Page logic must not match on server text (use ids, `kind`, `comic`, `state` fields).
 - Visitors never influence the world (no gifts, wishes, votes). The only thing they can send is a letter to the dev
   team (POST /api/letters, sim/audience.mjs, stored in sim/data/audience/; only server.mjs imports it — never feed it
   into prompts). Read and answer letters with `node sim/letters-cli.mjs list` / `reply <id> <text>`. State is `sim/data/state.json` (delete it to restart the world at day 1

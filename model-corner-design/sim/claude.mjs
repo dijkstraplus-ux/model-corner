@@ -33,10 +33,10 @@ async function findGateway(model) {
   throw new RelayError('claude: no working mirasim claude gateway (no claude agent running)', 0, true);
 }
 
-export async function claudeChat({ model, messages, timeoutMs = 90000 }) {
+export async function claudeChat({ model, messages, timeoutMs = 90000, rp = true }) {
   if (!gateway) gateway = await keyGet('claude');
   if (!gateway) { finding = finding || findGateway(model).finally(() => { finding = null; }); gateway = await finding; await keySet('claude', gateway); }
-  const system = RP + '\n\n' + messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n');
+  const system = (rp ? RP + '\n\n' : '') + messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n');
   const user = messages.filter((m) => m.role === 'user').map((m) => m.content).join('\n\n');
   try { return await run(gateway, model, user, system, timeoutMs); } catch (e) { gateway = null; await keyDrop('claude'); throw e; } // 下次重新找
 }
